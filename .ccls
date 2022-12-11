@@ -1,0 +1,6 @@
+clang++
+%h %cpp -std=c++17
+%h -x c++-header
+-I antlr4_runtime/src/antlr4_runtime/runtime/Cpp/runtime/src/
+-I.
+
