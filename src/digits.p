@@ -1,3 +1,5 @@
+var a, b;
 begin
-  q := 0
+  print 0;
+  a := b 
 end.

@@ -67,7 +67,7 @@
 %token          MINUS LPAR RPAR COMMA SEMI DOT ASSIGN EOFP BADTOK
 %token          PROC_BEGIN PROC_END VAR PRINT IF THEN ELSE WHILE DO PROC RETURN NEWLINE
 
-%start          program
+%start          endexpr
 
 %type <progval>     program
 %type <blockval>    block
@@ -88,6 +88,9 @@
 %type <expr_list>   expr_list 
 %type <expr_list>   actuals
 
+%type <stmtptr>     endstmt
+%type <exprval>     endexpr
+
 %locations
 
 %%
@@ -97,11 +100,11 @@ program :
 	;
 
 block :
-    var_decl proc_decls PROC_BEGIN stmts PROC_END { $$ = new Block($1, $2, $4); }
+    var_decl proc_decls PROC_BEGIN stmts PROC_END { printf("haha"); $$ = new Block($1, $2, $4); }
 	;
 
 var_decl :
-    /* empty */                         { $$ = new vector<ident>(); }
+    /* empty */                         { printf("vars empty\n"); $$ = new vector<ident>(); }
   | VAR ident_list SEMI                 { $$ = $2; }
 	;
 
@@ -136,8 +139,8 @@ stmt_list :
 	;
 
 stmt :
-    /* empty */                         { $$ = new Skip(); }
-  | name ASSIGN expr                    { $$ = new Assign($1, $3); }
+    /* /1* empty *1/                         { $$ = new Skip(); } */
+   name ASSIGN expr                    { $$ = new Assign($1, $3); }
   | RETURN expr                         { $$ = new Return($2); }
   | IF expr THEN stmts PROC_END              { $$ = new IfStmt($2, $4, new Skip()); }
   | IF expr THEN stmts ELSE stmts PROC_END   { $$ = new IfStmt($2, $4, $6); }
@@ -146,10 +149,14 @@ stmt :
   | NEWLINE                             { $$ = new Newline(); }
 	;
 
+endstmt : stmt PROC_END                 { std::cout << $1->str(); $$ = $1; }
+
 actuals :
     LPAR RPAR                           { $$ = new vector<Expr *> (); }
   | LPAR expr_list RPAR                 { $$ = $2; }
 	;
+
+endexpr : NUMBER EOFP                 { std::cout << $1; return 0; }
 
 expr_list :
     expr                                { vector<Expr *> *exs = new vector<Expr *>(); 

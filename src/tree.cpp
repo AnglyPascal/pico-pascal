@@ -270,13 +270,13 @@ string Assign::str() const { return x->str() + " = " + e->str() + "\n"; }
 string Return::str() const { return "return " + e->str() + "\n"; }
 
 string IfStmt::str() const {
-  string str = "if (" + cond->str() + ") {\n" + ifStmt->str() + "\n}";
+  string str = "if (" + cond->str() + ") {\n" + ifStmt->str() + "}";
   str += "else {\n" + elseStmt->str() + "\n}\n";
   return str;
 }
 
 string WhileStmt::str() const {
-  string str = "if (" + cond->str() + ") {\n" + st->str() + "\n}";
+  string str = "while (" + cond->str() + ") {\n" + st->str() + "}";
   return str;
 }
 

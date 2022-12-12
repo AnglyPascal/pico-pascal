@@ -346,23 +346,7 @@ namespace Pascal {
         S_RETURN = 28,                           // RETURN
         S_NEWLINE = 29,                          // NEWLINE
         S_YYACCEPT = 30,                         // $accept
-        S_program = 31,                          // program
-        S_block = 32,                            // block
-        S_var_decl = 33,                         // var_decl
-        S_ident_list = 34,                       // ident_list
-        S_proc_decls = 35,                       // proc_decls
-        S_proc_decl = 36,                        // proc_decl
-        S_formals = 37,                          // formals
-        S_stmts = 38,                            // stmts
-        S_stmt_list = 39,                        // stmt_list
-        S_stmt = 40,                             // stmt
-        S_actuals = 41,                          // actuals
-        S_expr_list = 42,                        // expr_list
-        S_expr = 43,                             // expr
-        S_simple = 44,                           // simple
-        S_term = 45,                             // term
-        S_factor = 46,                           // factor
-        S_name = 47                              // name
+        S_endexpr = 31                           // endexpr
       };
     };
 
@@ -854,9 +838,9 @@ namespace Pascal {
     /// Constants.
     enum
     {
-      yylast_ = 79,     ///< Last index in yytable_.
-      yynnts_ = 18,  ///< Number of nonterminal symbols.
-      yyfinal_ = 7 ///< Termination state number.
+      yylast_ = 2,     ///< Last index in yytable_.
+      yynnts_ = 2,  ///< Number of nonterminal symbols.
+      yyfinal_ = 4 ///< Termination state number.
     };
 
 
@@ -871,7 +855,7 @@ namespace Pascal {
 
 #line 6 "parser.y"
 } // Pascal
-#line 875 "parser.h"
+#line 859 "parser.h"
 
 
 

@@ -622,251 +622,14 @@ namespace Pascal {
         {
           switch (yyn)
             {
-  case 2: // program: block DOT
-#line 96 "parser.y"
-                                        { (yylhs.value.progval) = new Program((yystack_[1].value.blockval)); pgm = (yylhs.value.progval); }
+  case 2: // endexpr: NUMBER EOFP
+#line 159 "parser.y"
+                                      { std::cout << (yystack_[1].value.intval); return 0; }
 #line 629 "parser.cpp"
     break;
 
-  case 3: // block: var_decl proc_decls PROC_BEGIN stmts PROC_END
-#line 100 "parser.y"
-                                                  { (yylhs.value.blockval) = new Block((yystack_[4].value.ident_list), (yystack_[3].value.proc_list), (yystack_[1].value.stmtptr)); }
-#line 635 "parser.cpp"
-    break;
 
-  case 4: // var_decl: %empty
-#line 104 "parser.y"
-                                        { (yylhs.value.ident_list) = new vector<ident>(); }
-#line 641 "parser.cpp"
-    break;
-
-  case 5: // var_decl: VAR ident_list SEMI
-#line 105 "parser.y"
-                                        { (yylhs.value.ident_list) = (yystack_[1].value.ident_list); }
-#line 647 "parser.cpp"
-    break;
-
-  case 6: // ident_list: IDENT
-#line 109 "parser.y"
-                                        { vector<ident> *ids = new vector<ident>(); 
-                                          ids->push_back(*(yystack_[0].value.strval)); (yylhs.value.ident_list) = ids; }
-#line 654 "parser.cpp"
-    break;
-
-  case 7: // ident_list: ident_list COMMA IDENT
-#line 111 "parser.y"
-                                        { (yystack_[2].value.ident_list)->push_back(*(yystack_[0].value.strval)); (yylhs.value.ident_list) = (yystack_[2].value.ident_list); }
-#line 660 "parser.cpp"
-    break;
-
-  case 8: // proc_decls: %empty
-#line 115 "parser.y"
-                                        { (yylhs.value.proc_list) = new vector<Proc *>(); }
-#line 666 "parser.cpp"
-    break;
-
-  case 9: // proc_decls: proc_decls proc_decl
-#line 116 "parser.y"
-                                        { (yystack_[1].value.proc_list)->push_back((yystack_[0].value.procval)); (yylhs.value.proc_list) = (yystack_[1].value.proc_list); }
-#line 672 "parser.cpp"
-    break;
-
-  case 10: // proc_decl: PROC name formals SEMI block SEMI
-#line 120 "parser.y"
-                                        { new Proc((yystack_[4].value.nameval), (yystack_[3].value.ident_list), (yystack_[1].value.blockval)); }
-#line 678 "parser.cpp"
-    break;
-
-  case 11: // formals: LPAR RPAR
-#line 124 "parser.y"
-                                        { (yylhs.value.ident_list) = new vector<ident>(); }
-#line 684 "parser.cpp"
-    break;
-
-  case 12: // formals: LPAR ident_list RPAR
-#line 125 "parser.y"
-                                        { (yylhs.value.ident_list) = (yystack_[1].value.ident_list); }
-#line 690 "parser.cpp"
-    break;
-
-  case 13: // stmts: stmt_list
-#line 129 "parser.y"
-                                        { (yylhs.value.stmtptr) = Pascal::sequence((yystack_[0].value.stmt_list)); }
-#line 696 "parser.cpp"
-    break;
-
-  case 14: // stmt_list: stmt
-#line 133 "parser.y"
-                                        { vector<Stmt *> *sts = new vector<Stmt *>(); 
-                                          sts->push_back((yystack_[0].value.stmtptr)); (yylhs.value.stmt_list) = sts; }
-#line 703 "parser.cpp"
-    break;
-
-  case 15: // stmt_list: stmt_list SEMI stmt
-#line 135 "parser.y"
-                                        { (yystack_[2].value.stmt_list)->push_back((yystack_[0].value.stmtptr)); (yylhs.value.stmt_list) = (yystack_[2].value.stmt_list); }
-#line 709 "parser.cpp"
-    break;
-
-  case 16: // stmt: %empty
-#line 139 "parser.y"
-                                        { (yylhs.value.stmtptr) = new Skip(); }
-#line 715 "parser.cpp"
-    break;
-
-  case 17: // stmt: name ASSIGN expr
-#line 140 "parser.y"
-                                        { (yylhs.value.stmtptr) = new Assign((yystack_[2].value.nameval), (yystack_[0].value.exprval)); }
-#line 721 "parser.cpp"
-    break;
-
-  case 18: // stmt: RETURN expr
-#line 141 "parser.y"
-                                        { (yylhs.value.stmtptr) = new Return((yystack_[0].value.exprval)); }
-#line 727 "parser.cpp"
-    break;
-
-  case 19: // stmt: IF expr THEN stmts PROC_END
-#line 142 "parser.y"
-                                             { (yylhs.value.stmtptr) = new IfStmt((yystack_[3].value.exprval), (yystack_[1].value.stmtptr), new Skip()); }
-#line 733 "parser.cpp"
-    break;
-
-  case 20: // stmt: IF expr THEN stmts ELSE stmts PROC_END
-#line 143 "parser.y"
-                                             { (yylhs.value.stmtptr) = new IfStmt((yystack_[5].value.exprval), (yystack_[3].value.stmtptr), (yystack_[1].value.stmtptr)); }
-#line 739 "parser.cpp"
-    break;
-
-  case 21: // stmt: WHILE expr DO stmts PROC_END
-#line 144 "parser.y"
-                                             { (yylhs.value.stmtptr) = new WhileStmt((yystack_[3].value.exprval), (yystack_[1].value.stmtptr)); }
-#line 745 "parser.cpp"
-    break;
-
-  case 22: // stmt: PRINT expr
-#line 145 "parser.y"
-                                        { (yylhs.value.stmtptr) = new Print((yystack_[0].value.exprval)); }
-#line 751 "parser.cpp"
-    break;
-
-  case 23: // stmt: NEWLINE
-#line 146 "parser.y"
-                                        { (yylhs.value.stmtptr) = new Newline(); }
-#line 757 "parser.cpp"
-    break;
-
-  case 24: // actuals: LPAR RPAR
-#line 150 "parser.y"
-                                        { (yylhs.value.expr_list) = new vector<Expr *> (); }
-#line 763 "parser.cpp"
-    break;
-
-  case 25: // actuals: LPAR expr_list RPAR
-#line 151 "parser.y"
-                                        { (yylhs.value.expr_list) = (yystack_[1].value.expr_list); }
-#line 769 "parser.cpp"
-    break;
-
-  case 26: // expr_list: expr
-#line 155 "parser.y"
-                                        { vector<Expr *> *exs = new vector<Expr *>(); 
-                                          exs->push_back((yystack_[0].value.exprval)); (yylhs.value.expr_list) = exs; }
-#line 776 "parser.cpp"
-    break;
-
-  case 27: // expr_list: expr_list COMMA expr
-#line 157 "parser.y"
-                                        { (yystack_[2].value.expr_list)->push_back((yystack_[0].value.exprval)); (yylhs.value.expr_list) = (yystack_[2].value.expr_list); }
-#line 782 "parser.cpp"
-    break;
-
-  case 28: // expr: simple
-#line 161 "parser.y"
-                                        { (yylhs.value.exprval) = (yystack_[0].value.exprval); }
-#line 788 "parser.cpp"
-    break;
-
-  case 29: // expr: expr RELOP simple
-#line 162 "parser.y"
-                                        { (yylhs.value.exprval) = new Binop((yystack_[1].value.opval), (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 794 "parser.cpp"
-    break;
-
-  case 30: // simple: term
-#line 166 "parser.y"
-                                        { (yylhs.value.exprval) = (yystack_[0].value.exprval); }
-#line 800 "parser.cpp"
-    break;
-
-  case 31: // simple: simple ADDOP term
-#line 167 "parser.y"
-                                        { (yylhs.value.exprval) = new Binop((yystack_[1].value.opval), (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 806 "parser.cpp"
-    break;
-
-  case 32: // simple: simple MINUS term
-#line 168 "parser.y"
-                                        { (yylhs.value.exprval) = new Binop(Minus, (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 812 "parser.cpp"
-    break;
-
-  case 33: // term: factor
-#line 172 "parser.y"
-                                        { (yylhs.value.exprval) = (yystack_[0].value.exprval); }
-#line 818 "parser.cpp"
-    break;
-
-  case 34: // term: term MULOP factor
-#line 173 "parser.y"
-                                        { (yylhs.value.exprval) = new Binop((yystack_[1].value.opval), (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 824 "parser.cpp"
-    break;
-
-  case 35: // factor: NUMBER
-#line 177 "parser.y"
-                                        { (yylhs.value.exprval) = new Constant((yystack_[0].value.intval)); }
-#line 830 "parser.cpp"
-    break;
-
-  case 36: // factor: name
-#line 178 "parser.y"
-                                        { (yylhs.value.exprval) = new Variable((yystack_[0].value.nameval)); }
-#line 836 "parser.cpp"
-    break;
-
-  case 37: // factor: name actuals
-#line 179 "parser.y"
-                                        { (yylhs.value.exprval) = new Call((yystack_[1].value.nameval), (yystack_[0].value.expr_list)); }
-#line 842 "parser.cpp"
-    break;
-
-  case 38: // factor: MONOP factor
-#line 180 "parser.y"
-                                        { (yylhs.value.exprval) = new Monop((yystack_[1].value.opval), (yystack_[0].value.exprval)); }
-#line 848 "parser.cpp"
-    break;
-
-  case 39: // factor: MINUS factor
-#line 181 "parser.y"
-                                        { (yylhs.value.exprval) = new Monop(Uminus, (yystack_[0].value.exprval)); }
-#line 854 "parser.cpp"
-    break;
-
-  case 40: // factor: LPAR expr RPAR
-#line 182 "parser.y"
-                                        { (yylhs.value.exprval) = (yystack_[1].value.exprval); }
-#line 860 "parser.cpp"
-    break;
-
-  case 41: // name: IDENT
-#line 186 "parser.y"
-                                        { (yylhs.value.nameval) = Pascal::makeName(*(yystack_[0].value.strval), 0); }
-#line 866 "parser.cpp"
-    break;
-
-
-#line 870 "parser.cpp"
+#line 633 "parser.cpp"
 
             default:
               break;
@@ -1059,110 +822,62 @@ namespace Pascal {
 
 
 
-  const signed char Parser::yypact_ninf_ = -47;
+  const signed char Parser::yypact_ninf_ = -16;
 
   const signed char Parser::yytable_ninf_ = -1;
 
   const signed char
   Parser::yypact_[] =
   {
-       6,    19,    36,    20,   -47,   -47,    38,   -47,   -47,    -9,
-      37,   -47,     2,    59,   -47,   -47,   -47,    43,    43,    43,
-      43,   -47,    45,    52,   -47,    51,    57,   -47,    43,    43,
-      43,    60,    10,    63,   -47,    61,    -2,     7,    60,   -47,
-       2,    43,     9,    62,   -47,   -47,     5,    43,    43,    43,
-      43,    34,   -47,     2,     2,   -47,    60,   -47,    44,     6,
-     -47,    10,    63,    63,   -47,   -47,    47,    60,    30,    53,
-     -47,    64,   -47,    43,   -47,     2,   -47,   -47,    60,    54,
-     -47
+      -4,   -15,     2,   -16,   -16
   };
 
   const signed char
   Parser::yydefact_[] =
   {
-       4,     0,     0,     0,     8,     6,     0,     1,     2,     0,
-       0,     5,    16,     0,     9,     7,    41,     0,     0,     0,
-       0,    23,     0,    13,    14,     0,     0,    35,     0,     0,
-       0,    22,    28,    30,    33,    36,     0,     0,    18,     3,
-      16,     0,     0,     0,    38,    39,     0,     0,     0,     0,
-       0,     0,    37,    16,    16,    15,    17,    11,     0,     4,
-      40,    29,    31,    32,    34,    24,     0,    26,     0,     0,
-      12,     0,    25,     0,    19,    16,    21,    10,    27,     0,
-      20
+       0,     0,     0,     2,     1
   };
 
   const signed char
   Parser::yypgoto_[] =
   {
-     -47,   -47,    11,   -47,    32,   -47,   -47,   -47,   -46,   -47,
-      39,   -47,   -47,   -16,    29,    12,   -18,   -12
+     -16,   -16
   };
 
   const signed char
   Parser::yydefgoto_[] =
   {
-       0,     2,     3,     4,     6,     9,    14,    43,    22,    23,
-      24,    52,    66,    31,    32,    33,    34,    35
+       0,     2
   };
 
   const signed char
   Parser::yytable_[] =
   {
-      25,    26,    36,    37,    38,    16,    47,    68,    69,    12,
-      44,    45,     5,    47,    46,    47,    60,    48,    13,    49,
-      57,    53,     5,    17,    18,    56,     1,    19,    25,    79,
-      20,    21,    64,    54,     8,    67,     7,    16,    27,    28,
-      15,    25,    25,    29,    30,    65,    16,    27,    28,    74,
-      10,    11,    29,    30,    75,    70,    10,    78,    72,    73,
-      62,    63,    16,    25,    39,    40,    41,    42,    47,    50,
-      71,    51,    76,    80,    58,    59,    61,    77,     0,    55
+       1,     3,     4
   };
 
   const signed char
   Parser::yycheck_[] =
   {
-      12,    13,    18,    19,    20,     3,     8,    53,    54,    18,
-      28,    29,     3,     8,    30,     8,    11,     7,    27,     9,
-      11,    23,     3,    21,    22,    41,    20,    25,    40,    75,
-      28,    29,    50,    26,    14,    51,     0,     3,     4,     5,
-       3,    53,    54,     9,    10,    11,     3,     4,     5,    19,
-      12,    13,     9,    10,    24,    11,    12,    73,    11,    12,
-      48,    49,     3,    75,    19,    13,    15,    10,     8,     6,
-      59,    10,    19,    19,    42,    13,    47,    13,    -1,    40
+       4,    16,     0
   };
 
   const signed char
   Parser::yystos_[] =
   {
-       0,    20,    31,    32,    33,     3,    34,     0,    14,    35,
-      12,    13,    18,    27,    36,     3,     3,    21,    22,    25,
-      28,    29,    38,    39,    40,    47,    47,     4,     5,     9,
-      10,    43,    44,    45,    46,    47,    43,    43,    43,    19,
-      13,    15,    10,    37,    46,    46,    43,     8,     7,     9,
-       6,    10,    41,    23,    26,    40,    43,    11,    34,    13,
-      11,    44,    45,    45,    46,    11,    42,    43,    38,    38,
-      11,    32,    11,    12,    19,    24,    19,    13,    43,    38,
-      19
+       0,     4,    31,    16,     0
   };
 
   const signed char
   Parser::yyr1_[] =
   {
-       0,    30,    31,    32,    33,    33,    34,    34,    35,    35,
-      36,    37,    37,    38,    39,    39,    40,    40,    40,    40,
-      40,    40,    40,    40,    41,    41,    42,    42,    43,    43,
-      44,    44,    44,    45,    45,    46,    46,    46,    46,    46,
-      46,    47
+       0,    30,    31
   };
 
   const signed char
   Parser::yyr2_[] =
   {
-       0,     2,     2,     5,     0,     3,     1,     3,     0,     2,
-       6,     2,     3,     1,     1,     3,     0,     3,     2,     5,
-       7,     5,     2,     1,     2,     3,     1,     3,     1,     3,
-       1,     3,     3,     1,     3,     1,     1,     2,     2,     2,
-       3,     1
+       0,     2,     2
   };
 
 
@@ -1176,9 +891,7 @@ namespace Pascal {
   "MONOP", "MULOP", "ADDOP", "RELOP", "MINUS", "LPAR", "RPAR", "COMMA",
   "SEMI", "DOT", "ASSIGN", "EOFP", "BADTOK", "PROC_BEGIN", "PROC_END",
   "VAR", "PRINT", "IF", "THEN", "ELSE", "WHILE", "DO", "PROC", "RETURN",
-  "NEWLINE", "$accept", "program", "block", "var_decl", "ident_list",
-  "proc_decls", "proc_decl", "formals", "stmts", "stmt_list", "stmt",
-  "actuals", "expr_list", "expr", "simple", "term", "factor", "name", YY_NULLPTR
+  "NEWLINE", "$accept", "endexpr", YY_NULLPTR
   };
 #endif
 
@@ -1187,11 +900,7 @@ namespace Pascal {
   const unsigned char
   Parser::yyrline_[] =
   {
-       0,    96,    96,   100,   104,   105,   109,   111,   115,   116,
-     120,   124,   125,   129,   133,   135,   139,   140,   141,   142,
-     143,   144,   145,   146,   150,   151,   155,   157,   161,   162,
-     166,   167,   168,   172,   173,   177,   178,   179,   180,   181,
-     182,   186
+       0,    99,   159
   };
 
   void
@@ -1273,9 +982,9 @@ namespace Pascal {
 
 #line 6 "parser.y"
 } // Pascal
-#line 1277 "parser.cpp"
+#line 986 "parser.cpp"
 
-#line 189 "parser.y"
+#line 196 "parser.y"
 
 
 void Pascal::Parser::error(const location_type &l,

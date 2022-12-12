@@ -5,6 +5,8 @@ CXXFLAGS = $(CXXDEBUG) $(CXXSTD)
 
 EXE = ppc
 
+SRC_DIR := src
+
 CPPOBJ = main driver dict tree
 SOBJ = parser scanner
 
