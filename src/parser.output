@@ -1,0 +1,996 @@
+Terminals unused in grammar
+
+    EOFP
+    BADTOK
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: block DOT
+
+    2 block: var_decl proc_decls PROC_BEGIN stmts PROC_END
+
+    3 var_decl: ε
+    4         | VAR ident_list SEMI
+
+    5 ident_list: IDENT
+    6           | ident_list COMMA IDENT
+
+    7 proc_decls: ε
+    8           | proc_decls proc_decl
+
+    9 proc_decl: PROC name formals SEMI block SEMI
+
+   10 formals: LPAR RPAR
+   11        | LPAR ident_list RPAR
+
+   12 stmts: stmt_list
+
+   13 stmt_list: stmt
+   14          | stmt_list SEMI stmt
+
+   15 stmt: ε
+   16     | name ASSIGN expr
+   17     | RETURN expr
+   18     | IF expr THEN stmts PROC_END
+   19     | IF expr THEN stmts ELSE stmts PROC_END
+   20     | WHILE expr DO stmts PROC_END
+   21     | PRINT expr
+   22     | NEWLINE
+
+   23 actuals: LPAR RPAR
+   24        | LPAR expr_list RPAR
+
+   25 expr_list: expr
+   26          | expr_list COMMA expr
+
+   27 expr: simple
+   28     | expr RELOP simple
+
+   29 simple: term
+   30       | simple ADDOP term
+   31       | simple MINUS term
+
+   32 term: factor
+   33     | term MULOP factor
+
+   34 factor: NUMBER
+   35       | name
+   36       | name actuals
+   37       | MONOP factor
+   38       | MINUS factor
+   39       | LPAR expr RPAR
+
+   40 name: IDENT
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    error (256)
+    IDENT <strval> (258) 5 6 40
+    NUMBER <intval> (259) 34
+    MONOP <opval> (260) 37
+    MULOP <opval> (261) 33
+    ADDOP <opval> (262) 30
+    RELOP <opval> (263) 28
+    MINUS (264) 31 38
+    LPAR (265) 10 11 23 24 39
+    RPAR (266) 10 11 23 24 39
+    COMMA (267) 6 26
+    SEMI (268) 4 9 14
+    DOT (269) 1
+    ASSIGN (270) 16
+    EOFP (271)
+    BADTOK (272)
+    PROC_BEGIN (273) 2
+    PROC_END (274) 2 18 19 20
+    VAR (275) 4
+    PRINT (276) 21
+    IF (277) 18 19
+    THEN (278) 18 19
+    ELSE (279) 19
+    WHILE (280) 20
+    DO (281) 20
+    PROC (282) 9
+    RETURN (283) 17
+    NEWLINE (284) 22
+
+
+Nonterminals, with rules where they appear
+
+    $accept (30)
+        on left: 0
+    program <progval> (31)
+        on left: 1
+        on right: 0
+    block <blockval> (32)
+        on left: 2
+        on right: 1 9
+    var_decl <ident_list> (33)
+        on left: 3 4
+        on right: 2
+    ident_list <ident_list> (34)
+        on left: 5 6
+        on right: 4 6 11
+    proc_decls <proc_list> (35)
+        on left: 7 8
+        on right: 2 8
+    proc_decl <procval> (36)
+        on left: 9
+        on right: 8
+    formals <ident_list> (37)
+        on left: 10 11
+        on right: 9
+    stmts <stmtptr> (38)
+        on left: 12
+        on right: 2 18 19 20
+    stmt_list <stmt_list> (39)
+        on left: 13 14
+        on right: 12 14
+    stmt <stmtptr> (40)
+        on left: 15 16 17 18 19 20 21 22
+        on right: 13 14
+    actuals <expr_list> (41)
+        on left: 23 24
+        on right: 36
+    expr_list <expr_list> (42)
+        on left: 25 26
+        on right: 24 26
+    expr <exprval> (43)
+        on left: 27 28
+        on right: 16 17 18 19 20 21 25 26 28 39
+    simple <exprval> (44)
+        on left: 29 30 31
+        on right: 27 28 30 31
+    term <exprval> (45)
+        on left: 32 33
+        on right: 29 30 31 33
+    factor <exprval> (46)
+        on left: 34 35 36 37 38 39
+        on right: 32 33 37 38
+    name <nameval> (47)
+        on left: 40
+        on right: 9 16 35 36
+
+
+State 0
+
+    0 $accept: • program $end
+
+    VAR  shift, and go to state 1
+
+    $default  reduce using rule 3 (var_decl)
+
+    program   go to state 2
+    block     go to state 3
+    var_decl  go to state 4
+
+
+State 1
+
+    4 var_decl: VAR • ident_list SEMI
+
+    IDENT  shift, and go to state 5
+
+    ident_list  go to state 6
+
+
+State 2
+
+    0 $accept: program • $end
+
+    $end  shift, and go to state 7
+
+
+State 3
+
+    1 program: block • DOT
+
+    DOT  shift, and go to state 8
+
+
+State 4
+
+    2 block: var_decl • proc_decls PROC_BEGIN stmts PROC_END
+
+    $default  reduce using rule 7 (proc_decls)
+
+    proc_decls  go to state 9
+
+
+State 5
+
+    5 ident_list: IDENT •
+
+    $default  reduce using rule 5 (ident_list)
+
+
+State 6
+
+    4 var_decl: VAR ident_list • SEMI
+    6 ident_list: ident_list • COMMA IDENT
+
+    COMMA  shift, and go to state 10
+    SEMI   shift, and go to state 11
+
+
+State 7
+
+    0 $accept: program $end •
+
+    $default  accept
+
+
+State 8
+
+    1 program: block DOT •
+
+    $default  reduce using rule 1 (program)
+
+
+State 9
+
+    2 block: var_decl proc_decls • PROC_BEGIN stmts PROC_END
+    8 proc_decls: proc_decls • proc_decl
+
+    PROC_BEGIN  shift, and go to state 12
+    PROC        shift, and go to state 13
+
+    proc_decl  go to state 14
+
+
+State 10
+
+    6 ident_list: ident_list COMMA • IDENT
+
+    IDENT  shift, and go to state 15
+
+
+State 11
+
+    4 var_decl: VAR ident_list SEMI •
+
+    $default  reduce using rule 4 (var_decl)
+
+
+State 12
+
+    2 block: var_decl proc_decls PROC_BEGIN • stmts PROC_END
+
+    IDENT    shift, and go to state 16
+    PRINT    shift, and go to state 17
+    IF       shift, and go to state 18
+    WHILE    shift, and go to state 19
+    RETURN   shift, and go to state 20
+    NEWLINE  shift, and go to state 21
+
+    $default  reduce using rule 15 (stmt)
+
+    stmts      go to state 22
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 13
+
+    9 proc_decl: PROC • name formals SEMI block SEMI
+
+    IDENT  shift, and go to state 16
+
+    name  go to state 26
+
+
+State 14
+
+    8 proc_decls: proc_decls proc_decl •
+
+    $default  reduce using rule 8 (proc_decls)
+
+
+State 15
+
+    6 ident_list: ident_list COMMA IDENT •
+
+    $default  reduce using rule 6 (ident_list)
+
+
+State 16
+
+   40 name: IDENT •
+
+    $default  reduce using rule 40 (name)
+
+
+State 17
+
+   21 stmt: PRINT • expr
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 31
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 18
+
+   18 stmt: IF • expr THEN stmts PROC_END
+   19     | IF • expr THEN stmts ELSE stmts PROC_END
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 36
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 19
+
+   20 stmt: WHILE • expr DO stmts PROC_END
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 37
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 20
+
+   17 stmt: RETURN • expr
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 38
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 21
+
+   22 stmt: NEWLINE •
+
+    $default  reduce using rule 22 (stmt)
+
+
+State 22
+
+    2 block: var_decl proc_decls PROC_BEGIN stmts • PROC_END
+
+    PROC_END  shift, and go to state 39
+
+
+State 23
+
+   12 stmts: stmt_list •
+   14 stmt_list: stmt_list • SEMI stmt
+
+    SEMI  shift, and go to state 40
+
+    $default  reduce using rule 12 (stmts)
+
+
+State 24
+
+   13 stmt_list: stmt •
+
+    $default  reduce using rule 13 (stmt_list)
+
+
+State 25
+
+   16 stmt: name • ASSIGN expr
+
+    ASSIGN  shift, and go to state 41
+
+
+State 26
+
+    9 proc_decl: PROC name • formals SEMI block SEMI
+
+    LPAR  shift, and go to state 42
+
+    formals  go to state 43
+
+
+State 27
+
+   34 factor: NUMBER •
+
+    $default  reduce using rule 34 (factor)
+
+
+State 28
+
+   37 factor: MONOP • factor
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    factor  go to state 44
+    name    go to state 35
+
+
+State 29
+
+   38 factor: MINUS • factor
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    factor  go to state 45
+    name    go to state 35
+
+
+State 30
+
+   39 factor: LPAR • expr RPAR
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 46
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 31
+
+   21 stmt: PRINT expr •
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+
+    $default  reduce using rule 21 (stmt)
+
+
+State 32
+
+   27 expr: simple •
+   30 simple: simple • ADDOP term
+   31       | simple • MINUS term
+
+    ADDOP  shift, and go to state 48
+    MINUS  shift, and go to state 49
+
+    $default  reduce using rule 27 (expr)
+
+
+State 33
+
+   29 simple: term •
+   33 term: term • MULOP factor
+
+    MULOP  shift, and go to state 50
+
+    $default  reduce using rule 29 (simple)
+
+
+State 34
+
+   32 term: factor •
+
+    $default  reduce using rule 32 (term)
+
+
+State 35
+
+   35 factor: name •
+   36       | name • actuals
+
+    LPAR  shift, and go to state 51
+
+    $default  reduce using rule 35 (factor)
+
+    actuals  go to state 52
+
+
+State 36
+
+   18 stmt: IF expr • THEN stmts PROC_END
+   19     | IF expr • THEN stmts ELSE stmts PROC_END
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+    THEN   shift, and go to state 53
+
+
+State 37
+
+   20 stmt: WHILE expr • DO stmts PROC_END
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+    DO     shift, and go to state 54
+
+
+State 38
+
+   17 stmt: RETURN expr •
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+
+    $default  reduce using rule 17 (stmt)
+
+
+State 39
+
+    2 block: var_decl proc_decls PROC_BEGIN stmts PROC_END •
+
+    $default  reduce using rule 2 (block)
+
+
+State 40
+
+   14 stmt_list: stmt_list SEMI • stmt
+
+    IDENT    shift, and go to state 16
+    PRINT    shift, and go to state 17
+    IF       shift, and go to state 18
+    WHILE    shift, and go to state 19
+    RETURN   shift, and go to state 20
+    NEWLINE  shift, and go to state 21
+
+    $default  reduce using rule 15 (stmt)
+
+    stmt  go to state 55
+    name  go to state 25
+
+
+State 41
+
+   16 stmt: name ASSIGN • expr
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 56
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 42
+
+   10 formals: LPAR • RPAR
+   11        | LPAR • ident_list RPAR
+
+    IDENT  shift, and go to state 5
+    RPAR   shift, and go to state 57
+
+    ident_list  go to state 58
+
+
+State 43
+
+    9 proc_decl: PROC name formals • SEMI block SEMI
+
+    SEMI  shift, and go to state 59
+
+
+State 44
+
+   37 factor: MONOP factor •
+
+    $default  reduce using rule 37 (factor)
+
+
+State 45
+
+   38 factor: MINUS factor •
+
+    $default  reduce using rule 38 (factor)
+
+
+State 46
+
+   28 expr: expr • RELOP simple
+   39 factor: LPAR expr • RPAR
+
+    RELOP  shift, and go to state 47
+    RPAR   shift, and go to state 60
+
+
+State 47
+
+   28 expr: expr RELOP • simple
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    simple  go to state 61
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 48
+
+   30 simple: simple ADDOP • term
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    term    go to state 62
+    factor  go to state 34
+    name    go to state 35
+
+
+State 49
+
+   31 simple: simple MINUS • term
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    term    go to state 63
+    factor  go to state 34
+    name    go to state 35
+
+
+State 50
+
+   33 term: term MULOP • factor
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    factor  go to state 64
+    name    go to state 35
+
+
+State 51
+
+   23 actuals: LPAR • RPAR
+   24        | LPAR • expr_list RPAR
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+    RPAR    shift, and go to state 65
+
+    expr_list  go to state 66
+    expr       go to state 67
+    simple     go to state 32
+    term       go to state 33
+    factor     go to state 34
+    name       go to state 35
+
+
+State 52
+
+   36 factor: name actuals •
+
+    $default  reduce using rule 36 (factor)
+
+
+State 53
+
+   18 stmt: IF expr THEN • stmts PROC_END
+   19     | IF expr THEN • stmts ELSE stmts PROC_END
+
+    IDENT    shift, and go to state 16
+    PRINT    shift, and go to state 17
+    IF       shift, and go to state 18
+    WHILE    shift, and go to state 19
+    RETURN   shift, and go to state 20
+    NEWLINE  shift, and go to state 21
+
+    $default  reduce using rule 15 (stmt)
+
+    stmts      go to state 68
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 54
+
+   20 stmt: WHILE expr DO • stmts PROC_END
+
+    IDENT    shift, and go to state 16
+    PRINT    shift, and go to state 17
+    IF       shift, and go to state 18
+    WHILE    shift, and go to state 19
+    RETURN   shift, and go to state 20
+    NEWLINE  shift, and go to state 21
+
+    $default  reduce using rule 15 (stmt)
+
+    stmts      go to state 69
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 55
+
+   14 stmt_list: stmt_list SEMI stmt •
+
+    $default  reduce using rule 14 (stmt_list)
+
+
+State 56
+
+   16 stmt: name ASSIGN expr •
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+
+    $default  reduce using rule 16 (stmt)
+
+
+State 57
+
+   10 formals: LPAR RPAR •
+
+    $default  reduce using rule 10 (formals)
+
+
+State 58
+
+    6 ident_list: ident_list • COMMA IDENT
+   11 formals: LPAR ident_list • RPAR
+
+    RPAR   shift, and go to state 70
+    COMMA  shift, and go to state 10
+
+
+State 59
+
+    9 proc_decl: PROC name formals SEMI • block SEMI
+
+    VAR  shift, and go to state 1
+
+    $default  reduce using rule 3 (var_decl)
+
+    block     go to state 71
+    var_decl  go to state 4
+
+
+State 60
+
+   39 factor: LPAR expr RPAR •
+
+    $default  reduce using rule 39 (factor)
+
+
+State 61
+
+   28 expr: expr RELOP simple •
+   30 simple: simple • ADDOP term
+   31       | simple • MINUS term
+
+    ADDOP  shift, and go to state 48
+    MINUS  shift, and go to state 49
+
+    $default  reduce using rule 28 (expr)
+
+
+State 62
+
+   30 simple: simple ADDOP term •
+   33 term: term • MULOP factor
+
+    MULOP  shift, and go to state 50
+
+    $default  reduce using rule 30 (simple)
+
+
+State 63
+
+   31 simple: simple MINUS term •
+   33 term: term • MULOP factor
+
+    MULOP  shift, and go to state 50
+
+    $default  reduce using rule 31 (simple)
+
+
+State 64
+
+   33 term: term MULOP factor •
+
+    $default  reduce using rule 33 (term)
+
+
+State 65
+
+   23 actuals: LPAR RPAR •
+
+    $default  reduce using rule 23 (actuals)
+
+
+State 66
+
+   24 actuals: LPAR expr_list • RPAR
+   26 expr_list: expr_list • COMMA expr
+
+    RPAR   shift, and go to state 72
+    COMMA  shift, and go to state 73
+
+
+State 67
+
+   25 expr_list: expr •
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+
+    $default  reduce using rule 25 (expr_list)
+
+
+State 68
+
+   18 stmt: IF expr THEN stmts • PROC_END
+   19     | IF expr THEN stmts • ELSE stmts PROC_END
+
+    PROC_END  shift, and go to state 74
+    ELSE      shift, and go to state 75
+
+
+State 69
+
+   20 stmt: WHILE expr DO stmts • PROC_END
+
+    PROC_END  shift, and go to state 76
+
+
+State 70
+
+   11 formals: LPAR ident_list RPAR •
+
+    $default  reduce using rule 11 (formals)
+
+
+State 71
+
+    9 proc_decl: PROC name formals SEMI block • SEMI
+
+    SEMI  shift, and go to state 77
+
+
+State 72
+
+   24 actuals: LPAR expr_list RPAR •
+
+    $default  reduce using rule 24 (actuals)
+
+
+State 73
+
+   26 expr_list: expr_list COMMA • expr
+
+    IDENT   shift, and go to state 16
+    NUMBER  shift, and go to state 27
+    MONOP   shift, and go to state 28
+    MINUS   shift, and go to state 29
+    LPAR    shift, and go to state 30
+
+    expr    go to state 78
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 74
+
+   18 stmt: IF expr THEN stmts PROC_END •
+
+    $default  reduce using rule 18 (stmt)
+
+
+State 75
+
+   19 stmt: IF expr THEN stmts ELSE • stmts PROC_END
+
+    IDENT    shift, and go to state 16
+    PRINT    shift, and go to state 17
+    IF       shift, and go to state 18
+    WHILE    shift, and go to state 19
+    RETURN   shift, and go to state 20
+    NEWLINE  shift, and go to state 21
+
+    $default  reduce using rule 15 (stmt)
+
+    stmts      go to state 79
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 76
+
+   20 stmt: WHILE expr DO stmts PROC_END •
+
+    $default  reduce using rule 20 (stmt)
+
+
+State 77
+
+    9 proc_decl: PROC name formals SEMI block SEMI •
+
+    $default  reduce using rule 9 (proc_decl)
+
+
+State 78
+
+   26 expr_list: expr_list COMMA expr •
+   28 expr: expr • RELOP simple
+
+    RELOP  shift, and go to state 47
+
+    $default  reduce using rule 26 (expr_list)
+
+
+State 79
+
+   19 stmt: IF expr THEN stmts ELSE stmts • PROC_END
+
+    PROC_END  shift, and go to state 80
+
+
+State 80
+
+   19 stmt: IF expr THEN stmts ELSE stmts PROC_END •
+
+    $default  reduce using rule 19 (stmt)

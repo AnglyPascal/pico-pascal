@@ -7,13 +7,11 @@ void yyerror(const char *str)
         fprintf(stderr,"error: %s\n",str);
 }
  
-int yywrap()
-{
+int yywrap() {
         return 1;
 } 
   
-main()
-{
+main() {
         yyparse();
 } 
 

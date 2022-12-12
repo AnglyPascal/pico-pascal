@@ -1,34 +1,28 @@
-#ifndef tree
-#define tree
+#ifndef TREE_H
+#define TREE_H
 
-#include "./dict.h"
+#include <stdint.h>
+
+#include "dict.h"
 #include <iostream>
+#include <map>
 #include <vector>
 
-using namespace std;
+using std::vector;
 
-class name {
-  const ident _name;
-  const int x_line;
-  def *x_def = nullptr;
+namespace Pascal {
 
-public:
-  name(ident name, int line) : _name(name), x_line(line){};
+struct Name {
+  ident x_name;
+  int x_line;
+  Defn *x_def = nullptr;
 
-  void setDef(def *d) {
-    delete x_def;
-    x_def = d;
-  }
+  Name(ident Name, int line);
+  virtual ~Name();
+  virtual Name *clone();
 
-  def *getDef() {
-    if (!x_def) {
-      /*  throw error */
-    }
-    return x_def;
-  }
-
-  int line() { return x_line; }
-  string x_name() { return _name; }
+  void setDef(Defn *d);
+  Defn *getDef();
 };
 
 enum op {
@@ -49,122 +43,158 @@ enum op {
   Not
 };
 
-map<op, string> opNames = {
-    {Plus, "+"}, {Minus, "-"},  {Times, "*"}, {Div, "/"}, {Mod, "%"},
-    {Eq, "=="},  {Uminus, "-"}, {Lt, "<"},    {Gt, ">"},  {Leq, "<="},
-    {Geq, ">="}, {Neq, "!="},   {And, "&&"},  {Or, "||"}, {Not, "!"},
+map<op, string> opNames;
+
+struct Expr {
+  virtual string str() const;
+  virtual ~Expr();
+  virtual Expr *clone() = 0;
 };
 
-struct expr {
-  virtual string str() const { return "expr"; }
+struct Constant : public Expr {
+  int n;
+  Constant(int _n);
+
+  virtual ~Constant();
+  virtual Expr *clone();
+  string str() const;
 };
 
-struct Constant : public expr {
-  const int n;
-  Constant(int _n) : n(_n){};
+struct Variable : public Expr {
+  Name *x;
+  Variable(Name *_x);
 
-  string str() const { return "Constant " + to_string(n); }
+  virtual ~Variable();
+  virtual Expr *clone();
+  string str() const;
 };
 
-struct Variable : public expr {
-private:
-  name *x;
+struct Monop : public Expr {
+  op o;
+  Expr *e;
+  Monop(op _o, Expr *_e);
 
-public:
-  Variable(name *_x) : x(_x){};
-  string str() const { return "Variable " + x->x_name(); }
+  virtual ~Monop();
+  virtual Expr *clone();
+  string str() const;
 };
 
-struct Monop : public expr {
-  const op o;
-  const expr *e;
-  Monop(op _o, expr *_e) : o(_o), e(_e){};
-  string str() const {
-    return string("Monop (") + opNames[o] + e->str() + string(")");
-  }
+struct Binop : public Expr {
+  op o;
+  Expr *el, *er;
+  Binop(op _o, Expr *_el, Expr *_er);
+
+  virtual ~Binop();
+  virtual Expr *clone();
+  string str() const;
 };
 
-struct Binop : public expr {
-  const op o;
-  const expr *el, *er;
-  Binop(op _o, expr *_el, expr *_er) : o(_o), el(_el), er(_er){};
-  string str() const {
-    return string("Binop (") + el->str() + string(" ") + opNames[o] +
-           string(" ") + er->str() + string(")");
-  }
+struct Call : public Expr {
+  Name *f;
+  vector<Expr *> *args;
+
+  Call(Name *_f, vector<Expr *> *_args);
+  // should it share Expressions with other nodes?
+  virtual ~Call();
+  virtual Expr *clone();
+  string str() const;
 };
 
-struct Call : public expr {
-private:
-  name *f;
+std::ostream &operator<<(std::ostream &s, const Expr &Expr);
 
-public:
-  const vector<expr> args;
-  Call(name *_f, vector<expr> _args) : f(_f), args(_args){};
-
-  string str() const { return string("Call ") + f->x_name(); }
+struct Stmt {
+  virtual ~Stmt();
+  virtual Stmt *clone() = 0;
 };
 
-ostream &operator<<(ostream &s, const expr &expr) {
-  return s << "(" << expr.str() << ")";
-}
-
-struct stmt {};
-
-struct Skip : public stmt {};
-
-struct Newline : public stmt {};
-
-struct Seq : public stmt {
-  const vector<stmt *> stmts;
-  Seq(vector<stmt *> *_stmts) : stmts(*_stmts) { delete _stmts; };
+struct Skip : public Stmt {
+  virtual ~Skip();
+  Stmt *clone();
 };
 
-struct Assign : public stmt {
-  const name x;
-  const expr *e;
-  Assign(name _x, expr *_e) : x(_x), e(_e){};
+struct Newline : public Stmt {
+  virtual ~Newline();
+  Stmt *clone();
 };
 
-struct Return : public stmt {
-  const expr *e;
-  Return(expr *_e) : e(_e){};
+struct Seq : public Stmt {
+  const vector<Stmt *> *stmts;
+
+  virtual ~Seq();
+  Stmt *clone();
+  Seq(vector<Stmt *> *_stmts);
 };
 
-struct IfStmt : public stmt {
-  const expr *cond;
-  const stmt *ifstmt, *elsestmt;
-  IfStmt(expr *c, stmt *i, stmt *e) : cond(c), ifstmt(i), elsestmt(e){};
+struct Assign : public Stmt {
+  Name *x;
+  Expr *e;
+
+  virtual ~Assign();
+  Stmt *clone();
+  Assign(Name *_x, Expr *_e);
 };
 
-struct WhileStmt : public stmt {
-  const expr *cond;
-  const stmt *st;
-  WhileStmt(expr *c, stmt *i) : cond(c), st(i){};
+struct Return : public Stmt {
+  Expr *e;
+
+  virtual ~Return();
+  Stmt *clone();
+  Return(Expr *_e);
 };
 
-struct Print : public stmt {
-  const expr *e;
-  Print(expr *_e) : e(_e){};
+struct IfStmt : public Stmt {
+  Expr *cond;
+  Stmt *ifStmt, *elseStmt;
+
+  virtual ~IfStmt();
+  Stmt *clone();
+  IfStmt(Expr *c, Stmt *i, Stmt *e);
 };
 
-struct block;
+struct WhileStmt : public Stmt {
+  Expr *cond;
+  Stmt *st;
 
-struct proc {
-  const block *blk;
+  virtual ~WhileStmt();
+  Stmt *clone();
+  WhileStmt(Expr *c, Stmt *i);
 };
 
-struct block {
-  const vector<ident> idents;
-  const vector<proc *> procs;
-  const stmt *st;
+struct Print : public Stmt {
+  Expr *e;
+
+  virtual ~Print();
+  Stmt *clone();
+  Print(Expr *_e);
 };
 
-struct program {
-  const block *prog;
+struct Proc;
+
+struct Block {
+  vector<ident> *idents;
+  vector<Proc *> *procs;
+  Stmt *st;
+  virtual ~Block();
+  virtual Block *clone();
+  Block(vector<ident> *_idents, vector<Proc *> *_procs, Stmt *_st);
 };
 
-stmt *sequence(vector<stmt *> *st) {
+struct Proc {
+  Name *f;
+  vector<ident> *idents;
+  Block *blk;
+
+  virtual ~Proc();
+  virtual Proc *clone();
+  Proc(Name *_f, vector<ident> *_idents, Block *_blk);
+};
+
+struct Program {
+  const Block *prog;
+  Program(Block *_prog);
+};
+
+Stmt *sequence(vector<Stmt *> *st) {
   if (!st)
     return new Skip();
 
@@ -173,7 +203,7 @@ stmt *sequence(vector<stmt *> *st) {
     delete st;
     return new Skip();
   case 1: {
-    stmt *s = (*st)[0];
+    Stmt *s = (*st)[0];
     delete st;
     return s;
   }
@@ -183,6 +213,8 @@ stmt *sequence(vector<stmt *> *st) {
   return new Skip();
 }
 
-name *makeName(ident x, int ln) { return new name(x, ln); };
+Name *makeName(ident x, int ln) { return new Name(x, ln); };
+
+} // Namespace Pascal
 
 #endif
