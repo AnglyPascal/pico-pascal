@@ -23,6 +23,7 @@ struct Name {
 
   void setDef(Defn *d);
   Defn *getDef();
+  string str() const;
 };
 
 enum op {
@@ -42,8 +43,6 @@ enum op {
   Or,
   Not
 };
-
-map<op, string> opNames;
 
 struct Expr {
   virtual string str() const;
@@ -105,16 +104,19 @@ std::ostream &operator<<(std::ostream &s, const Expr &Expr);
 struct Stmt {
   virtual ~Stmt();
   virtual Stmt *clone() = 0;
+  virtual string str() const;
 };
 
 struct Skip : public Stmt {
   virtual ~Skip();
   Stmt *clone();
+  string str() const;
 };
 
 struct Newline : public Stmt {
   virtual ~Newline();
   Stmt *clone();
+  virtual string str() const;
 };
 
 struct Seq : public Stmt {
@@ -123,6 +125,7 @@ struct Seq : public Stmt {
   virtual ~Seq();
   Stmt *clone();
   Seq(vector<Stmt *> *_stmts);
+  virtual string str() const;
 };
 
 struct Assign : public Stmt {
@@ -132,6 +135,7 @@ struct Assign : public Stmt {
   virtual ~Assign();
   Stmt *clone();
   Assign(Name *_x, Expr *_e);
+  virtual string str() const;
 };
 
 struct Return : public Stmt {
@@ -140,6 +144,7 @@ struct Return : public Stmt {
   virtual ~Return();
   Stmt *clone();
   Return(Expr *_e);
+  virtual string str() const;
 };
 
 struct IfStmt : public Stmt {
@@ -149,6 +154,7 @@ struct IfStmt : public Stmt {
   virtual ~IfStmt();
   Stmt *clone();
   IfStmt(Expr *c, Stmt *i, Stmt *e);
+  virtual string str() const;
 };
 
 struct WhileStmt : public Stmt {
@@ -158,6 +164,7 @@ struct WhileStmt : public Stmt {
   virtual ~WhileStmt();
   Stmt *clone();
   WhileStmt(Expr *c, Stmt *i);
+  virtual string str() const;
 };
 
 struct Print : public Stmt {
@@ -166,6 +173,7 @@ struct Print : public Stmt {
   virtual ~Print();
   Stmt *clone();
   Print(Expr *_e);
+  virtual string str() const;
 };
 
 struct Proc;
@@ -177,6 +185,7 @@ struct Block {
   virtual ~Block();
   virtual Block *clone();
   Block(vector<ident> *_idents, vector<Proc *> *_procs, Stmt *_st);
+  string str() const;
 };
 
 struct Proc {
@@ -187,33 +196,17 @@ struct Proc {
   virtual ~Proc();
   virtual Proc *clone();
   Proc(Name *_f, vector<ident> *_idents, Block *_blk);
+  string str() const;
 };
 
 struct Program {
   const Block *prog;
   Program(Block *_prog);
+  string str() const;
 };
 
-Stmt *sequence(vector<Stmt *> *st) {
-  if (!st)
-    return new Skip();
-
-  switch (st->size()) {
-  case 0:
-    delete st;
-    return new Skip();
-  case 1: {
-    Stmt *s = (*st)[0];
-    delete st;
-    return s;
-  }
-  default:
-    return new Seq(st);
-  }
-  return new Skip();
-}
-
-Name *makeName(ident x, int ln) { return new Name(x, ln); };
+Stmt *sequence(vector<Stmt *> *st);
+Name *makeName(ident x, int ln);
 
 } // Namespace Pascal
 

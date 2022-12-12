@@ -26,6 +26,8 @@
 
 %parse-param { Scanner  &scanner  }
 %parse-param { Driver  &driver  }
+%parse-param { Program *pgm }
+%parse-param { string *errmsg }
 
 %code{
    #include <iostream>
@@ -91,7 +93,7 @@
 %%
 
 program :
-    block DOT                           { $$ = new Program($1); }
+    block DOT                           { $$ = new Program($1); pgm = $$; }
 	;
 
 block :
@@ -124,7 +126,7 @@ formals :
 	;
 
 stmts :
-    stmt_list                           { $$ = sequence($1); }
+    stmt_list                           { $$ = Pascal::sequence($1); }
 	;
 
 stmt_list :
@@ -181,7 +183,7 @@ factor :
 	;
 
 name :
-    IDENT                               { $$ = makeName(*$1, 0); } 
+    IDENT                               { $$ = Pascal::makeName(*$1, 0); } 
 	;
 
 %%

@@ -1,48 +1,38 @@
-CC    ?= clang
-CXX   ?= clang++
-
-EXE = my_wc
-
-CDEBUG = -g -Wall
-
+CXX   	?= g++
 CXXDEBUG = -g -Wall
+CXXSTD 	 = -std=c++17
+CXXFLAGS = $(CXXDEBUG) $(CXXSTD)
 
-CSTD = -std=c99
-CXXSTD = -std=c++17
-
-CFLAGS = -Wno-deprecated-register -O0  $(CDEBUG) $(CSTD) 
-CXXFLAGS = -Wno-deprecated-register -O0  $(CXXDEBUG) $(CXXSTD)
-
+EXE = ppc
 
 CPPOBJ = main driver dict tree
-SOBJ =  parser scanner
+SOBJ = parser scanner
 
 FILES = $(addsuffix .cpp, $(CPPOBJ))
+OBJS = $(addsuffix .o, $(CPPOBJ))
 
-OBJS  = $(addsuffix .o, $(CPPOBJ))
-
-CLEANLIST =  $(addsuffix .o, $(OBJ)) $(OBJS) \
-				 parser.tab.cc parser.tab.hh \
-				 location.hh position.hh \
-			   stack.hh parser.output parser.o \
-				 scanner.o scanner.yy.cc $(EXE)\
+CLEANLIST =  $(addsuffix .o, $(SOBJ)) $(OBJS) \
+				 parser.cpp parser.h                  \
+				 location.hh position.hh              \
+			   stack.hh parser.output parser.o      \
+k			 scanner.o scanner.cpp $(EXE)         \
 
 .PHONY: all
-all: wc
 
-wc: $(FILES)
+all: ppc
+
+ppc: $(FILES)
 	$(MAKE) $(SOBJ)
 	$(MAKE) $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(EXE) $(OBJS) parser.o scanner.o $(LIBS)
-
+	$(CXX) $(CXXFLAGS) -o $(EXE) $(OBJS) $(ASTOBJS) parser.o scanner.o $(LIBS)
 
 parser: parser.y 
-	bison -d -v parser.y
-	$(CXX) $(CXXFLAGS) -c -o parser.o parser.tab.cc
+	bison -o parser.cpp --defines=parser.h -v parser.y
+	$(CXX) $(CXXFLAGS) -c -o parser.o parser.cpp
 
 scanner: scanner.l
-	flex --outfile=scanner.yy.cc  $<
-	$(CXX)  $(CXXFLAGS) -c scanner.yy.cc -o scanner.o
+	flex --outfile=scanner.cpp  $<
+	$(CXX)  $(CXXFLAGS) -c scanner.cpp -o scanner.o
 
 .PHONY: test
 test:

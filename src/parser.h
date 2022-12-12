@@ -32,7 +32,7 @@
 
 
 /**
- ** \file parser.tab.hh
+ ** \file parser.h
  ** Define the Pascal::parser class.
  */
 
@@ -42,8 +42,8 @@
 // especially those whose name start with YY_ or yy_.  They are
 // private implementation details that can be changed or removed.
 
-#ifndef YY_YY_PARSER_TAB_HH_INCLUDED
-# define YY_YY_PARSER_TAB_HH_INCLUDED
+#ifndef YY_YY_PARSER_H_INCLUDED
+# define YY_YY_PARSER_H_INCLUDED
 // "%code requires" blocks.
 #line 9 "parser.y"
 
@@ -63,7 +63,7 @@
    #endif
    #endif
 
-#line 67 "parser.tab.hh"
+#line 67 "parser.h"
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -199,7 +199,7 @@
 
 #line 6 "parser.y"
 namespace Pascal {
-#line 203 "parser.tab.hh"
+#line 203 "parser.h"
 
 
 
@@ -217,7 +217,7 @@ namespace Pascal {
     /// Symbol semantic values.
     union value_type
     {
-#line 46 "parser.y"
+#line 48 "parser.y"
 
   ident *strval; 
   int intval;
@@ -233,7 +233,7 @@ namespace Pascal {
   vector<Stmt *> *stmt_list;
   vector<Expr *> *expr_list;
 
-#line 237 "parser.tab.hh"
+#line 237 "parser.h"
 
     };
 #endif
@@ -503,7 +503,7 @@ namespace Pascal {
     {};
 
     /// Build a parser object.
-    Parser (Scanner  &scanner_yyarg, Driver  &driver_yyarg);
+    Parser (Scanner  &scanner_yyarg, Driver  &driver_yyarg, Program *pgm_yyarg, string *errmsg_yyarg);
     virtual ~Parser ();
 
 #if 201103L <= YY_CPLUSPLUS
@@ -863,15 +863,17 @@ namespace Pascal {
     // User arguments.
     Scanner  &scanner;
     Driver  &driver;
+    Program *pgm;
+    string *errmsg;
 
   };
 
 
 #line 6 "parser.y"
 } // Pascal
-#line 873 "parser.tab.hh"
+#line 875 "parser.h"
 
 
 
 
-#endif // !YY_YY_PARSER_TAB_HH_INCLUDED
+#endif // !YY_YY_PARSER_H_INCLUDED

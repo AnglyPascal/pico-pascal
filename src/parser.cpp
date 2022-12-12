@@ -38,11 +38,11 @@
 
 
 
-#include "parser.tab.hh"
+#include "parser.h"
 
 
 // Unqualified %code blocks.
-#line 30 "parser.y"
+#line 32 "parser.y"
 
    #include <iostream>
    #include <cstdlib>
@@ -56,7 +56,7 @@
    #undef yylex
    #define yylex scanner.yylex
 
-#line 60 "parser.tab.cc"
+#line 60 "parser.cpp"
 
 
 #ifndef YY_
@@ -149,10 +149,10 @@
 
 #line 6 "parser.y"
 namespace Pascal {
-#line 153 "parser.tab.cc"
+#line 153 "parser.cpp"
 
   /// Build a parser object.
-  Parser::Parser (Scanner  &scanner_yyarg, Driver  &driver_yyarg)
+  Parser::Parser (Scanner  &scanner_yyarg, Driver  &driver_yyarg, Program *pgm_yyarg, string *errmsg_yyarg)
 #if YYDEBUG
     : yydebug_ (false),
       yycdebug_ (&std::cerr),
@@ -160,7 +160,9 @@ namespace Pascal {
     :
 #endif
       scanner (scanner_yyarg),
-      driver (driver_yyarg)
+      driver (driver_yyarg),
+      pgm (pgm_yyarg),
+      errmsg (errmsg_yyarg)
   {}
 
   Parser::~Parser ()
@@ -621,250 +623,250 @@ namespace Pascal {
           switch (yyn)
             {
   case 2: // program: block DOT
-#line 94 "parser.y"
-                                        { (yylhs.value.progval) = new Program((yystack_[1].value.blockval)); }
-#line 627 "parser.tab.cc"
+#line 96 "parser.y"
+                                        { (yylhs.value.progval) = new Program((yystack_[1].value.blockval)); pgm = (yylhs.value.progval); }
+#line 629 "parser.cpp"
     break;
 
   case 3: // block: var_decl proc_decls PROC_BEGIN stmts PROC_END
-#line 98 "parser.y"
+#line 100 "parser.y"
                                                   { (yylhs.value.blockval) = new Block((yystack_[4].value.ident_list), (yystack_[3].value.proc_list), (yystack_[1].value.stmtptr)); }
-#line 633 "parser.tab.cc"
+#line 635 "parser.cpp"
     break;
 
   case 4: // var_decl: %empty
-#line 102 "parser.y"
+#line 104 "parser.y"
                                         { (yylhs.value.ident_list) = new vector<ident>(); }
-#line 639 "parser.tab.cc"
+#line 641 "parser.cpp"
     break;
 
   case 5: // var_decl: VAR ident_list SEMI
-#line 103 "parser.y"
+#line 105 "parser.y"
                                         { (yylhs.value.ident_list) = (yystack_[1].value.ident_list); }
-#line 645 "parser.tab.cc"
+#line 647 "parser.cpp"
     break;
 
   case 6: // ident_list: IDENT
-#line 107 "parser.y"
+#line 109 "parser.y"
                                         { vector<ident> *ids = new vector<ident>(); 
                                           ids->push_back(*(yystack_[0].value.strval)); (yylhs.value.ident_list) = ids; }
-#line 652 "parser.tab.cc"
+#line 654 "parser.cpp"
     break;
 
   case 7: // ident_list: ident_list COMMA IDENT
-#line 109 "parser.y"
+#line 111 "parser.y"
                                         { (yystack_[2].value.ident_list)->push_back(*(yystack_[0].value.strval)); (yylhs.value.ident_list) = (yystack_[2].value.ident_list); }
-#line 658 "parser.tab.cc"
+#line 660 "parser.cpp"
     break;
 
   case 8: // proc_decls: %empty
-#line 113 "parser.y"
+#line 115 "parser.y"
                                         { (yylhs.value.proc_list) = new vector<Proc *>(); }
-#line 664 "parser.tab.cc"
+#line 666 "parser.cpp"
     break;
 
   case 9: // proc_decls: proc_decls proc_decl
-#line 114 "parser.y"
+#line 116 "parser.y"
                                         { (yystack_[1].value.proc_list)->push_back((yystack_[0].value.procval)); (yylhs.value.proc_list) = (yystack_[1].value.proc_list); }
-#line 670 "parser.tab.cc"
+#line 672 "parser.cpp"
     break;
 
   case 10: // proc_decl: PROC name formals SEMI block SEMI
-#line 118 "parser.y"
+#line 120 "parser.y"
                                         { new Proc((yystack_[4].value.nameval), (yystack_[3].value.ident_list), (yystack_[1].value.blockval)); }
-#line 676 "parser.tab.cc"
+#line 678 "parser.cpp"
     break;
 
   case 11: // formals: LPAR RPAR
-#line 122 "parser.y"
+#line 124 "parser.y"
                                         { (yylhs.value.ident_list) = new vector<ident>(); }
-#line 682 "parser.tab.cc"
+#line 684 "parser.cpp"
     break;
 
   case 12: // formals: LPAR ident_list RPAR
-#line 123 "parser.y"
+#line 125 "parser.y"
                                         { (yylhs.value.ident_list) = (yystack_[1].value.ident_list); }
-#line 688 "parser.tab.cc"
+#line 690 "parser.cpp"
     break;
 
   case 13: // stmts: stmt_list
-#line 127 "parser.y"
-                                        { (yylhs.value.stmtptr) = sequence((yystack_[0].value.stmt_list)); }
-#line 694 "parser.tab.cc"
+#line 129 "parser.y"
+                                        { (yylhs.value.stmtptr) = Pascal::sequence((yystack_[0].value.stmt_list)); }
+#line 696 "parser.cpp"
     break;
 
   case 14: // stmt_list: stmt
-#line 131 "parser.y"
+#line 133 "parser.y"
                                         { vector<Stmt *> *sts = new vector<Stmt *>(); 
                                           sts->push_back((yystack_[0].value.stmtptr)); (yylhs.value.stmt_list) = sts; }
-#line 701 "parser.tab.cc"
+#line 703 "parser.cpp"
     break;
 
   case 15: // stmt_list: stmt_list SEMI stmt
-#line 133 "parser.y"
+#line 135 "parser.y"
                                         { (yystack_[2].value.stmt_list)->push_back((yystack_[0].value.stmtptr)); (yylhs.value.stmt_list) = (yystack_[2].value.stmt_list); }
-#line 707 "parser.tab.cc"
+#line 709 "parser.cpp"
     break;
 
   case 16: // stmt: %empty
-#line 137 "parser.y"
+#line 139 "parser.y"
                                         { (yylhs.value.stmtptr) = new Skip(); }
-#line 713 "parser.tab.cc"
+#line 715 "parser.cpp"
     break;
 
   case 17: // stmt: name ASSIGN expr
-#line 138 "parser.y"
+#line 140 "parser.y"
                                         { (yylhs.value.stmtptr) = new Assign((yystack_[2].value.nameval), (yystack_[0].value.exprval)); }
-#line 719 "parser.tab.cc"
+#line 721 "parser.cpp"
     break;
 
   case 18: // stmt: RETURN expr
-#line 139 "parser.y"
+#line 141 "parser.y"
                                         { (yylhs.value.stmtptr) = new Return((yystack_[0].value.exprval)); }
-#line 725 "parser.tab.cc"
+#line 727 "parser.cpp"
     break;
 
   case 19: // stmt: IF expr THEN stmts PROC_END
-#line 140 "parser.y"
+#line 142 "parser.y"
                                              { (yylhs.value.stmtptr) = new IfStmt((yystack_[3].value.exprval), (yystack_[1].value.stmtptr), new Skip()); }
-#line 731 "parser.tab.cc"
+#line 733 "parser.cpp"
     break;
 
   case 20: // stmt: IF expr THEN stmts ELSE stmts PROC_END
-#line 141 "parser.y"
+#line 143 "parser.y"
                                              { (yylhs.value.stmtptr) = new IfStmt((yystack_[5].value.exprval), (yystack_[3].value.stmtptr), (yystack_[1].value.stmtptr)); }
-#line 737 "parser.tab.cc"
+#line 739 "parser.cpp"
     break;
 
   case 21: // stmt: WHILE expr DO stmts PROC_END
-#line 142 "parser.y"
+#line 144 "parser.y"
                                              { (yylhs.value.stmtptr) = new WhileStmt((yystack_[3].value.exprval), (yystack_[1].value.stmtptr)); }
-#line 743 "parser.tab.cc"
+#line 745 "parser.cpp"
     break;
 
   case 22: // stmt: PRINT expr
-#line 143 "parser.y"
+#line 145 "parser.y"
                                         { (yylhs.value.stmtptr) = new Print((yystack_[0].value.exprval)); }
-#line 749 "parser.tab.cc"
+#line 751 "parser.cpp"
     break;
 
   case 23: // stmt: NEWLINE
-#line 144 "parser.y"
+#line 146 "parser.y"
                                         { (yylhs.value.stmtptr) = new Newline(); }
-#line 755 "parser.tab.cc"
+#line 757 "parser.cpp"
     break;
 
   case 24: // actuals: LPAR RPAR
-#line 148 "parser.y"
+#line 150 "parser.y"
                                         { (yylhs.value.expr_list) = new vector<Expr *> (); }
-#line 761 "parser.tab.cc"
+#line 763 "parser.cpp"
     break;
 
   case 25: // actuals: LPAR expr_list RPAR
-#line 149 "parser.y"
+#line 151 "parser.y"
                                         { (yylhs.value.expr_list) = (yystack_[1].value.expr_list); }
-#line 767 "parser.tab.cc"
+#line 769 "parser.cpp"
     break;
 
   case 26: // expr_list: expr
-#line 153 "parser.y"
+#line 155 "parser.y"
                                         { vector<Expr *> *exs = new vector<Expr *>(); 
                                           exs->push_back((yystack_[0].value.exprval)); (yylhs.value.expr_list) = exs; }
-#line 774 "parser.tab.cc"
+#line 776 "parser.cpp"
     break;
 
   case 27: // expr_list: expr_list COMMA expr
-#line 155 "parser.y"
+#line 157 "parser.y"
                                         { (yystack_[2].value.expr_list)->push_back((yystack_[0].value.exprval)); (yylhs.value.expr_list) = (yystack_[2].value.expr_list); }
-#line 780 "parser.tab.cc"
+#line 782 "parser.cpp"
     break;
 
   case 28: // expr: simple
-#line 159 "parser.y"
+#line 161 "parser.y"
                                         { (yylhs.value.exprval) = (yystack_[0].value.exprval); }
-#line 786 "parser.tab.cc"
+#line 788 "parser.cpp"
     break;
 
   case 29: // expr: expr RELOP simple
-#line 160 "parser.y"
+#line 162 "parser.y"
                                         { (yylhs.value.exprval) = new Binop((yystack_[1].value.opval), (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 792 "parser.tab.cc"
+#line 794 "parser.cpp"
     break;
 
   case 30: // simple: term
-#line 164 "parser.y"
+#line 166 "parser.y"
                                         { (yylhs.value.exprval) = (yystack_[0].value.exprval); }
-#line 798 "parser.tab.cc"
+#line 800 "parser.cpp"
     break;
 
   case 31: // simple: simple ADDOP term
-#line 165 "parser.y"
+#line 167 "parser.y"
                                         { (yylhs.value.exprval) = new Binop((yystack_[1].value.opval), (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 804 "parser.tab.cc"
+#line 806 "parser.cpp"
     break;
 
   case 32: // simple: simple MINUS term
-#line 166 "parser.y"
+#line 168 "parser.y"
                                         { (yylhs.value.exprval) = new Binop(Minus, (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 810 "parser.tab.cc"
+#line 812 "parser.cpp"
     break;
 
   case 33: // term: factor
-#line 170 "parser.y"
+#line 172 "parser.y"
                                         { (yylhs.value.exprval) = (yystack_[0].value.exprval); }
-#line 816 "parser.tab.cc"
+#line 818 "parser.cpp"
     break;
 
   case 34: // term: term MULOP factor
-#line 171 "parser.y"
+#line 173 "parser.y"
                                         { (yylhs.value.exprval) = new Binop((yystack_[1].value.opval), (yystack_[2].value.exprval), (yystack_[0].value.exprval)); }
-#line 822 "parser.tab.cc"
+#line 824 "parser.cpp"
     break;
 
   case 35: // factor: NUMBER
-#line 175 "parser.y"
+#line 177 "parser.y"
                                         { (yylhs.value.exprval) = new Constant((yystack_[0].value.intval)); }
-#line 828 "parser.tab.cc"
+#line 830 "parser.cpp"
     break;
 
   case 36: // factor: name
-#line 176 "parser.y"
+#line 178 "parser.y"
                                         { (yylhs.value.exprval) = new Variable((yystack_[0].value.nameval)); }
-#line 834 "parser.tab.cc"
+#line 836 "parser.cpp"
     break;
 
   case 37: // factor: name actuals
-#line 177 "parser.y"
+#line 179 "parser.y"
                                         { (yylhs.value.exprval) = new Call((yystack_[1].value.nameval), (yystack_[0].value.expr_list)); }
-#line 840 "parser.tab.cc"
+#line 842 "parser.cpp"
     break;
 
   case 38: // factor: MONOP factor
-#line 178 "parser.y"
+#line 180 "parser.y"
                                         { (yylhs.value.exprval) = new Monop((yystack_[1].value.opval), (yystack_[0].value.exprval)); }
-#line 846 "parser.tab.cc"
+#line 848 "parser.cpp"
     break;
 
   case 39: // factor: MINUS factor
-#line 179 "parser.y"
+#line 181 "parser.y"
                                         { (yylhs.value.exprval) = new Monop(Uminus, (yystack_[0].value.exprval)); }
-#line 852 "parser.tab.cc"
+#line 854 "parser.cpp"
     break;
 
   case 40: // factor: LPAR expr RPAR
-#line 180 "parser.y"
+#line 182 "parser.y"
                                         { (yylhs.value.exprval) = (yystack_[1].value.exprval); }
-#line 858 "parser.tab.cc"
+#line 860 "parser.cpp"
     break;
 
   case 41: // name: IDENT
-#line 184 "parser.y"
-                                        { (yylhs.value.nameval) = makeName(*(yystack_[0].value.strval), 0); }
-#line 864 "parser.tab.cc"
+#line 186 "parser.y"
+                                        { (yylhs.value.nameval) = Pascal::makeName(*(yystack_[0].value.strval), 0); }
+#line 866 "parser.cpp"
     break;
 
 
-#line 868 "parser.tab.cc"
+#line 870 "parser.cpp"
 
             default:
               break;
@@ -1185,11 +1187,11 @@ namespace Pascal {
   const unsigned char
   Parser::yyrline_[] =
   {
-       0,    94,    94,    98,   102,   103,   107,   109,   113,   114,
-     118,   122,   123,   127,   131,   133,   137,   138,   139,   140,
-     141,   142,   143,   144,   148,   149,   153,   155,   159,   160,
-     164,   165,   166,   170,   171,   175,   176,   177,   178,   179,
-     180,   184
+       0,    96,    96,   100,   104,   105,   109,   111,   115,   116,
+     120,   124,   125,   129,   133,   135,   139,   140,   141,   142,
+     143,   144,   145,   146,   150,   151,   155,   157,   161,   162,
+     166,   167,   168,   172,   173,   177,   178,   179,   180,   181,
+     182,   186
   };
 
   void
@@ -1271,9 +1273,9 @@ namespace Pascal {
 
 #line 6 "parser.y"
 } // Pascal
-#line 1275 "parser.tab.cc"
+#line 1277 "parser.cpp"
 
-#line 187 "parser.y"
+#line 189 "parser.y"
 
 
 void Pascal::Parser::error(const location_type &l,

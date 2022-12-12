@@ -6,7 +6,7 @@
 #endif
 
 /* #include "location.hh" */
-#include "parser.tab.hh"
+#include "parser.h"
 
 namespace Pascal {
 

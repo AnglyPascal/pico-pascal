@@ -1,17 +1,32 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
-#include <cstddef>
-#include <istream>
 #include <string>
 
-#include "parser.tab.hh"
+#include "parser.h"
 #include "scanner.h"
+#include "tree.h"
+
+using std::istream;
+using std::ostream;
 
 namespace Pascal {
 
 class Driver {
+  void parse_helper(istream &stream);
+
+  Pascal::Parser *parser = nullptr;
+  Pascal::Scanner *scanner = nullptr;
+
+  /** define some pretty colors **/
+  /* const string red = "\033[1;31m"; */
+  /* const string blue = "\033[1;36m"; */
+  /* const string norm = "\033[0m"; */
+
 public:
+  Pascal::Program *parse_tree = nullptr;
+  string *errmssg = new string();
+
   Driver() = default;
 
   virtual ~Driver();
@@ -21,35 +36,12 @@ public:
    * @param filename - valid string with input file
    */
   void parse(const char *filename);
+
   /**
    * parse - parse from a c++ input stream
-   * @param is - std::istream&, valid input stream
+   * @param is - istream&, valid input stream
    */
-  void parse(std::istream &iss);
-
-  void add_upper();
-  void add_lower();
-  void add_word(const std::string &word);
-  void add_newline();
-  void add_char();
-
-  std::ostream &print(std::ostream &stream);
-
-private:
-  void parse_helper(std::istream &stream);
-
-  std::size_t chars = 0;
-  std::size_t words = 0;
-  std::size_t lines = 0;
-  std::size_t uppercase = 0;
-  std::size_t lowercase = 0;
-  Pascal::Parser *parser = nullptr;
-  Pascal::Scanner *scanner = nullptr;
-
-  /** define some pretty colors **/
-  const std::string red = "\033[1;31m";
-  const std::string blue = "\033[1;36m";
-  const std::string norm = "\033[0m";
+  void parse(istream &iss);
 };
 
 } // namespace Pascal

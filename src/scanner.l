@@ -3,7 +3,7 @@
 #include "tree.h"
 #include <string>
 #include <stdio.h>
-#include "parser.tab.hh"
+#include "parser.h"
 
 /* Implementation of yyFlexScanner */
 #include "scanner.h"
@@ -29,7 +29,6 @@ using token = Pascal::Parser::token;
 %}
 
 %option debug
-%option nodefault
 %option yyclass="Pascal::Scanner"
 %option noyywrap
 %option c++
@@ -60,11 +59,9 @@ using token = Pascal::Parser::token;
 "return"   { return token::RETURN; }
 "newline"  { return token::NEWLINE; }
 ['A'-'Z''a'-'z']['A'-'Z''a'-'z''0'-'9''_']* { 
-             string s = yytext; 
-             yylval->strval = s.c_str(); 
-             token::IDENT; 
+             yylval->strval = new string(yytext); 
+             return token::IDENT; 
            }
-
 ['0'-'9']+ { yylval->intval = atoi(yytext); return token::NUMBER; }
 "="        { yylval->opval = Eq; return token::RELOP; }
 "+"        { yylval->opval = Plus; return token::ADDOP; }
@@ -83,6 +80,7 @@ using token = Pascal::Parser::token;
 ":="       { return token::ASSIGN; }
 [' ''\t']+ { }
 "\r"       { }
+"\n"       { }
 _          { return token::BADTOK; }
 eof        { return token::EOFP; }
 %%
