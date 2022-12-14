@@ -43,7 +43,6 @@ Expr::~Expr() {}
 Constant::Constant(int _n) : n(_n) {}
 Constant::~Constant() {}
 Expr *Constant::clone() { return new Constant(n); }
-Expr &Expr::operator=(Expr &other) { return other; }
 
 // ------- Variable ----------
 Variable::Variable(Name *_x) : x(_x) {}

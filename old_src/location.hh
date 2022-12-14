@@ -32,7 +32,7 @@
 
 /**
  ** \file location.hh
- ** Define the  Pascal ::location class.
+ ** Define the Pascal::location class.
  */
 
 #ifndef YY_YY_LOCATION_HH_INCLUDED
@@ -53,8 +53,8 @@
 #  endif
 # endif
 
-#line 9 "parser.y"
-namespace  Pascal  {
+#line 6 "parser.y"
+namespace Pascal {
 #line 59 "location.hh"
 
   /// A point in a source file.
@@ -299,8 +299,8 @@ namespace  Pascal  {
     return ostr;
   }
 
-#line 9 "parser.y"
-} //  Pascal 
+#line 6 "parser.y"
+} // Pascal
 #line 305 "location.hh"
 
 #endif // !YY_YY_LOCATION_HH_INCLUDED

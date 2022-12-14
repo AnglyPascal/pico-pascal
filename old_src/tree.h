@@ -44,12 +44,10 @@ enum op {
   Not
 };
 
-
 struct Expr {
-  virtual string str() const;
-  virtual ~Expr();
+  virtual string str() const { return ""; };
+  virtual ~Expr() = default;
   virtual Expr *clone() { return this; };
-  virtual Expr &operator=(Expr &other);
 };
 
 struct Constant : public Expr {

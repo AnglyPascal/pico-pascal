@@ -34,29 +34,19 @@
 // especially those whose name start with YY_ or yy_.  They are
 // private implementation details that can be changed or removed.
 
-// "%code top" blocks.
-#line 31 "parser.y"
-
-    #include <iostream>
-    #include "scanner.h"
-    #include "parser.h"
-    #include "driver.h"
-    #include "location.hh"
-    
-    using namespace Pascal;
-    
-    // yylex() arguments are defined in parser.y
-    static Parser::symbol_type yylex(Scanner &scanner, Driver &driver) {
-        return scanner.get_next_token();
-    }
-    
-    // you can accomplish the same thing by inlining the code using preprocessor
-    // x and y are same as in above static function
-    // #define yylex(x, y) scanner.get_next_token()
-
-#line 58 "parser.cpp"
 
 
+// First part of user prologue.
+#line 28 "parser.y"
+
+/* include for all driver functions */
+#include "driver.h"
+#include "scanner.h"
+
+#undef yylex
+#define yylex driver.lexer->yylex
+
+#line 50 "parser.cpp"
 
 
 #include "parser.h"
@@ -152,62 +142,160 @@
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
 
-#line 9 "parser.y"
-namespace  Pascal  {
-#line 158 "parser.cpp"
+#line 6 "parser.y"
+namespace Pascal {
+#line 148 "parser.cpp"
 
   /// Build a parser object.
-   Parser :: Parser  (Pascal::Scanner &scanner_yyarg, Pascal::Driver &driver_yyarg)
+  Parser::Parser (class Driver &driver_yyarg, class Expr *expr_yyarg)
 #if YYDEBUG
     : yydebug_ (false),
       yycdebug_ (&std::cerr),
 #else
     :
 #endif
-      scanner (scanner_yyarg),
-      driver (driver_yyarg)
+      driver (driver_yyarg),
+      expr (expr_yyarg)
   {}
 
-   Parser ::~ Parser  ()
+  Parser::~Parser ()
   {}
 
-   Parser ::syntax_error::~syntax_error () YY_NOEXCEPT YY_NOTHROW
+  Parser::syntax_error::~syntax_error () YY_NOEXCEPT YY_NOTHROW
   {}
 
   /*---------.
   | symbol.  |
   `---------*/
 
+  // basic_symbol.
+  template <typename Base>
+  Parser::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
+    : Base (that)
+    , value (that.value)
+    , location (that.location)
+  {}
+
+
+  /// Constructor for valueless symbols.
+  template <typename Base>
+  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, YY_MOVE_REF (location_type) l)
+    : Base (t)
+    , value ()
+    , location (l)
+  {}
+
+  template <typename Base>
+  Parser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, YY_RVREF (value_type) v, YY_RVREF (location_type) l)
+    : Base (t)
+    , value (YY_MOVE (v))
+    , location (YY_MOVE (l))
+  {}
+
+
+  template <typename Base>
+  Parser::symbol_kind_type
+  Parser::basic_symbol<Base>::type_get () const YY_NOEXCEPT
+  {
+    return this->kind ();
+  }
+
+
+  template <typename Base>
+  bool
+  Parser::basic_symbol<Base>::empty () const YY_NOEXCEPT
+  {
+    return this->kind () == symbol_kind::S_YYEMPTY;
+  }
+
+  template <typename Base>
+  void
+  Parser::basic_symbol<Base>::move (basic_symbol& s)
+  {
+    super_type::move (s);
+    value = YY_MOVE (s.value);
+    location = YY_MOVE (s.location);
+  }
+
+  // by_kind.
+  Parser::by_kind::by_kind () YY_NOEXCEPT
+    : kind_ (symbol_kind::S_YYEMPTY)
+  {}
+
+#if 201103L <= YY_CPLUSPLUS
+  Parser::by_kind::by_kind (by_kind&& that) YY_NOEXCEPT
+    : kind_ (that.kind_)
+  {
+    that.clear ();
+  }
+#endif
+
+  Parser::by_kind::by_kind (const by_kind& that) YY_NOEXCEPT
+    : kind_ (that.kind_)
+  {}
+
+  Parser::by_kind::by_kind (token_kind_type t) YY_NOEXCEPT
+    : kind_ (yytranslate_ (t))
+  {}
+
+
+
+  void
+  Parser::by_kind::clear () YY_NOEXCEPT
+  {
+    kind_ = symbol_kind::S_YYEMPTY;
+  }
+
+  void
+  Parser::by_kind::move (by_kind& that)
+  {
+    kind_ = that.kind_;
+    that.clear ();
+  }
+
+  Parser::symbol_kind_type
+  Parser::by_kind::kind () const YY_NOEXCEPT
+  {
+    return kind_;
+  }
+
+
+  Parser::symbol_kind_type
+  Parser::by_kind::type_get () const YY_NOEXCEPT
+  {
+    return this->kind ();
+  }
+
 
 
   // by_state.
-   Parser ::by_state::by_state () YY_NOEXCEPT
+  Parser::by_state::by_state () YY_NOEXCEPT
     : state (empty_state)
   {}
 
-   Parser ::by_state::by_state (const by_state& that) YY_NOEXCEPT
+  Parser::by_state::by_state (const by_state& that) YY_NOEXCEPT
     : state (that.state)
   {}
 
   void
-   Parser ::by_state::clear () YY_NOEXCEPT
+  Parser::by_state::clear () YY_NOEXCEPT
   {
     state = empty_state;
   }
 
   void
-   Parser ::by_state::move (by_state& that)
+  Parser::by_state::move (by_state& that)
   {
     state = that.state;
     that.clear ();
   }
 
-   Parser ::by_state::by_state (state_type s) YY_NOEXCEPT
+  Parser::by_state::by_state (state_type s) YY_NOEXCEPT
     : state (s)
   {}
 
-   Parser ::symbol_kind_type
-   Parser ::by_state::kind () const YY_NOEXCEPT
+  Parser::symbol_kind_type
+  Parser::by_state::kind () const YY_NOEXCEPT
   {
     if (state == empty_state)
       return symbol_kind::S_YYEMPTY;
@@ -215,94 +303,40 @@ namespace  Pascal  {
       return YY_CAST (symbol_kind_type, yystos_[+state]);
   }
 
-   Parser ::stack_symbol_type::stack_symbol_type ()
+  Parser::stack_symbol_type::stack_symbol_type ()
   {}
 
-   Parser ::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
-    : super_type (YY_MOVE (that.state), YY_MOVE (that.location))
+  Parser::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
+    : super_type (YY_MOVE (that.state), YY_MOVE (that.value), YY_MOVE (that.location))
   {
-    switch (that.kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.YY_MOVE_OR_COPY< Pascal::Expr > (YY_MOVE (that.value));
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.YY_MOVE_OR_COPY< uint64_t > (YY_MOVE (that.value));
-        break;
-
-      default:
-        break;
-    }
-
 #if 201103L <= YY_CPLUSPLUS
     // that is emptied.
     that.state = empty_state;
 #endif
   }
 
-   Parser ::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
-    : super_type (s, YY_MOVE (that.location))
+  Parser::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
+    : super_type (s, YY_MOVE (that.value), YY_MOVE (that.location))
   {
-    switch (that.kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (YY_MOVE (that.value));
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.move< uint64_t > (YY_MOVE (that.value));
-        break;
-
-      default:
-        break;
-    }
-
     // that is emptied.
     that.kind_ = symbol_kind::S_YYEMPTY;
   }
 
 #if YY_CPLUSPLUS < 201103L
-   Parser ::stack_symbol_type&
-   Parser ::stack_symbol_type::operator= (const stack_symbol_type& that)
+  Parser::stack_symbol_type&
+  Parser::stack_symbol_type::operator= (const stack_symbol_type& that)
   {
     state = that.state;
-    switch (that.kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.copy< Pascal::Expr > (that.value);
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.copy< uint64_t > (that.value);
-        break;
-
-      default:
-        break;
-    }
-
+    value = that.value;
     location = that.location;
     return *this;
   }
 
-   Parser ::stack_symbol_type&
-   Parser ::stack_symbol_type::operator= (stack_symbol_type& that)
+  Parser::stack_symbol_type&
+  Parser::stack_symbol_type::operator= (stack_symbol_type& that)
   {
     state = that.state;
-    switch (that.kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (that.value);
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.move< uint64_t > (that.value);
-        break;
-
-      default:
-        break;
-    }
-
+    value = that.value;
     location = that.location;
     // that is emptied.
     that.state = empty_state;
@@ -312,16 +346,19 @@ namespace  Pascal  {
 
   template <typename Base>
   void
-   Parser ::yy_destroy_ (const char* yymsg, basic_symbol<Base>& yysym) const
+  Parser::yy_destroy_ (const char* yymsg, basic_symbol<Base>& yysym) const
   {
     if (yymsg)
       YY_SYMBOL_PRINT (yymsg, yysym);
+
+    // User destructor.
+    YY_USE (yysym.kind ());
   }
 
 #if YYDEBUG
   template <typename Base>
   void
-   Parser ::yy_print_ (std::ostream& yyo, const basic_symbol<Base>& yysym) const
+  Parser::yy_print_ (std::ostream& yyo, const basic_symbol<Base>& yysym) const
   {
     std::ostream& yyoutput = yyo;
     YY_USE (yyoutput);
@@ -340,7 +377,7 @@ namespace  Pascal  {
 #endif
 
   void
-   Parser ::yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym)
+  Parser::yypush_ (const char* m, YY_MOVE_REF (stack_symbol_type) sym)
   {
     if (m)
       YY_SYMBOL_PRINT (m, sym);
@@ -348,7 +385,7 @@ namespace  Pascal  {
   }
 
   void
-   Parser ::yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym)
+  Parser::yypush_ (const char* m, state_type s, YY_MOVE_REF (symbol_type) sym)
   {
 #if 201103L <= YY_CPLUSPLUS
     yypush_ (m, stack_symbol_type (s, std::move (sym)));
@@ -359,40 +396,40 @@ namespace  Pascal  {
   }
 
   void
-   Parser ::yypop_ (int n) YY_NOEXCEPT
+  Parser::yypop_ (int n) YY_NOEXCEPT
   {
     yystack_.pop (n);
   }
 
 #if YYDEBUG
   std::ostream&
-   Parser ::debug_stream () const
+  Parser::debug_stream () const
   {
     return *yycdebug_;
   }
 
   void
-   Parser ::set_debug_stream (std::ostream& o)
+  Parser::set_debug_stream (std::ostream& o)
   {
     yycdebug_ = &o;
   }
 
 
-   Parser ::debug_level_type
-   Parser ::debug_level () const
+  Parser::debug_level_type
+  Parser::debug_level () const
   {
     return yydebug_;
   }
 
   void
-   Parser ::set_debug_level (debug_level_type l)
+  Parser::set_debug_level (debug_level_type l)
   {
     yydebug_ = l;
   }
 #endif // YYDEBUG
 
-   Parser ::state_type
-   Parser ::yy_lr_goto_state_ (state_type yystate, int yysym)
+  Parser::state_type
+  Parser::yy_lr_goto_state_ (state_type yystate, int yysym)
   {
     int yyr = yypgoto_[yysym - YYNTOKENS] + yystate;
     if (0 <= yyr && yyr <= yylast_ && yycheck_[yyr] == yystate)
@@ -402,25 +439,25 @@ namespace  Pascal  {
   }
 
   bool
-   Parser ::yy_pact_value_is_default_ (int yyvalue) YY_NOEXCEPT
+  Parser::yy_pact_value_is_default_ (int yyvalue) YY_NOEXCEPT
   {
     return yyvalue == yypact_ninf_;
   }
 
   bool
-   Parser ::yy_table_value_is_error_ (int yyvalue) YY_NOEXCEPT
+  Parser::yy_table_value_is_error_ (int yyvalue) YY_NOEXCEPT
   {
     return yyvalue == yytable_ninf_;
   }
 
   int
-   Parser ::operator() ()
+  Parser::operator() ()
   {
     return parse ();
   }
 
   int
-   Parser ::parse ()
+  Parser::parse ()
   {
     int yyn;
     /// Length of the RHS of the rule being reduced.
@@ -484,8 +521,7 @@ namespace  Pascal  {
         try
 #endif // YY_EXCEPTIONS
           {
-            symbol_type yylookahead (yylex (scanner, driver));
-            yyla.move (yylookahead);
+            yyla.kind_ = yytranslate_ (yylex (&yyla.value, &yyla.location));
           }
 #if YY_EXCEPTIONS
         catch (const syntax_error& yyexc)
@@ -553,23 +589,16 @@ namespace  Pascal  {
     {
       stack_symbol_type yylhs;
       yylhs.state = yy_lr_goto_state_ (yystack_[yylen].state, yyr1_[yyn]);
-      /* Variants are always initialized to an empty instance of the
-         correct type. The default '$$ = $1' action is NOT applied
-         when using variants.  */
-      switch (yyr1_[yyn])
-    {
-      case symbol_kind::S_expr: // expr
-        yylhs.value.emplace< Pascal::Expr > ();
-        break;
+      /* If YYLEN is nonzero, implement the default value of the
+         action: '$$ = $1'.  Otherwise, use the top of the stack.
 
-      case symbol_kind::S_NUMBER: // "number"
-        yylhs.value.emplace< uint64_t > ();
-        break;
-
-      default:
-        break;
-    }
-
+         Otherwise, the following line sets YYLHS.VALUE to garbage.
+         This behavior is undocumented and Bison users should not rely
+         upon it.  */
+      if (yylen)
+        yylhs.value = yystack_[yylen - 1].value;
+      else
+        yylhs.value = yystack_[0].value;
 
       // Default location.
       {
@@ -586,20 +615,20 @@ namespace  Pascal  {
         {
           switch (yyn)
             {
-  case 2: // expr: %empty
-#line 77 "parser.y"
-                     { std::cout << "haha\n"; return 0; }
-#line 593 "parser.cpp"
+  case 2: // endexpr: %empty
+#line 53 "parser.y"
+                        { std::cout << "haha\n"; return 0; }
+#line 622 "parser.cpp"
     break;
 
-  case 3: // expr: "number"
-#line 78 "parser.y"
-                     { std::cout << yystack_[0].value.as < uint64_t > (); const Expr &expr = Constant(yystack_[0].value.as < uint64_t > ()); driver.addExpr(expr); }
-#line 599 "parser.cpp"
+  case 3: // endexpr: NUMBER
+#line 54 "parser.y"
+                        { std::cout << (yystack_[0].value.intval); (yylhs.value.exprval) = new Constant((yystack_[0].value.intval)); expr = (yylhs.value.exprval); }
+#line 628 "parser.cpp"
     break;
 
 
-#line 603 "parser.cpp"
+#line 632 "parser.cpp"
 
             default:
               break;
@@ -631,8 +660,7 @@ namespace  Pascal  {
     if (!yyerrstatus_)
       {
         ++yynerrs_;
-        context yyctx (*this, yyla);
-        std::string msg = yysyntax_error_ (yyctx);
+        std::string msg = YY_("syntax error");
         error (yyla.location, YY_MOVE (msg));
       }
 
@@ -772,265 +800,107 @@ namespace  Pascal  {
   }
 
   void
-   Parser ::error (const syntax_error& yyexc)
+  Parser::error (const syntax_error& yyexc)
   {
     error (yyexc.location, yyexc.what ());
   }
 
-  /* Return YYSTR after stripping away unnecessary quotes and
-     backslashes, so that it's suitable for yyerror.  The heuristic is
-     that double-quoting is unnecessary unless the string contains an
-     apostrophe, a comma, or backslash (other than backslash-backslash).
-     YYSTR is taken from yytname.  */
-  std::string
-   Parser ::yytnamerr_ (const char *yystr)
+#if YYDEBUG || 0
+  const char *
+  Parser::symbol_name (symbol_kind_type yysymbol)
   {
-    if (*yystr == '"')
-      {
-        std::string yyr;
-        char const *yyp = yystr;
-
-        for (;;)
-          switch (*++yyp)
-            {
-            case '\'':
-            case ',':
-              goto do_not_strip_quotes;
-
-            case '\\':
-              if (*++yyp != '\\')
-                goto do_not_strip_quotes;
-              else
-                goto append;
-
-            append:
-            default:
-              yyr += *yyp;
-              break;
-
-            case '"':
-              return yyr;
-            }
-      do_not_strip_quotes: ;
-      }
-
-    return yystr;
+    return yytname_[yysymbol];
   }
-
-  std::string
-   Parser ::symbol_name (symbol_kind_type yysymbol)
-  {
-    return yytnamerr_ (yytname_[yysymbol]);
-  }
-
-
-
-  //  Parser ::context.
-   Parser ::context::context (const  Parser & yyparser, const symbol_type& yyla)
-    : yyparser_ (yyparser)
-    , yyla_ (yyla)
-  {}
-
-  int
-   Parser ::context::expected_tokens (symbol_kind_type yyarg[], int yyargn) const
-  {
-    // Actual number of expected tokens
-    int yycount = 0;
-
-    const int yyn = yypact_[+yyparser_.yystack_[0].state];
-    if (!yy_pact_value_is_default_ (yyn))
-      {
-        /* Start YYX at -YYN if negative to avoid negative indexes in
-           YYCHECK.  In other words, skip the first -YYN actions for
-           this state because they are default actions.  */
-        const int yyxbegin = yyn < 0 ? -yyn : 0;
-        // Stay within bounds of both yycheck and yytname.
-        const int yychecklim = yylast_ - yyn + 1;
-        const int yyxend = yychecklim < YYNTOKENS ? yychecklim : YYNTOKENS;
-        for (int yyx = yyxbegin; yyx < yyxend; ++yyx)
-          if (yycheck_[yyx + yyn] == yyx && yyx != symbol_kind::S_YYerror
-              && !yy_table_value_is_error_ (yytable_[yyx + yyn]))
-            {
-              if (!yyarg)
-                ++yycount;
-              else if (yycount == yyargn)
-                return 0;
-              else
-                yyarg[yycount++] = YY_CAST (symbol_kind_type, yyx);
-            }
-      }
-
-    if (yyarg && yycount == 0 && 0 < yyargn)
-      yyarg[0] = symbol_kind::S_YYEMPTY;
-    return yycount;
-  }
+#endif // #if YYDEBUG || 0
 
 
 
 
 
 
-  int
-   Parser ::yy_syntax_error_arguments_ (const context& yyctx,
-                                                 symbol_kind_type yyarg[], int yyargn) const
-  {
-    /* There are many possibilities here to consider:
-       - If this state is a consistent state with a default action, then
-         the only way this function was invoked is if the default action
-         is an error action.  In that case, don't check for expected
-         tokens because there are none.
-       - The only way there can be no lookahead present (in yyla) is
-         if this state is a consistent state with a default action.
-         Thus, detecting the absence of a lookahead is sufficient to
-         determine that there is no unexpected or expected token to
-         report.  In that case, just report a simple "syntax error".
-       - Don't assume there isn't a lookahead just because this state is
-         a consistent state with a default action.  There might have
-         been a previous inconsistent state, consistent state with a
-         non-default action, or user semantic action that manipulated
-         yyla.  (However, yyla is currently not documented for users.)
-       - Of course, the expected token list depends on states to have
-         correct lookahead information, and it depends on the parser not
-         to perform extra reductions after fetching a lookahead from the
-         scanner and before detecting a syntax error.  Thus, state merging
-         (from LALR or IELR) and default reductions corrupt the expected
-         token list.  However, the list is correct for canonical LR with
-         one exception: it will still contain any token that will not be
-         accepted due to an error action in a later state.
-    */
-
-    if (!yyctx.lookahead ().empty ())
-      {
-        if (yyarg)
-          yyarg[0] = yyctx.token ();
-        int yyn = yyctx.expected_tokens (yyarg ? yyarg + 1 : yyarg, yyargn - 1);
-        return yyn + 1;
-      }
-    return 0;
-  }
-
-  // Generate an error message.
-  std::string
-   Parser ::yysyntax_error_ (const context& yyctx) const
-  {
-    // Its maximum.
-    enum { YYARGS_MAX = 5 };
-    // Arguments of yyformat.
-    symbol_kind_type yyarg[YYARGS_MAX];
-    int yycount = yy_syntax_error_arguments_ (yyctx, yyarg, YYARGS_MAX);
-
-    char const* yyformat = YY_NULLPTR;
-    switch (yycount)
-      {
-#define YYCASE_(N, S)                         \
-        case N:                               \
-          yyformat = S;                       \
-        break
-      default: // Avoid compiler warnings.
-        YYCASE_ (0, YY_("syntax error"));
-        YYCASE_ (1, YY_("syntax error, unexpected %s"));
-        YYCASE_ (2, YY_("syntax error, unexpected %s, expecting %s"));
-        YYCASE_ (3, YY_("syntax error, unexpected %s, expecting %s or %s"));
-        YYCASE_ (4, YY_("syntax error, unexpected %s, expecting %s or %s or %s"));
-        YYCASE_ (5, YY_("syntax error, unexpected %s, expecting %s or %s or %s or %s"));
-#undef YYCASE_
-      }
-
-    std::string yyres;
-    // Argument number.
-    std::ptrdiff_t yyi = 0;
-    for (char const* yyp = yyformat; *yyp; ++yyp)
-      if (yyp[0] == '%' && yyp[1] == 's' && yyi < yycount)
-        {
-          yyres += symbol_name (yyarg[yyi++]);
-          ++yyp;
-        }
-      else
-        yyres += *yyp;
-    return yyres;
-  }
 
 
-  const signed char  Parser ::yypact_ninf_ = -4;
 
-  const signed char  Parser ::yytable_ninf_ = -1;
+  const signed char Parser::yypact_ninf_ = -4;
+
+  const signed char Parser::yytable_ninf_ = -1;
 
   const signed char
-   Parser ::yypact_[] =
+  Parser::yypact_[] =
   {
       -3,    -4,     1,    -4
   };
 
   const signed char
-   Parser ::yydefact_[] =
+  Parser::yydefact_[] =
   {
        2,     3,     0,     1
   };
 
   const signed char
-   Parser ::yypgoto_[] =
+  Parser::yypgoto_[] =
   {
       -4,    -4
   };
 
   const signed char
-   Parser ::yydefgoto_[] =
+  Parser::yydefgoto_[] =
   {
        0,     2
   };
 
   const signed char
-   Parser ::yytable_[] =
+  Parser::yytable_[] =
   {
        1,     3
   };
 
   const signed char
-   Parser ::yycheck_[] =
+  Parser::yycheck_[] =
   {
        3,     0
   };
 
   const signed char
-   Parser ::yystos_[] =
+  Parser::yystos_[] =
   {
        0,     3,     5,     0
   };
 
   const signed char
-   Parser ::yyr1_[] =
+  Parser::yyr1_[] =
   {
        0,     4,     5,     5
   };
 
   const signed char
-   Parser ::yyr2_[] =
+  Parser::yyr2_[] =
   {
        0,     2,     0,     1
   };
 
 
-#if YYDEBUG || 1
+#if YYDEBUG
   // YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
   // First, the terminals, then, starting at \a YYNTOKENS, nonterminals.
   const char*
-  const  Parser ::yytname_[] =
+  const Parser::yytname_[] =
   {
-  "\"end of file\"", "error", "\"invalid token\"", "\"number\"",
-  "$accept", "expr", YY_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "NUMBER", "$accept",
+  "endexpr", YY_NULLPTR
   };
 #endif
 
 
 #if YYDEBUG
   const signed char
-   Parser ::yyrline_[] =
+  Parser::yyrline_[] =
   {
-       0,    77,    77,    78
+       0,    53,    53,    54
   };
 
   void
-   Parser ::yy_stack_print_ () const
+  Parser::yy_stack_print_ () const
   {
     *yycdebug_ << "Stack now";
     for (stack_type::const_iterator
@@ -1042,7 +912,7 @@ namespace  Pascal  {
   }
 
   void
-   Parser ::yy_reduce_print_ (int yyrule) const
+  Parser::yy_reduce_print_ (int yyrule) const
   {
     int yylno = yyrline_[yyrule];
     int yynrhs = yyr2_[yyrule];
@@ -1056,20 +926,61 @@ namespace  Pascal  {
   }
 #endif // YYDEBUG
 
+  Parser::symbol_kind_type
+  Parser::yytranslate_ (int t) YY_NOEXCEPT
+  {
+    // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
+    // TOKEN-NUM as returned by yylex.
+    static
+    const signed char
+    translate_table[] =
+    {
+       0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     1,     2,     3
+    };
+    // Last valid token kind.
+    const int code_max = 258;
 
-#line 9 "parser.y"
-} //  Pascal 
-#line 1063 "parser.cpp"
+    if (t <= 0)
+      return symbol_kind::S_YYEOF;
+    else if (t <= code_max)
+      return static_cast <symbol_kind_type> (translate_table[t]);
+    else
+      return symbol_kind::S_YYUNDEF;
+  }
 
-#line 80 "parser.y"
+#line 6 "parser.y"
+} // Pascal
+#line 979 "parser.cpp"
+
+#line 56 "parser.y"
 
 
-// Bison expects us to provide implementation - otherwise linker complains
-void Pascal::Parser::error(const location &loc , const std::string &message) {
-        
-        // Location should be initialized inside scanner action, but is not in this example.
-        // Let's grab location directly from driver class.
-	// cout << "Error: " << message << endl << "Location: " << loc << endl;
-	
-        cout << "Error: " << message << endl << "Error location: " << driver.location() << endl;
+void Pascal::Parser::error(const Parser::location_type& l,
+			    const std::string& m) {
+    driver.error(l, m);
 }

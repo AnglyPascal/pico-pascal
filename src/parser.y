@@ -1,201 +1,90 @@
-%skeleton "lalr1.cc"
-%language "c++" 
-%require "3.8.2" 
-%debug 
-%defines 
-%define api.namespace {Pascal}
-%define api.parser.class {Parser}
+%skeleton "lalr1.cc" /* -*- C++ -*- */
+%require "3.8.2"
+%defines
+%define api.parser.class { Parser }
 
-%code requires{
-   #include "tree.h"
-
-   namespace Pascal {
-   class Driver;
-   class Scanner;
-   } // namespace Pascal
-
-   // The following definitions is missing when %locations isn't used
-   #ifndef YY_NULLPTR
-   #if defined __cplusplus && 201103L <= __cplusplus
-   #define YY_NULLPTR nullptr
-   #else
-   #define YY_NULLPTR 0
-   #endif
-   #endif
-}
-
-%parse-param { Scanner  &scanner  }
-%parse-param { Driver  &driver  }
-%parse-param { Program *pgm }
-%parse-param { string *errmsg }
-
-%code{
-   #include <iostream>
-   #include <cstdlib>
-   #include <fstream>
-   #include <vector>
-   #include <string>
-   
-   /* include for all driver functions */
-   #include "driver.h"
-
-   #undef yylex
-   #define yylex scanner.yylex
-}
-
+%define api.token.constructor
+%define api.value.type variant
 %define parse.assert
+%define api.namespace { Pascal }
+%code requires {
+    #include <iostream>
+    #include <string>
+    #include <vector>
+    #include <stdint.h>
+    #include "tree.h"
 
-%union {
-  ident *strval; 
-  int intval;
-  op opval;
-  Program *progval; 
-  Block *blockval;
-  Proc *procval;
-  Stmt *stmtptr;
-  Name *nameval;
-  Expr *exprval;
-  vector<ident> *ident_list;
-  vector<Proc *> *proc_list;
-  vector<Stmt *> *stmt_list;
-  vector<Expr *> *expr_list;
+    using namespace std;
+
+    namespace Pascal {
+        class Scanner;
+        class Driver;
+    }
 }
 
-%token<strval>  IDENT
-%token<intval>  NUMBER
-%token<opval>   MONOP MULOP ADDOP RELOP
-%token          MINUS LPAR RPAR COMMA SEMI DOT ASSIGN EOFP BADTOK
-%token          PROC_BEGIN PROC_END VAR PRINT IF THEN ELSE WHILE DO PROC RETURN NEWLINE
+// Bison calls yylex() function that must be provided by us to suck tokens
+// from the scanner. This block will be placed at the beginning of IMPLEMENTATION file (cpp).
+// We define this function here (function! not method).
+// This function is called only inside Bison, so we make it static to limit symbol visibility for the linker
+// to avoid potential linking conflicts.
+%code top
+{
+    #include <iostream>
+    #include "scanner.h"
+    #include "parser.h"
+    #include "driver.h"
+    #include "location.hh"
+    
+    using namespace Pascal;
+    
+    // yylex() arguments are defined in parser.y
+    static Parser::symbol_type yylex(Scanner &scanner, Driver &driver) {
+        return scanner.get_next_token();
+    }
+    
+    // you can accomplish the same thing by inlining the code using preprocessor
+    // x and y are same as in above static function
+    // #define yylex(x, y) scanner.get_next_token()
+}
 
-%start          endexpr
+%lex-param { Pascal::Scanner &scanner }
+%lex-param { Pascal::Driver &driver }
+%parse-param { Pascal::Scanner &scanner }
+%parse-param { Pascal::Driver &driver }
 
-%type <progval>     program
-%type <blockval>    block
-%type <ident_list>  ident_list
-%type <ident_list>  var_decl 
-%type <ident_list>  formals
-%type <proc_list>   proc_decls
-%type <procval>     proc_decl
-%type <stmtptr>     stmts
-%type <stmtptr>     stmt
-%type <stmt_list>   stmt_list
-%type <nameval>     name
+%locations
+%define parse.trace
+%define parse.error verbose
 
-%type <exprval>     expr
-%type <exprval>     simple
-%type <exprval>     term
-%type <exprval>     factor
-%type <expr_list>   expr_list 
-%type <expr_list>   actuals
+%define api.token.prefix {TOKEN_}
 
-%type <stmtptr>     endstmt
-%type <exprval>     endexpr
+
+/* %union{ */
+/*     int intval; */ 
+/*     Pascal::Expr *exprval; */ 
+/* } */
+
+%token END 0 "end of file"
+%token<uint64_t>  NUMBER "number"
+
+%start          expr
+%type <Pascal::Expr> expr
 
 %locations
 
 %%
 
-program :
-    block DOT                           { $$ = new Program($1); pgm = $$; }
-	;
-
-block :
-    var_decl proc_decls PROC_BEGIN stmts PROC_END { printf("haha"); $$ = new Block($1, $2, $4); }
-	;
-
-var_decl :
-    /* empty */                         { printf("vars empty\n"); $$ = new vector<ident>(); }
-  | VAR ident_list SEMI                 { $$ = $2; }
-	;
-
-ident_list :
-    IDENT                               { vector<ident> *ids = new vector<ident>(); 
-                                          ids->push_back(*$1); $$ = ids; }
-  | ident_list COMMA IDENT              { $1->push_back(*$3); $$ = $1; }
-	;
-
-proc_decls :
-    /* empty */                         { $$ = new vector<Proc *>(); }
-  | proc_decls proc_decl                { $1->push_back($2); $$ = $1; }
-	;
-
-proc_decl :
-    PROC name formals SEMI block SEMI   { new Proc($2, $3, $5); }
-	;
-
-formals :
-    LPAR RPAR                           { $$ = new vector<ident>(); }
-  | LPAR ident_list RPAR                { $$ = $2; }
-	;
-
-stmts :
-    stmt_list                           { $$ = Pascal::sequence($1); }
-	;
-
-stmt_list :
-    stmt                                { vector<Stmt *> *sts = new vector<Stmt *>(); 
-                                          sts->push_back($1); $$ = sts; }
-  | stmt_list SEMI stmt                 { $1->push_back($3); $$ = $1; }
-	;
-
-stmt :
-    /* /1* empty *1/                         { $$ = new Skip(); } */
-   name ASSIGN expr                    { $$ = new Assign($1, $3); }
-  | RETURN expr                         { $$ = new Return($2); }
-  | IF expr THEN stmts PROC_END              { $$ = new IfStmt($2, $4, new Skip()); }
-  | IF expr THEN stmts ELSE stmts PROC_END   { $$ = new IfStmt($2, $4, $6); }
-  | WHILE expr DO stmts PROC_END             { $$ = new WhileStmt($2, $4); }
-  | PRINT expr                          { $$ = new Print($2); }
-  | NEWLINE                             { $$ = new Newline(); }
-	;
-
-endstmt : stmt PROC_END                 { std::cout << $1->str(); $$ = $1; }
-
-actuals :
-    LPAR RPAR                           { $$ = new vector<Expr *> (); }
-  | LPAR expr_list RPAR                 { $$ = $2; }
-	;
-
-endexpr : NUMBER EOFP                 { std::cout << $1; return 0; }
-
-expr_list :
-    expr                                { vector<Expr *> *exs = new vector<Expr *>(); 
-                                          exs->push_back($1); $$ = exs; }
-  | expr_list COMMA expr                { $1->push_back($3); $$ = $1; }
-	;
-
-expr :
-    simple                              { $$ = $1; }
-  | expr RELOP simple                   { $$ = new Binop($2, $1, $3); }
-	;
-
-simple :
-    term                                { $$ = $1; }
-  | simple ADDOP term                   { $$ = new Binop($2, $1, $3); }
-  | simple MINUS term                   { $$ = new Binop(Minus, $1, $3); }
-	;
-
-term :
-    factor                              { $$ = $1; }
-  | term MULOP factor                   { $$ = new Binop($2, $1, $3); }
-	;
-
-factor :
-    NUMBER                              { $$ = new Constant($1); }
-  | name                                { $$ = new Variable($1); }
-  | name actuals                        { $$ = new Call($1, $2); }
-  | MONOP factor                        { $$ = new Monop($1, $2); }
-  | MINUS factor                        { $$ = new Monop(Uminus, $2); }
-  | LPAR expr RPAR                      { $$ = $2; }
-	;
-
-name :
-    IDENT                               { $$ = Pascal::makeName(*$1, 0); } 
-	;
+expr :               { std::cout << "haha\n"; return 0; }
+     |  NUMBER       { std::cout << $1; const Expr &expr = Constant($1); driver.addExpr(expr); };
 
 %%
 
-void Pascal::Parser::error(const location_type &l,
-                           const std::string &err_message) {
-  std::cerr << "Error: " << err_message << " at " << l << "\n";
+// Bison expects us to provide implementation - otherwise linker complains
+void Pascal::Parser::error(const location &loc , const std::string &message) {
+        
+        // Location should be initialized inside scanner action, but is not in this example.
+        // Let's grab location directly from driver class.
+	// cout << "Error: " << message << endl << "Location: " << loc << endl;
+	
+        cout << "Error: " << message << endl << "Error location: " << driver.location() << endl;
 }

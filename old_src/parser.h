@@ -33,7 +33,7 @@
 
 /**
  ** \file parser.h
- ** Define the  Pascal ::parser class.
+ ** Define the Pascal::parser class.
  */
 
 // C++ LALR(1) parser skeleton written by Akim Demaille.
@@ -45,22 +45,23 @@
 #ifndef YY_YY_PARSER_H_INCLUDED
 # define YY_YY_PARSER_H_INCLUDED
 // "%code requires" blocks.
-#line 10 "parser.y"
+#line 9 "parser.y"
 
-    #include <iostream>
-    #include <string>
-    #include <vector>
-    #include <stdint.h>
-    #include "tree.h"
+#include <iostream>
+#include <string>
 
-    using namespace std;
+#include "tree.h"
 
-    namespace Pascal {
-        class Scanner;
-        class Driver;
-    }
+// The following definitions is missing when %locations isn't used
+#ifndef YY_NULLPTR
+#if defined __cplusplus && 201103L <= __cplusplus
+#define YY_NULLPTR nullptr
+#else
+#define YY_NULLPTR 0
+#endif
+#endif
 
-#line 64 "parser.h"
+#line 65 "parser.h"
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -106,11 +107,6 @@
 # define YY_CONSTEXPR
 #endif
 # include "location.hh"
-#include <typeinfo>
-#ifndef YY_ASSERT
-# include <cassert>
-# define YY_ASSERT assert
-#endif
 
 
 #ifndef YY_ATTRIBUTE_PURE
@@ -199,15 +195,15 @@
 # define YYDEBUG 1
 #endif
 
-#line 9 "parser.y"
-namespace  Pascal  {
-#line 205 "parser.h"
+#line 6 "parser.y"
+namespace Pascal {
+#line 201 "parser.h"
 
 
 
 
   /// A Bison parser.
-  class  Parser 
+  class Parser
   {
   public:
 #ifdef YYSTYPE
@@ -216,233 +212,17 @@ namespace  Pascal  {
 # endif
     typedef YYSTYPE value_type;
 #else
-  /// A buffer to store and retrieve objects.
-  ///
-  /// Sort of a variant, but does not keep track of the nature
-  /// of the stored data, since that knowledge is available
-  /// via the current parser state.
-  class value_type
-  {
-  public:
-    /// Type of *this.
-    typedef value_type self_type;
-
-    /// Empty construction.
-    value_type () YY_NOEXCEPT
-      : yyraw_ ()
-      , yytypeid_ (YY_NULLPTR)
-    {}
-
-    /// Construct and fill.
-    template <typename T>
-    value_type (YY_RVREF (T) t)
-      : yytypeid_ (&typeid (T))
+    /// Symbol semantic values.
+    union value_type
     {
-      YY_ASSERT (sizeof (T) <= size);
-      new (yyas_<T> ()) T (YY_MOVE (t));
-    }
+#line 39 "parser.y"
 
-#if 201103L <= YY_CPLUSPLUS
-    /// Non copyable.
-    value_type (const self_type&) = delete;
-    /// Non copyable.
-    self_type& operator= (const self_type&) = delete;
-#endif
+  int intval;
+  Expr *exprval;
 
-    /// Destruction, allowed only if empty.
-    ~value_type () YY_NOEXCEPT
-    {
-      YY_ASSERT (!yytypeid_);
-    }
+#line 224 "parser.h"
 
-# if 201103L <= YY_CPLUSPLUS
-    /// Instantiate a \a T in here from \a t.
-    template <typename T, typename... U>
-    T&
-    emplace (U&&... u)
-    {
-      YY_ASSERT (!yytypeid_);
-      YY_ASSERT (sizeof (T) <= size);
-      yytypeid_ = & typeid (T);
-      return *new (yyas_<T> ()) T (std::forward <U>(u)...);
-    }
-# else
-    /// Instantiate an empty \a T in here.
-    template <typename T>
-    T&
-    emplace ()
-    {
-      YY_ASSERT (!yytypeid_);
-      YY_ASSERT (sizeof (T) <= size);
-      yytypeid_ = & typeid (T);
-      return *new (yyas_<T> ()) T ();
-    }
-
-    /// Instantiate a \a T in here from \a t.
-    template <typename T>
-    T&
-    emplace (const T& t)
-    {
-      YY_ASSERT (!yytypeid_);
-      YY_ASSERT (sizeof (T) <= size);
-      yytypeid_ = & typeid (T);
-      return *new (yyas_<T> ()) T (t);
-    }
-# endif
-
-    /// Instantiate an empty \a T in here.
-    /// Obsolete, use emplace.
-    template <typename T>
-    T&
-    build ()
-    {
-      return emplace<T> ();
-    }
-
-    /// Instantiate a \a T in here from \a t.
-    /// Obsolete, use emplace.
-    template <typename T>
-    T&
-    build (const T& t)
-    {
-      return emplace<T> (t);
-    }
-
-    /// Accessor to a built \a T.
-    template <typename T>
-    T&
-    as () YY_NOEXCEPT
-    {
-      YY_ASSERT (yytypeid_);
-      YY_ASSERT (*yytypeid_ == typeid (T));
-      YY_ASSERT (sizeof (T) <= size);
-      return *yyas_<T> ();
-    }
-
-    /// Const accessor to a built \a T (for %printer).
-    template <typename T>
-    const T&
-    as () const YY_NOEXCEPT
-    {
-      YY_ASSERT (yytypeid_);
-      YY_ASSERT (*yytypeid_ == typeid (T));
-      YY_ASSERT (sizeof (T) <= size);
-      return *yyas_<T> ();
-    }
-
-    /// Swap the content with \a that, of same type.
-    ///
-    /// Both variants must be built beforehand, because swapping the actual
-    /// data requires reading it (with as()), and this is not possible on
-    /// unconstructed variants: it would require some dynamic testing, which
-    /// should not be the variant's responsibility.
-    /// Swapping between built and (possibly) non-built is done with
-    /// self_type::move ().
-    template <typename T>
-    void
-    swap (self_type& that) YY_NOEXCEPT
-    {
-      YY_ASSERT (yytypeid_);
-      YY_ASSERT (*yytypeid_ == *that.yytypeid_);
-      std::swap (as<T> (), that.as<T> ());
-    }
-
-    /// Move the content of \a that to this.
-    ///
-    /// Destroys \a that.
-    template <typename T>
-    void
-    move (self_type& that)
-    {
-# if 201103L <= YY_CPLUSPLUS
-      emplace<T> (std::move (that.as<T> ()));
-# else
-      emplace<T> ();
-      swap<T> (that);
-# endif
-      that.destroy<T> ();
-    }
-
-# if 201103L <= YY_CPLUSPLUS
-    /// Move the content of \a that to this.
-    template <typename T>
-    void
-    move (self_type&& that)
-    {
-      emplace<T> (std::move (that.as<T> ()));
-      that.destroy<T> ();
-    }
-#endif
-
-    /// Copy the content of \a that to this.
-    template <typename T>
-    void
-    copy (const self_type& that)
-    {
-      emplace<T> (that.as<T> ());
-    }
-
-    /// Destroy the stored \a T.
-    template <typename T>
-    void
-    destroy ()
-    {
-      as<T> ().~T ();
-      yytypeid_ = YY_NULLPTR;
-    }
-
-  private:
-#if YY_CPLUSPLUS < 201103L
-    /// Non copyable.
-    value_type (const self_type&);
-    /// Non copyable.
-    self_type& operator= (const self_type&);
-#endif
-
-    /// Accessor to raw memory as \a T.
-    template <typename T>
-    T*
-    yyas_ () YY_NOEXCEPT
-    {
-      void *yyp = yyraw_;
-      return static_cast<T*> (yyp);
-     }
-
-    /// Const accessor to raw memory as \a T.
-    template <typename T>
-    const T*
-    yyas_ () const YY_NOEXCEPT
-    {
-      const void *yyp = yyraw_;
-      return static_cast<const T*> (yyp);
-     }
-
-    /// An auxiliary type to compute the largest semantic type.
-    union union_type
-    {
-      // expr
-      char dummy1[sizeof (Pascal::Expr)];
-
-      // "number"
-      char dummy2[sizeof (uint64_t)];
     };
-
-    /// The size of the largest semantic type.
-    enum { size = sizeof (union_type) };
-
-    /// A buffer to store semantic values.
-    union
-    {
-      /// Strongest alignment constraints.
-      long double yyalign_me_;
-      /// A buffer large enough to store any of the semantic values.
-      char yyraw_[size];
-    };
-
-    /// Whether the content is built: if defined, the name of the stored type.
-    const std::type_info *yytypeid_;
-  };
-
 #endif
     /// Backward compatibility (Bison 3.8).
     typedef value_type semantic_type;
@@ -473,11 +253,11 @@ namespace  Pascal  {
     {
       enum token_kind_type
       {
-        TOKEN_YYEMPTY = -2,
-    TOKEN_END = 0,                 // "end of file"
-    TOKEN_YYerror = 256,           // error
-    TOKEN_YYUNDEF = 257,           // "invalid token"
-    TOKEN_NUMBER = 258             // "number"
+        YYEMPTY = -2,
+    YYEOF = 0,                     // "end of file"
+    YYerror = 256,                 // error
+    YYUNDEF = 257,                 // "invalid token"
+    NUMBER = 258                   // NUMBER
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -499,9 +279,9 @@ namespace  Pascal  {
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
         S_YYUNDEF = 2,                           // "invalid token"
-        S_NUMBER = 3,                            // "number"
+        S_NUMBER = 3,                            // NUMBER
         S_YYACCEPT = 4,                          // $accept
-        S_expr = 5                               // expr
+        S_endexpr = 5                            // endexpr
       };
     };
 
@@ -533,69 +313,21 @@ namespace  Pascal  {
       /// Move constructor.
       basic_symbol (basic_symbol&& that)
         : Base (std::move (that))
-        , value ()
+        , value (std::move (that.value))
         , location (std::move (that.location))
-      {
-        switch (this->kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (std::move (that.value));
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.move< uint64_t > (std::move (that.value));
-        break;
-
-      default:
-        break;
-    }
-
-      }
+      {}
 #endif
 
       /// Copy constructor.
       basic_symbol (const basic_symbol& that);
+      /// Constructor for valueless symbols.
+      basic_symbol (typename Base::kind_type t,
+                    YY_MOVE_REF (location_type) l);
 
-      /// Constructors for typed symbols.
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, location_type&& l)
-        : Base (t)
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const location_type& l)
-        : Base (t)
-        , location (l)
-      {}
-#endif
-
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, Pascal::Expr&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const Pascal::Expr& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
-
-#if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, uint64_t&& v, location_type&& l)
-        : Base (t)
-        , value (std::move (v))
-        , location (std::move (l))
-      {}
-#else
-      basic_symbol (typename Base::kind_type t, const uint64_t& v, const location_type& l)
-        : Base (t)
-        , value (v)
-        , location (l)
-      {}
-#endif
+      /// Constructor for symbols with semantic value.
+      basic_symbol (typename Base::kind_type t,
+                    YY_RVREF (value_type) v,
+                    YY_RVREF (location_type) l);
 
       /// Destroy the symbol.
       ~basic_symbol ()
@@ -608,39 +340,17 @@ namespace  Pascal  {
       /// Destroy contents, and record that is empty.
       void clear () YY_NOEXCEPT
       {
-        // User destructor.
-        symbol_kind_type yykind = this->kind ();
-        basic_symbol<Base>& yysym = *this;
-        (void) yysym;
-        switch (yykind)
-        {
-       default:
-          break;
-        }
-
-        // Value type destructor.
-switch (yykind)
-    {
-      case symbol_kind::S_expr: // expr
-        value.template destroy< Pascal::Expr > ();
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.template destroy< uint64_t > ();
-        break;
-
-      default:
-        break;
-    }
-
         Base::clear ();
       }
 
+#if YYDEBUG || 0
       /// The user-facing name of this symbol.
-      std::string name () const YY_NOEXCEPT
+      const char *name () const YY_NOEXCEPT
       {
-        return  Parser ::symbol_name (this->kind ());
+        return Parser::symbol_name (this->kind ());
       }
+#endif // #if YYDEBUG || 0
+
 
       /// Backward compatibility (Bison 3.6).
       symbol_kind_type type_get () const YY_NOEXCEPT;
@@ -709,50 +419,17 @@ switch (yykind)
 
     /// "External" symbols: returned by the scanner.
     struct symbol_type : basic_symbol<by_kind>
-    {
-      /// Superclass.
-      typedef basic_symbol<by_kind> super_type;
-
-      /// Empty symbol.
-      symbol_type () YY_NOEXCEPT {}
-
-      /// Constructor for valueless symbols, and symbols from each type.
-#if 201103L <= YY_CPLUSPLUS
-      symbol_type (int tok, location_type l)
-        : super_type (token_kind_type (tok), std::move (l))
-#else
-      symbol_type (int tok, const location_type& l)
-        : super_type (token_kind_type (tok), l)
-#endif
-      {
-#if !defined _MSC_VER || defined __clang__
-        YY_ASSERT (tok == token::TOKEN_END
-                   || (token::TOKEN_YYerror <= tok && tok <= token::TOKEN_YYUNDEF));
-#endif
-      }
-#if 201103L <= YY_CPLUSPLUS
-      symbol_type (int tok, uint64_t v, location_type l)
-        : super_type (token_kind_type (tok), std::move (v), std::move (l))
-#else
-      symbol_type (int tok, const uint64_t& v, const location_type& l)
-        : super_type (token_kind_type (tok), v, l)
-#endif
-      {
-#if !defined _MSC_VER || defined __clang__
-        YY_ASSERT (tok == token::TOKEN_NUMBER);
-#endif
-      }
-    };
+    {};
 
     /// Build a parser object.
-     Parser  (Pascal::Scanner &scanner_yyarg, Pascal::Driver &driver_yyarg);
-    virtual ~ Parser  ();
+    Parser (class Driver &driver_yyarg, class Expr *expr_yyarg);
+    virtual ~Parser ();
 
 #if 201103L <= YY_CPLUSPLUS
     /// Non copyable.
-     Parser  (const  Parser &) = delete;
+    Parser (const Parser&) = delete;
     /// Non copyable.
-     Parser & operator= (const  Parser &) = delete;
+    Parser& operator= (const Parser&) = delete;
 #endif
 
     /// Parse.  An alias for parse ().
@@ -785,110 +462,27 @@ switch (yykind)
     /// Report a syntax error.
     void error (const syntax_error& err);
 
+#if YYDEBUG || 0
     /// The user-facing name of the symbol whose (internal) number is
     /// YYSYMBOL.  No bounds checking.
-    static std::string symbol_name (symbol_kind_type yysymbol);
-
-    // Implementation of make_symbol for each token kind.
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_END (location_type l)
-      {
-        return symbol_type (token::TOKEN_END, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_END (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_END, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_YYerror (location_type l)
-      {
-        return symbol_type (token::TOKEN_YYerror, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_YYerror (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_YYerror, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_YYUNDEF (location_type l)
-      {
-        return symbol_type (token::TOKEN_YYUNDEF, std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_YYUNDEF (const location_type& l)
-      {
-        return symbol_type (token::TOKEN_YYUNDEF, l);
-      }
-#endif
-#if 201103L <= YY_CPLUSPLUS
-      static
-      symbol_type
-      make_NUMBER (uint64_t v, location_type l)
-      {
-        return symbol_type (token::TOKEN_NUMBER, std::move (v), std::move (l));
-      }
-#else
-      static
-      symbol_type
-      make_NUMBER (const uint64_t& v, const location_type& l)
-      {
-        return symbol_type (token::TOKEN_NUMBER, v, l);
-      }
-#endif
+    static const char *symbol_name (symbol_kind_type yysymbol);
+#endif // #if YYDEBUG || 0
 
 
-    class context
-    {
-    public:
-      context (const  Parser & yyparser, const symbol_type& yyla);
-      const symbol_type& lookahead () const YY_NOEXCEPT { return yyla_; }
-      symbol_kind_type token () const YY_NOEXCEPT { return yyla_.kind (); }
-      const location_type& location () const YY_NOEXCEPT { return yyla_.location; }
 
-      /// Put in YYARG at most YYARGN of the expected tokens, and return the
-      /// number of tokens stored in YYARG.  If YYARG is null, return the
-      /// number of expected tokens (guaranteed to be less than YYNTOKENS).
-      int expected_tokens (symbol_kind_type yyarg[], int yyargn) const;
-
-    private:
-      const  Parser & yyparser_;
-      const symbol_type& yyla_;
-    };
 
   private:
 #if YY_CPLUSPLUS < 201103L
     /// Non copyable.
-     Parser  (const  Parser &);
+    Parser (const Parser&);
     /// Non copyable.
-     Parser & operator= (const  Parser &);
+    Parser& operator= (const Parser&);
 #endif
 
 
     /// Stored state numbers (used for stacks).
     typedef signed char state_type;
 
-    /// The arguments of the error message.
-    int yy_syntax_error_arguments_ (const context& yyctx,
-                                    symbol_kind_type yyarg[], int yyargn) const;
-
-    /// Generate an error message.
-    /// \param yyctx     the context in which the error occurred.
-    virtual std::string yysyntax_error_ (const context& yyctx) const;
     /// Compute post-reduction state.
     /// \param yystate   the current state
     /// \param yysym     the nonterminal to push on the stack
@@ -910,11 +504,10 @@ switch (yykind)
     /// are valid, yet not members of the token_kind_type enum.
     static symbol_kind_type yytranslate_ (int t) YY_NOEXCEPT;
 
-    /// Convert the symbol name \a n to a form suitable for a diagnostic.
-    static std::string yytnamerr_ (const char *yystr);
-
+#if YYDEBUG || 0
     /// For a symbol, its name in clear.
     static const char* const yytname_[];
+#endif // #if YYDEBUG || 0
 
 
     // Tables.
@@ -1187,183 +780,15 @@ switch (yykind)
 
 
     // User arguments.
-    Pascal::Scanner &scanner;
-    Pascal::Driver &driver;
+    class Driver &driver;
+    class Expr *expr;
 
   };
 
-  inline
-   Parser ::symbol_kind_type
-   Parser ::yytranslate_ (int t) YY_NOEXCEPT
-  {
-    // YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to
-    // TOKEN-NUM as returned by yylex.
-    static
-    const signed char
-    translate_table[] =
-    {
-       0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     1,     2,     3
-    };
-    // Last valid token kind.
-    const int code_max = 258;
 
-    if (t <= 0)
-      return symbol_kind::S_YYEOF;
-    else if (t <= code_max)
-      return static_cast <symbol_kind_type> (translate_table[t]);
-    else
-      return symbol_kind::S_YYUNDEF;
-  }
-
-  // basic_symbol.
-  template <typename Base>
-   Parser ::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
-    : Base (that)
-    , value ()
-    , location (that.location)
-  {
-    switch (this->kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.copy< Pascal::Expr > (YY_MOVE (that.value));
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.copy< uint64_t > (YY_MOVE (that.value));
-        break;
-
-      default:
-        break;
-    }
-
-  }
-
-
-
-
-  template <typename Base>
-   Parser ::symbol_kind_type
-   Parser ::basic_symbol<Base>::type_get () const YY_NOEXCEPT
-  {
-    return this->kind ();
-  }
-
-
-  template <typename Base>
-  bool
-   Parser ::basic_symbol<Base>::empty () const YY_NOEXCEPT
-  {
-    return this->kind () == symbol_kind::S_YYEMPTY;
-  }
-
-  template <typename Base>
-  void
-   Parser ::basic_symbol<Base>::move (basic_symbol& s)
-  {
-    super_type::move (s);
-    switch (this->kind ())
-    {
-      case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (YY_MOVE (s.value));
-        break;
-
-      case symbol_kind::S_NUMBER: // "number"
-        value.move< uint64_t > (YY_MOVE (s.value));
-        break;
-
-      default:
-        break;
-    }
-
-    location = YY_MOVE (s.location);
-  }
-
-  // by_kind.
-  inline
-   Parser ::by_kind::by_kind () YY_NOEXCEPT
-    : kind_ (symbol_kind::S_YYEMPTY)
-  {}
-
-#if 201103L <= YY_CPLUSPLUS
-  inline
-   Parser ::by_kind::by_kind (by_kind&& that) YY_NOEXCEPT
-    : kind_ (that.kind_)
-  {
-    that.clear ();
-  }
-#endif
-
-  inline
-   Parser ::by_kind::by_kind (const by_kind& that) YY_NOEXCEPT
-    : kind_ (that.kind_)
-  {}
-
-  inline
-   Parser ::by_kind::by_kind (token_kind_type t) YY_NOEXCEPT
-    : kind_ (yytranslate_ (t))
-  {}
-
-
-
-  inline
-  void
-   Parser ::by_kind::clear () YY_NOEXCEPT
-  {
-    kind_ = symbol_kind::S_YYEMPTY;
-  }
-
-  inline
-  void
-   Parser ::by_kind::move (by_kind& that)
-  {
-    kind_ = that.kind_;
-    that.clear ();
-  }
-
-  inline
-   Parser ::symbol_kind_type
-   Parser ::by_kind::kind () const YY_NOEXCEPT
-  {
-    return kind_;
-  }
-
-
-  inline
-   Parser ::symbol_kind_type
-   Parser ::by_kind::type_get () const YY_NOEXCEPT
-  {
-    return this->kind ();
-  }
-
-
-#line 9 "parser.y"
-} //  Pascal 
-#line 1367 "parser.h"
+#line 6 "parser.y"
+} // Pascal
+#line 792 "parser.h"
 
 
 

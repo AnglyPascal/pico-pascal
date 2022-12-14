@@ -1,196 +1,54 @@
-Nonterminals useless in grammar
-
-    program
-    block
-    var_decl
-    ident_list
-    proc_decls
-    proc_decl
-    formals
-    stmts
-    stmt_list
-    stmt
-    endstmt
-    actuals
-    expr_list
-    expr
-    simple
-    term
-    factor
-    name
-
-
-Terminals unused in grammar
-
-    IDENT
-    MONOP
-    MULOP
-    ADDOP
-    RELOP
-    MINUS
-    LPAR
-    RPAR
-    COMMA
-    SEMI
-    DOT
-    ASSIGN
-    BADTOK
-    PROC_BEGIN
-    PROC_END
-    VAR
-    PRINT
-    IF
-    THEN
-    ELSE
-    WHILE
-    DO
-    PROC
-    RETURN
-    NEWLINE
-
-
-Rules useless in grammar
-
-    2 program: block DOT
-
-    3 block: var_decl proc_decls PROC_BEGIN stmts PROC_END
-
-    4 var_decl: ε
-    5         | VAR ident_list SEMI
-
-    6 ident_list: IDENT
-    7           | ident_list COMMA IDENT
-
-    8 proc_decls: ε
-    9           | proc_decls proc_decl
-
-   10 proc_decl: PROC name formals SEMI block SEMI
-
-   11 formals: LPAR RPAR
-   12        | LPAR ident_list RPAR
-
-   13 stmts: stmt_list
-
-   14 stmt_list: stmt
-   15          | stmt_list SEMI stmt
-
-   16 stmt: name ASSIGN expr
-   17     | RETURN expr
-   18     | IF expr THEN stmts PROC_END
-   19     | IF expr THEN stmts ELSE stmts PROC_END
-   20     | WHILE expr DO stmts PROC_END
-   21     | PRINT expr
-   22     | NEWLINE
-
-   23 endstmt: stmt PROC_END
-
-   24 actuals: LPAR RPAR
-   25        | LPAR expr_list RPAR
-
-   26 expr_list: expr
-   27          | expr_list COMMA expr
-
-   28 expr: simple
-   29     | expr RELOP simple
-
-   30 simple: term
-   31       | simple ADDOP term
-   32       | simple MINUS term
-
-   33 term: factor
-   34     | term MULOP factor
-
-   35 factor: NUMBER
-   36       | name
-   37       | name actuals
-   38       | MONOP factor
-   39       | MINUS factor
-   40       | LPAR expr RPAR
-
-   41 name: IDENT
-
-
 Grammar
 
-    0 $accept: endexpr $end
+    0 $accept: expr "end of file"
 
-    1 endexpr: NUMBER EOFP
+    1 expr: ε
+    2     | "number"
 
 
 Terminals, with rules where they appear
 
-    $end (0) 0
+    "end of file" (0) 0
     error (256)
-    IDENT <strval> (258)
-    NUMBER <intval> (259) 1
-    MONOP <opval> (260)
-    MULOP <opval> (261)
-    ADDOP <opval> (262)
-    RELOP <opval> (263)
-    MINUS (264)
-    LPAR (265)
-    RPAR (266)
-    COMMA (267)
-    SEMI (268)
-    DOT (269)
-    ASSIGN (270)
-    EOFP (271) 1
-    BADTOK (272)
-    PROC_BEGIN (273)
-    PROC_END (274)
-    VAR (275)
-    PRINT (276)
-    IF (277)
-    THEN (278)
-    ELSE (279)
-    WHILE (280)
-    DO (281)
-    PROC (282)
-    RETURN (283)
-    NEWLINE (284)
+    "number" <uint64_t> (258) 2
 
 
 Nonterminals, with rules where they appear
 
-    $accept (30)
+    $accept (4)
         on left: 0
-    endexpr <exprval> (31)
-        on left: 1
+    expr <Pascal::Expr> (5)
+        on left: 1 2
         on right: 0
 
 
 State 0
 
-    0 $accept: • endexpr $end
+    0 $accept: • expr "end of file"
 
-    NUMBER  shift, and go to state 1
+    "number"  shift, and go to state 1
 
-    endexpr  go to state 2
+    $default  reduce using rule 1 (expr)
+
+    expr  go to state 2
 
 
 State 1
 
-    1 endexpr: NUMBER • EOFP
+    2 expr: "number" •
 
-    EOFP  shift, and go to state 3
+    $default  reduce using rule 2 (expr)
 
 
 State 2
 
-    0 $accept: endexpr • $end
+    0 $accept: expr • "end of file"
 
-    $end  shift, and go to state 4
+    "end of file"  shift, and go to state 3
 
 
 State 3
 
-    1 endexpr: NUMBER EOFP •
-
-    $default  reduce using rule 1 (endexpr)
-
-
-State 4
-
-    0 $accept: endexpr $end •
+    0 $accept: expr "end of file" •
 
     $default  accept
