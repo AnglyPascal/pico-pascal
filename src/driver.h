@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2014 Krzysztof Narkiewicz <krzysztof.narkiewicz@ezaquarii.com>
+ * Copyright (c) 2022 M Ahsan Al Mahir <ahsanalmahir@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,9 +26,10 @@
  *
  */
 
-#ifndef INTERPRETER_H
-#define INTERPRETER_H
+#ifndef DRIVER_H
+#define DRIVER_H
 
+#include <fstream>
 #include <vector>
 
 #include "scanner.h"
@@ -55,6 +56,23 @@ struct Program;
  * vector with nodes, but this is only an example. Get off me.
  */
 class Driver {
+  // Used internally by Parser to insert AST nodes.
+  void setProgram(Program *pgm);
+
+  /// stream name (file or input stream) used for error messages.
+  std::string streamname;
+
+  // Used internally by Scanner YY_USER_ACTION to update location indicator
+  void increaseLocation(unsigned int loc);
+
+  // Used to get last Scanner location. Used in error messages.
+  unsigned int location() const;
+
+  Scanner m_scanner;
+  Parser m_parser;
+  Program *m_program;
+  unsigned int m_location; // Used by scanner
+
 public:
   Driver();
 
@@ -63,6 +81,28 @@ public:
    * \returns 0 on success, 1 on failure
    */
   int parse();
+
+  /** Invoke the scanner and parser for a stream.
+   * @param in	input stream
+   * @param sname	stream name for error messages
+   * @return		true if successfully parsed
+   */
+  int parse_stream(std::istream &in, const std::string &sname = "stream input");
+
+  /** Invoke the scanner and parser on an input string.
+   * @param input	input string
+   * @param sname	stream name for error messages
+   * @return		true if successfully parsed
+   */
+  int parse_string(const std::string &input,
+                   const std::string &sname = "string stream");
+
+  /** Invoke the scanner and parser on a file. Use parse_stream with a
+   * std::ifstream if detection of file reading errors is required.
+   * @param filename	input file name
+   * @return		true if successfully parsed
+   */
+  int parse_file(const std::string &filename);
 
   /**
    * Clear AST
@@ -86,22 +126,6 @@ public:
    */
   friend class Parser;
   friend class Scanner;
-
-private:
-  // Used internally by Parser to insert AST nodes.
-  void setProgram(Program *pgm);
-
-  // Used internally by Scanner YY_USER_ACTION to update location indicator
-  void increaseLocation(unsigned int loc);
-
-  // Used to get last Scanner location. Used in error messages.
-  unsigned int location() const;
-
-private:
-  Scanner m_scanner;
-  Parser m_parser;
-  Program *m_program;
-  unsigned int m_location; // Used by scanner
 };
 
 } // namespace Pascal

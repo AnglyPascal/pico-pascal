@@ -30,6 +30,8 @@
 #include "parser.h"
 #include "scanner.h"
 #include "tree.h"
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 using namespace Pascal;
@@ -38,13 +40,26 @@ using namespace std;
 string str(Expr *expr) { return expr->str(); }
 
 int main(int argc, char **argv) {
-  Driver i;
-  int res = i.parse();
-  cout << i.str() << endl;
+  Driver driver;
+  int res;
+
+  if (std::strncmp(argv[1], "-o", 2) == 0)
+    res = driver.parse_stream(cin);
+
+  /** simple help menu **/
+  /* else if (std::strncmp(argv[1], "-h", 2) == 0) { */
+  /*   std::cout << "use -o for pipe to std::cin\n"; */
+  /*   std::cout << "just give a filename to count from a file\n"; */
+  /*   std::cout << "use -h to get this menu\n"; */
+  /*   return (EXIT_SUCCESS); */
+  /* } */
+
+  /** example reading input from a file **/
+  else
+    /** assume file, prod code, use stat to check **/
+    res = driver.parse_file(argv[1]);
+  cout << driver.str() << endl;
+
   return res;
 
-  /* Expr *ex = new Constant(1); */
-  /* cout << ex->str() << endl; */
-
-  /* return 0; */
 }
