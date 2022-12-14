@@ -35,7 +35,7 @@
 // private implementation details that can be changed or removed.
 
 // "%code top" blocks.
-#line 31 "parser.y"
+#line 39 "parser.y"
 
     #include <iostream>
     #include "scanner.h"
@@ -152,7 +152,7 @@
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
 
-#line 9 "parser.y"
+#line 8 "parser.y"
 namespace  Pascal  {
 #line 158 "parser.cpp"
 
@@ -223,8 +223,62 @@ namespace  Pascal  {
   {
     switch (that.kind ())
     {
+      case symbol_kind::S_block: // block
+        value.YY_MOVE_OR_COPY< Block * > (YY_MOVE (that.value));
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.YY_MOVE_OR_COPY< Pascal::Expr > (YY_MOVE (that.value));
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.YY_MOVE_OR_COPY< Expr * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_name: // name
+        value.YY_MOVE_OR_COPY< Name * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.YY_MOVE_OR_COPY< Proc * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_program: // program
+        value.YY_MOVE_OR_COPY< Program * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.YY_MOVE_OR_COPY< Stmt * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.YY_MOVE_OR_COPY< exprList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.YY_MOVE_OR_COPY< identList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.YY_MOVE_OR_COPY< op > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.YY_MOVE_OR_COPY< procList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.YY_MOVE_OR_COPY< stmtList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.YY_MOVE_OR_COPY< string > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -246,8 +300,62 @@ namespace  Pascal  {
   {
     switch (that.kind ())
     {
+      case symbol_kind::S_block: // block
+        value.move< Block * > (YY_MOVE (that.value));
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (YY_MOVE (that.value));
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.move< Expr * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_name: // name
+        value.move< Name * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.move< Proc * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_program: // program
+        value.move< Program * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.move< Stmt * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.move< exprList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.move< identList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.move< op > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.move< procList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.move< stmtList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.move< string > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -269,8 +377,62 @@ namespace  Pascal  {
     state = that.state;
     switch (that.kind ())
     {
+      case symbol_kind::S_block: // block
+        value.copy< Block * > (that.value);
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.copy< Pascal::Expr > (that.value);
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.copy< Expr * > (that.value);
+        break;
+
+      case symbol_kind::S_name: // name
+        value.copy< Name * > (that.value);
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.copy< Proc * > (that.value);
+        break;
+
+      case symbol_kind::S_program: // program
+        value.copy< Program * > (that.value);
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.copy< Stmt * > (that.value);
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.copy< exprList > (that.value);
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.copy< identList > (that.value);
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.copy< op > (that.value);
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.copy< procList > (that.value);
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.copy< stmtList > (that.value);
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.copy< string > (that.value);
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -291,8 +453,62 @@ namespace  Pascal  {
     state = that.state;
     switch (that.kind ())
     {
+      case symbol_kind::S_block: // block
+        value.move< Block * > (that.value);
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (that.value);
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.move< Expr * > (that.value);
+        break;
+
+      case symbol_kind::S_name: // name
+        value.move< Name * > (that.value);
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.move< Proc * > (that.value);
+        break;
+
+      case symbol_kind::S_program: // program
+        value.move< Program * > (that.value);
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.move< Stmt * > (that.value);
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.move< exprList > (that.value);
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.move< identList > (that.value);
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.move< op > (that.value);
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.move< procList > (that.value);
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.move< stmtList > (that.value);
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.move< string > (that.value);
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -558,8 +774,62 @@ namespace  Pascal  {
          when using variants.  */
       switch (yyr1_[yyn])
     {
+      case symbol_kind::S_block: // block
+        yylhs.value.emplace< Block * > ();
+        break;
+
       case symbol_kind::S_expr: // expr
-        yylhs.value.emplace< Pascal::Expr > ();
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        yylhs.value.emplace< Expr * > ();
+        break;
+
+      case symbol_kind::S_name: // name
+        yylhs.value.emplace< Name * > ();
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        yylhs.value.emplace< Proc * > ();
+        break;
+
+      case symbol_kind::S_program: // program
+        yylhs.value.emplace< Program * > ();
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        yylhs.value.emplace< Stmt * > ();
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        yylhs.value.emplace< exprList > ();
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        yylhs.value.emplace< identList > ();
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        yylhs.value.emplace< op > ();
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        yylhs.value.emplace< procList > ();
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        yylhs.value.emplace< stmtList > ();
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        yylhs.value.emplace< string > ();
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -586,20 +856,246 @@ namespace  Pascal  {
         {
           switch (yyn)
             {
-  case 2: // expr: %empty
-#line 77 "parser.y"
-                     { std::cout << "haha\n"; return 0; }
-#line 593 "parser.cpp"
+  case 2: // program: block "."
+#line 127 "parser.y"
+                                        { Program *pgm = new Program(yystack_[1].value.as < Block * > ());
+                                          driver.setProgram(pgm); }
+#line 864 "parser.cpp"
     break;
 
-  case 3: // expr: "number"
-#line 78 "parser.y"
-                     { std::cout << yystack_[0].value.as < uint64_t > (); const Expr &expr = Constant(yystack_[0].value.as < uint64_t > ()); driver.addExpr(expr); }
-#line 599 "parser.cpp"
+  case 3: // block: var_decl proc_decls "begin" stmts "end"
+#line 132 "parser.y"
+                                                  { yylhs.value.as < Block * > () = new Block(yystack_[4].value.as < identList > (), yystack_[3].value.as < procList > (), yystack_[1].value.as < Stmt * > ()); }
+#line 870 "parser.cpp"
+    break;
+
+  case 4: // var_decl: %empty
+#line 136 "parser.y"
+                                        { yylhs.value.as < identList > () = new vector<ident>(); }
+#line 876 "parser.cpp"
+    break;
+
+  case 5: // var_decl: "var" ident_list ";"
+#line 137 "parser.y"
+                                        { yylhs.value.as < identList > () = yystack_[1].value.as < identList > (); }
+#line 882 "parser.cpp"
+    break;
+
+  case 6: // ident_list: "ident"
+#line 141 "parser.y"
+                                        { vector<ident> *ids = new vector<ident>(); 
+                                          ids->push_back(yystack_[0].value.as < string > ()); yylhs.value.as < identList > () = ids; }
+#line 889 "parser.cpp"
+    break;
+
+  case 7: // ident_list: ident_list "," "ident"
+#line 143 "parser.y"
+                                        { yystack_[2].value.as < identList > ()->push_back(yystack_[0].value.as < string > ()); yylhs.value.as < identList > () = yystack_[2].value.as < identList > (); }
+#line 895 "parser.cpp"
+    break;
+
+  case 8: // proc_decls: %empty
+#line 147 "parser.y"
+                                        { yylhs.value.as < procList > () = new vector<Proc *>(); }
+#line 901 "parser.cpp"
+    break;
+
+  case 9: // proc_decls: proc_decls proc_decl
+#line 148 "parser.y"
+                                        { yystack_[1].value.as < procList > ()->push_back(yystack_[0].value.as < Proc * > ()); yylhs.value.as < procList > () = yystack_[1].value.as < procList > (); }
+#line 907 "parser.cpp"
+    break;
+
+  case 10: // proc_decl: "proc" name formals ";" block ";"
+#line 152 "parser.y"
+                                        { new Proc(yystack_[4].value.as < Name * > (), yystack_[3].value.as < identList > (), yystack_[1].value.as < Block * > ()); }
+#line 913 "parser.cpp"
+    break;
+
+  case 11: // formals: "(" ")"
+#line 156 "parser.y"
+                                        { yylhs.value.as < identList > () = new vector<ident>(); }
+#line 919 "parser.cpp"
+    break;
+
+  case 12: // formals: "(" ident_list ")"
+#line 157 "parser.y"
+                                        { yylhs.value.as < identList > () = yystack_[1].value.as < identList > (); }
+#line 925 "parser.cpp"
+    break;
+
+  case 13: // stmts: stmt_list
+#line 161 "parser.y"
+                                        { yylhs.value.as < Stmt * > () = Pascal::sequence(yystack_[0].value.as < stmtList > ()); }
+#line 931 "parser.cpp"
+    break;
+
+  case 14: // stmt_list: stmt
+#line 165 "parser.y"
+                                        { vector<Stmt *> *sts = new vector<Stmt *>(); 
+                                          sts->push_back(yystack_[0].value.as < Stmt * > ()); yylhs.value.as < stmtList > () = sts; }
+#line 938 "parser.cpp"
+    break;
+
+  case 15: // stmt_list: stmt_list ";" stmt
+#line 167 "parser.y"
+                                        { yystack_[2].value.as < stmtList > ()->push_back(yystack_[0].value.as < Stmt * > ()); yylhs.value.as < stmtList > () = yystack_[2].value.as < stmtList > (); }
+#line 944 "parser.cpp"
+    break;
+
+  case 16: // stmt: name ":=" expr
+#line 172 "parser.y"
+                                       { yylhs.value.as < Stmt * > () = new Assign(yystack_[2].value.as < Name * > (), yystack_[0].value.as < Expr * > ()); }
+#line 950 "parser.cpp"
+    break;
+
+  case 17: // stmt: "return" expr
+#line 173 "parser.y"
+                                        { yylhs.value.as < Stmt * > () = new Return(yystack_[0].value.as < Expr * > ()); }
+#line 956 "parser.cpp"
+    break;
+
+  case 18: // stmt: "if" expr "then" stmts "end"
+#line 174 "parser.y"
+                                             { yylhs.value.as < Stmt * > () = new IfStmt(yystack_[3].value.as < Expr * > (), yystack_[1].value.as < Stmt * > (), new Skip()); }
+#line 962 "parser.cpp"
+    break;
+
+  case 19: // stmt: "if" expr "then" stmts "else" stmts "end"
+#line 175 "parser.y"
+                                             { yylhs.value.as < Stmt * > () = new IfStmt(yystack_[5].value.as < Expr * > (), yystack_[3].value.as < Stmt * > (), yystack_[1].value.as < Stmt * > ()); }
+#line 968 "parser.cpp"
+    break;
+
+  case 20: // stmt: "while" expr "do" stmts "end"
+#line 176 "parser.y"
+                                             { yylhs.value.as < Stmt * > () = new WhileStmt(yystack_[3].value.as < Expr * > (), yystack_[1].value.as < Stmt * > ()); }
+#line 974 "parser.cpp"
+    break;
+
+  case 21: // stmt: "print" expr
+#line 177 "parser.y"
+                                        { yylhs.value.as < Stmt * > () = new Print(yystack_[0].value.as < Expr * > ()); }
+#line 980 "parser.cpp"
+    break;
+
+  case 22: // stmt: "newline"
+#line 178 "parser.y"
+                                        { yylhs.value.as < Stmt * > () = new Newline(); }
+#line 986 "parser.cpp"
+    break;
+
+  case 23: // actuals: "(" ")"
+#line 182 "parser.y"
+                                        { yylhs.value.as < exprList > () = new vector<Expr *> (); }
+#line 992 "parser.cpp"
+    break;
+
+  case 24: // actuals: "(" expr_list ")"
+#line 183 "parser.y"
+                                        { yylhs.value.as < exprList > () = yystack_[1].value.as < exprList > (); }
+#line 998 "parser.cpp"
+    break;
+
+  case 25: // expr_list: expr
+#line 187 "parser.y"
+                                        { vector<Expr *> *exs = new vector<Expr *>(); 
+                                          exs->push_back(yystack_[0].value.as < Expr * > ()); yylhs.value.as < exprList > () = exs; }
+#line 1005 "parser.cpp"
+    break;
+
+  case 26: // expr_list: expr_list "," expr
+#line 189 "parser.y"
+                                        { yystack_[2].value.as < exprList > ()->push_back(yystack_[0].value.as < Expr * > ()); yylhs.value.as < exprList > () = yystack_[2].value.as < exprList > (); }
+#line 1011 "parser.cpp"
+    break;
+
+  case 27: // expr: simple
+#line 193 "parser.y"
+                                        { yylhs.value.as < Expr * > () = yystack_[0].value.as < Expr * > (); }
+#line 1017 "parser.cpp"
+    break;
+
+  case 28: // expr: expr "relop" simple
+#line 194 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Binop(yystack_[1].value.as < op > (), yystack_[2].value.as < Expr * > (), yystack_[0].value.as < Expr * > ()); }
+#line 1023 "parser.cpp"
+    break;
+
+  case 29: // simple: term
+#line 198 "parser.y"
+                                        { yylhs.value.as < Expr * > () = yystack_[0].value.as < Expr * > (); }
+#line 1029 "parser.cpp"
+    break;
+
+  case 30: // simple: simple "addop" term
+#line 199 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Binop(yystack_[1].value.as < op > (), yystack_[2].value.as < Expr * > (), yystack_[0].value.as < Expr * > ()); }
+#line 1035 "parser.cpp"
+    break;
+
+  case 31: // simple: simple "-" term
+#line 200 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Binop(Minus, yystack_[2].value.as < Expr * > (), yystack_[0].value.as < Expr * > ()); }
+#line 1041 "parser.cpp"
+    break;
+
+  case 32: // term: factor
+#line 204 "parser.y"
+                                        { yylhs.value.as < Expr * > () = yystack_[0].value.as < Expr * > (); }
+#line 1047 "parser.cpp"
+    break;
+
+  case 33: // term: term "mulop" factor
+#line 205 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Binop(yystack_[1].value.as < op > (), yystack_[2].value.as < Expr * > (), yystack_[0].value.as < Expr * > ()); }
+#line 1053 "parser.cpp"
+    break;
+
+  case 34: // factor: "number"
+#line 209 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Constant(yystack_[0].value.as < uint64_t > ()); }
+#line 1059 "parser.cpp"
+    break;
+
+  case 35: // factor: name
+#line 210 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Variable(yystack_[0].value.as < Name * > ()); }
+#line 1065 "parser.cpp"
+    break;
+
+  case 36: // factor: name actuals
+#line 211 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Call(yystack_[1].value.as < Name * > (), yystack_[0].value.as < exprList > ()); }
+#line 1071 "parser.cpp"
+    break;
+
+  case 37: // factor: "monop" factor
+#line 212 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Monop(yystack_[1].value.as < op > (), yystack_[0].value.as < Expr * > ()); }
+#line 1077 "parser.cpp"
+    break;
+
+  case 38: // factor: "-" factor
+#line 213 "parser.y"
+                                        { yylhs.value.as < Expr * > () = new Monop(Uminus, yystack_[0].value.as < Expr * > ()); }
+#line 1083 "parser.cpp"
+    break;
+
+  case 39: // factor: "(" expr ")"
+#line 214 "parser.y"
+                                        { yylhs.value.as < Expr * > () = yystack_[1].value.as < Expr * > (); }
+#line 1089 "parser.cpp"
+    break;
+
+  case 40: // name: "ident"
+#line 218 "parser.y"
+                                        { yylhs.value.as < Name * > () = Pascal::makeName(yystack_[0].value.as < string > (), 0); }
+#line 1095 "parser.cpp"
     break;
 
 
-#line 603 "parser.cpp"
+#line 1099 "parser.cpp"
 
             default:
               break;
@@ -951,62 +1447,110 @@ namespace  Pascal  {
   }
 
 
-  const signed char  Parser ::yypact_ninf_ = -4;
+  const signed char  Parser ::yypact_ninf_ = -45;
 
   const signed char  Parser ::yytable_ninf_ = -1;
 
   const signed char
    Parser ::yypact_[] =
   {
-      -3,    -4,     1,    -4
+       8,    32,    40,    48,   -45,   -45,    37,   -45,   -45,    -9,
+      50,   -45,     2,    60,   -45,   -45,   -45,    43,    43,    43,
+      43,   -45,    33,    52,   -45,    51,    57,   -45,    43,    43,
+      43,    61,    25,    62,   -45,    63,    -3,    -1,    61,   -45,
+       2,    43,     9,    58,   -45,   -45,     7,    43,    43,    43,
+      43,    34,   -45,     2,     2,   -45,    61,   -45,    44,     8,
+     -45,    25,    62,    62,   -45,   -45,    47,    61,    -2,    54,
+     -45,    64,   -45,    43,   -45,     2,   -45,   -45,    61,    56,
+     -45
   };
 
   const signed char
    Parser ::yydefact_[] =
   {
-       2,     3,     0,     1
+       4,     0,     0,     0,     8,     6,     0,     1,     2,     0,
+       0,     5,     0,     0,     9,     7,    40,     0,     0,     0,
+       0,    22,     0,    13,    14,     0,     0,    34,     0,     0,
+       0,    21,    27,    29,    32,    35,     0,     0,    17,     3,
+       0,     0,     0,     0,    37,    38,     0,     0,     0,     0,
+       0,     0,    36,     0,     0,    15,    16,    11,     0,     4,
+      39,    28,    30,    31,    33,    23,     0,    25,     0,     0,
+      12,     0,    24,     0,    18,     0,    20,    10,    26,     0,
+      19
   };
 
   const signed char
    Parser ::yypgoto_[] =
   {
-      -4,    -4
+     -45,   -45,    11,   -45,    36,   -45,   -45,   -45,   -44,   -45,
+      35,   -45,   -45,   -16,    29,    12,   -17,   -12
   };
 
   const signed char
    Parser ::yydefgoto_[] =
   {
-       0,     2
+       0,     2,     3,     4,     6,     9,    14,    43,    22,    23,
+      24,    52,    66,    31,    32,    33,    34,    35
   };
 
   const signed char
    Parser ::yytable_[] =
   {
-       1,     3
+      25,    26,    36,    37,    38,    47,    16,    47,    12,    68,
+      69,    44,    45,     5,    46,    47,    74,    13,    60,    53,
+      57,    75,    17,    18,    54,    56,    19,     1,    25,    20,
+      21,    79,    48,    64,    49,    67,     5,    27,    16,    28,
+       7,    25,    25,    29,    30,    65,    27,    16,    28,    10,
+      11,    39,    29,    30,    15,    70,    10,    78,    72,    73,
+      62,    63,     8,    25,    16,    40,    41,    42,    50,    47,
+      71,    59,    76,    51,    80,    55,    61,    77,    58
   };
 
   const signed char
    Parser ::yycheck_[] =
   {
-       3,     0
+      12,    13,    18,    19,    20,     8,     4,     8,    17,    53,
+      54,    28,    29,     4,    30,     8,    18,    26,    11,    22,
+      11,    23,    20,    21,    25,    41,    24,    19,    40,    27,
+      28,    75,     7,    50,     9,    51,     4,     3,     4,     5,
+       0,    53,    54,     9,    10,    11,     3,     4,     5,    12,
+      13,    18,     9,    10,     4,    11,    12,    73,    11,    12,
+      48,    49,    14,    75,     4,    13,    15,    10,     6,     8,
+      59,    13,    18,    10,    18,    40,    47,    13,    42
   };
 
   const signed char
    Parser ::yystos_[] =
   {
-       0,     3,     5,     0
+       0,    19,    31,    32,    33,     4,    34,     0,    14,    35,
+      12,    13,    17,    26,    36,     4,     4,    20,    21,    24,
+      27,    28,    38,    39,    40,    47,    47,     3,     5,     9,
+      10,    43,    44,    45,    46,    47,    43,    43,    43,    18,
+      13,    15,    10,    37,    46,    46,    43,     8,     7,     9,
+       6,    10,    41,    22,    25,    40,    43,    11,    34,    13,
+      11,    44,    45,    45,    46,    11,    42,    43,    38,    38,
+      11,    32,    11,    12,    18,    23,    18,    13,    43,    38,
+      18
   };
 
   const signed char
    Parser ::yyr1_[] =
   {
-       0,     4,     5,     5
+       0,    30,    31,    32,    33,    33,    34,    34,    35,    35,
+      36,    37,    37,    38,    39,    39,    40,    40,    40,    40,
+      40,    40,    40,    41,    41,    42,    42,    43,    43,    44,
+      44,    44,    45,    45,    46,    46,    46,    46,    46,    46,
+      47
   };
 
   const signed char
    Parser ::yyr2_[] =
   {
-       0,     2,     0,     1
+       0,     2,     2,     5,     0,     3,     1,     3,     0,     2,
+       6,     2,     3,     1,     1,     3,     3,     2,     5,     7,
+       5,     2,     1,     2,     3,     1,     3,     1,     3,     1,
+       3,     3,     1,     3,     1,     1,     2,     2,     2,     3,
+       1
   };
 
 
@@ -1017,16 +1561,27 @@ namespace  Pascal  {
   const  Parser ::yytname_[] =
   {
   "\"end of file\"", "error", "\"invalid token\"", "\"number\"",
-  "$accept", "expr", YY_NULLPTR
+  "\"ident\"", "\"monop\"", "\"mulop\"", "\"addop\"", "\"relop\"", "\"-\"",
+  "\"(\"", "\")\"", "\",\"", "\";\"", "\".\"", "\":=\"", "\"_X_\"",
+  "\"begin\"", "\"end\"", "\"var\"", "\"print\"", "\"if\"", "\"then\"",
+  "\"else\"", "\"while\"", "\"do\"", "\"proc\"", "\"return\"",
+  "\"newline\"", "\"end of line\"", "$accept", "program", "block",
+  "var_decl", "ident_list", "proc_decls", "proc_decl", "formals", "stmts",
+  "stmt_list", "stmt", "actuals", "expr_list", "expr", "simple", "term",
+  "factor", "name", YY_NULLPTR
   };
 #endif
 
 
 #if YYDEBUG
-  const signed char
+  const unsigned char
    Parser ::yyrline_[] =
   {
-       0,    77,    77,    78
+       0,   127,   127,   132,   136,   137,   141,   143,   147,   148,
+     152,   156,   157,   161,   165,   167,   172,   173,   174,   175,
+     176,   177,   178,   182,   183,   187,   189,   193,   194,   198,
+     199,   200,   204,   205,   209,   210,   211,   212,   213,   214,
+     218
   };
 
   void
@@ -1057,19 +1612,20 @@ namespace  Pascal  {
 #endif // YYDEBUG
 
 
-#line 9 "parser.y"
+#line 8 "parser.y"
 } //  Pascal 
-#line 1063 "parser.cpp"
+#line 1618 "parser.cpp"
 
-#line 80 "parser.y"
+#line 221 "parser.y"
 
 
 // Bison expects us to provide implementation - otherwise linker complains
-void Pascal::Parser::error(const location &loc , const std::string &message) {
-        
-        // Location should be initialized inside scanner action, but is not in this example.
-        // Let's grab location directly from driver class.
-	// cout << "Error: " << message << endl << "Location: " << loc << endl;
-	
-        cout << "Error: " << message << endl << "Error location: " << driver.location() << endl;
+void Parser::error(const location &loc, const std::string &message) {
+
+  // Location should be initialized inside scanner action, but is not in this
+  // example. Let's grab location directly from driver class. 
+
+  // cout << "Error: " << message << endl << "Location: " << loc << endl;
+  cout << "Error: " << message << endl
+       << "Error location: " << driver.location() << endl;
 }

@@ -1,54 +1,985 @@
+Terminals unused in grammar
+
+    "_X_"
+    "end of line"
+
+
 Grammar
 
-    0 $accept: expr "end of file"
+    0 $accept: program "end of file"
 
-    1 expr: ε
-    2     | "number"
+    1 program: block "."
+
+    2 block: var_decl proc_decls "begin" stmts "end"
+
+    3 var_decl: ε
+    4         | "var" ident_list ";"
+
+    5 ident_list: "ident"
+    6           | ident_list "," "ident"
+
+    7 proc_decls: ε
+    8           | proc_decls proc_decl
+
+    9 proc_decl: "proc" name formals ";" block ";"
+
+   10 formals: "(" ")"
+   11        | "(" ident_list ")"
+
+   12 stmts: stmt_list
+
+   13 stmt_list: stmt
+   14          | stmt_list ";" stmt
+
+   15 stmt: name ":=" expr
+   16     | "return" expr
+   17     | "if" expr "then" stmts "end"
+   18     | "if" expr "then" stmts "else" stmts "end"
+   19     | "while" expr "do" stmts "end"
+   20     | "print" expr
+   21     | "newline"
+
+   22 actuals: "(" ")"
+   23        | "(" expr_list ")"
+
+   24 expr_list: expr
+   25          | expr_list "," expr
+
+   26 expr: simple
+   27     | expr "relop" simple
+
+   28 simple: term
+   29       | simple "addop" term
+   30       | simple "-" term
+
+   31 term: factor
+   32     | term "mulop" factor
+
+   33 factor: "number"
+   34       | name
+   35       | name actuals
+   36       | "monop" factor
+   37       | "-" factor
+   38       | "(" expr ")"
+
+   39 name: "ident"
 
 
 Terminals, with rules where they appear
 
     "end of file" (0) 0
     error (256)
-    "number" <uint64_t> (258) 2
+    "number" <uint64_t> (258) 33
+    "ident" <string> (259) 5 6 39
+    "monop" <op> (260) 36
+    "mulop" <op> (261) 32
+    "addop" <op> (262) 29
+    "relop" <op> (263) 27
+    "-" (264) 30 37
+    "(" (265) 10 11 22 23 38
+    ")" (266) 10 11 22 23 38
+    "," (267) 6 25
+    ";" (268) 4 9 14
+    "." (269) 1
+    ":=" (270) 15
+    "_X_" (271)
+    "begin" (272) 2
+    "end" (273) 2 17 18 19
+    "var" (274) 4
+    "print" (275) 20
+    "if" (276) 17 18
+    "then" (277) 17 18
+    "else" (278) 18
+    "while" (279) 19
+    "do" (280) 19
+    "proc" (281) 9
+    "return" (282) 16
+    "newline" (283) 21
+    "end of line" (284)
 
 
 Nonterminals, with rules where they appear
 
-    $accept (4)
+    $accept (30)
         on left: 0
-    expr <Pascal::Expr> (5)
-        on left: 1 2
+    program <Program *> (31)
+        on left: 1
         on right: 0
+    block <Block *> (32)
+        on left: 2
+        on right: 1 9
+    var_decl <identList> (33)
+        on left: 3 4
+        on right: 2
+    ident_list <identList> (34)
+        on left: 5 6
+        on right: 4 6 11
+    proc_decls <procList> (35)
+        on left: 7 8
+        on right: 2 8
+    proc_decl <Proc *> (36)
+        on left: 9
+        on right: 8
+    formals <identList> (37)
+        on left: 10 11
+        on right: 9
+    stmts <Stmt *> (38)
+        on left: 12
+        on right: 2 17 18 19
+    stmt_list <stmtList> (39)
+        on left: 13 14
+        on right: 12 14
+    stmt <Stmt *> (40)
+        on left: 15 16 17 18 19 20 21
+        on right: 13 14
+    actuals <exprList> (41)
+        on left: 22 23
+        on right: 35
+    expr_list <exprList> (42)
+        on left: 24 25
+        on right: 23 25
+    expr <Expr *> (43)
+        on left: 26 27
+        on right: 15 16 17 18 19 20 24 25 27 38
+    simple <Expr *> (44)
+        on left: 28 29 30
+        on right: 26 27 29 30
+    term <Expr *> (45)
+        on left: 31 32
+        on right: 28 29 30 32
+    factor <Expr *> (46)
+        on left: 33 34 35 36 37 38
+        on right: 31 32 36 37
+    name <Name *> (47)
+        on left: 39
+        on right: 9 15 34 35
 
 
 State 0
 
-    0 $accept: • expr "end of file"
+    0 $accept: • program "end of file"
 
-    "number"  shift, and go to state 1
+    "var"  shift, and go to state 1
 
-    $default  reduce using rule 1 (expr)
+    $default  reduce using rule 3 (var_decl)
 
-    expr  go to state 2
+    program   go to state 2
+    block     go to state 3
+    var_decl  go to state 4
 
 
 State 1
 
-    2 expr: "number" •
+    4 var_decl: "var" • ident_list ";"
 
-    $default  reduce using rule 2 (expr)
+    "ident"  shift, and go to state 5
+
+    ident_list  go to state 6
 
 
 State 2
 
-    0 $accept: expr • "end of file"
+    0 $accept: program • "end of file"
 
-    "end of file"  shift, and go to state 3
+    "end of file"  shift, and go to state 7
 
 
 State 3
 
-    0 $accept: expr "end of file" •
+    1 program: block • "."
+
+    "."  shift, and go to state 8
+
+
+State 4
+
+    2 block: var_decl • proc_decls "begin" stmts "end"
+
+    $default  reduce using rule 7 (proc_decls)
+
+    proc_decls  go to state 9
+
+
+State 5
+
+    5 ident_list: "ident" •
+
+    $default  reduce using rule 5 (ident_list)
+
+
+State 6
+
+    4 var_decl: "var" ident_list • ";"
+    6 ident_list: ident_list • "," "ident"
+
+    ","  shift, and go to state 10
+    ";"  shift, and go to state 11
+
+
+State 7
+
+    0 $accept: program "end of file" •
 
     $default  accept
+
+
+State 8
+
+    1 program: block "." •
+
+    $default  reduce using rule 1 (program)
+
+
+State 9
+
+    2 block: var_decl proc_decls • "begin" stmts "end"
+    8 proc_decls: proc_decls • proc_decl
+
+    "begin"  shift, and go to state 12
+    "proc"   shift, and go to state 13
+
+    proc_decl  go to state 14
+
+
+State 10
+
+    6 ident_list: ident_list "," • "ident"
+
+    "ident"  shift, and go to state 15
+
+
+State 11
+
+    4 var_decl: "var" ident_list ";" •
+
+    $default  reduce using rule 4 (var_decl)
+
+
+State 12
+
+    2 block: var_decl proc_decls "begin" • stmts "end"
+
+    "ident"    shift, and go to state 16
+    "print"    shift, and go to state 17
+    "if"       shift, and go to state 18
+    "while"    shift, and go to state 19
+    "return"   shift, and go to state 20
+    "newline"  shift, and go to state 21
+
+    stmts      go to state 22
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 13
+
+    9 proc_decl: "proc" • name formals ";" block ";"
+
+    "ident"  shift, and go to state 16
+
+    name  go to state 26
+
+
+State 14
+
+    8 proc_decls: proc_decls proc_decl •
+
+    $default  reduce using rule 8 (proc_decls)
+
+
+State 15
+
+    6 ident_list: ident_list "," "ident" •
+
+    $default  reduce using rule 6 (ident_list)
+
+
+State 16
+
+   39 name: "ident" •
+
+    $default  reduce using rule 39 (name)
+
+
+State 17
+
+   20 stmt: "print" • expr
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 31
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 18
+
+   17 stmt: "if" • expr "then" stmts "end"
+   18     | "if" • expr "then" stmts "else" stmts "end"
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 36
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 19
+
+   19 stmt: "while" • expr "do" stmts "end"
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 37
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 20
+
+   16 stmt: "return" • expr
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 38
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 21
+
+   21 stmt: "newline" •
+
+    $default  reduce using rule 21 (stmt)
+
+
+State 22
+
+    2 block: var_decl proc_decls "begin" stmts • "end"
+
+    "end"  shift, and go to state 39
+
+
+State 23
+
+   12 stmts: stmt_list •
+   14 stmt_list: stmt_list • ";" stmt
+
+    ";"  shift, and go to state 40
+
+    $default  reduce using rule 12 (stmts)
+
+
+State 24
+
+   13 stmt_list: stmt •
+
+    $default  reduce using rule 13 (stmt_list)
+
+
+State 25
+
+   15 stmt: name • ":=" expr
+
+    ":="  shift, and go to state 41
+
+
+State 26
+
+    9 proc_decl: "proc" name • formals ";" block ";"
+
+    "("  shift, and go to state 42
+
+    formals  go to state 43
+
+
+State 27
+
+   33 factor: "number" •
+
+    $default  reduce using rule 33 (factor)
+
+
+State 28
+
+   36 factor: "monop" • factor
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    factor  go to state 44
+    name    go to state 35
+
+
+State 29
+
+   37 factor: "-" • factor
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    factor  go to state 45
+    name    go to state 35
+
+
+State 30
+
+   38 factor: "(" • expr ")"
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 46
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 31
+
+   20 stmt: "print" expr •
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+
+    $default  reduce using rule 20 (stmt)
+
+
+State 32
+
+   26 expr: simple •
+   29 simple: simple • "addop" term
+   30       | simple • "-" term
+
+    "addop"  shift, and go to state 48
+    "-"      shift, and go to state 49
+
+    $default  reduce using rule 26 (expr)
+
+
+State 33
+
+   28 simple: term •
+   32 term: term • "mulop" factor
+
+    "mulop"  shift, and go to state 50
+
+    $default  reduce using rule 28 (simple)
+
+
+State 34
+
+   31 term: factor •
+
+    $default  reduce using rule 31 (term)
+
+
+State 35
+
+   34 factor: name •
+   35       | name • actuals
+
+    "("  shift, and go to state 51
+
+    $default  reduce using rule 34 (factor)
+
+    actuals  go to state 52
+
+
+State 36
+
+   17 stmt: "if" expr • "then" stmts "end"
+   18     | "if" expr • "then" stmts "else" stmts "end"
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+    "then"   shift, and go to state 53
+
+
+State 37
+
+   19 stmt: "while" expr • "do" stmts "end"
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+    "do"     shift, and go to state 54
+
+
+State 38
+
+   16 stmt: "return" expr •
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+
+    $default  reduce using rule 16 (stmt)
+
+
+State 39
+
+    2 block: var_decl proc_decls "begin" stmts "end" •
+
+    $default  reduce using rule 2 (block)
+
+
+State 40
+
+   14 stmt_list: stmt_list ";" • stmt
+
+    "ident"    shift, and go to state 16
+    "print"    shift, and go to state 17
+    "if"       shift, and go to state 18
+    "while"    shift, and go to state 19
+    "return"   shift, and go to state 20
+    "newline"  shift, and go to state 21
+
+    stmt  go to state 55
+    name  go to state 25
+
+
+State 41
+
+   15 stmt: name ":=" • expr
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 56
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 42
+
+   10 formals: "(" • ")"
+   11        | "(" • ident_list ")"
+
+    "ident"  shift, and go to state 5
+    ")"      shift, and go to state 57
+
+    ident_list  go to state 58
+
+
+State 43
+
+    9 proc_decl: "proc" name formals • ";" block ";"
+
+    ";"  shift, and go to state 59
+
+
+State 44
+
+   36 factor: "monop" factor •
+
+    $default  reduce using rule 36 (factor)
+
+
+State 45
+
+   37 factor: "-" factor •
+
+    $default  reduce using rule 37 (factor)
+
+
+State 46
+
+   27 expr: expr • "relop" simple
+   38 factor: "(" expr • ")"
+
+    "relop"  shift, and go to state 47
+    ")"      shift, and go to state 60
+
+
+State 47
+
+   27 expr: expr "relop" • simple
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    simple  go to state 61
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 48
+
+   29 simple: simple "addop" • term
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    term    go to state 62
+    factor  go to state 34
+    name    go to state 35
+
+
+State 49
+
+   30 simple: simple "-" • term
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    term    go to state 63
+    factor  go to state 34
+    name    go to state 35
+
+
+State 50
+
+   32 term: term "mulop" • factor
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    factor  go to state 64
+    name    go to state 35
+
+
+State 51
+
+   22 actuals: "(" • ")"
+   23        | "(" • expr_list ")"
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+    ")"       shift, and go to state 65
+
+    expr_list  go to state 66
+    expr       go to state 67
+    simple     go to state 32
+    term       go to state 33
+    factor     go to state 34
+    name       go to state 35
+
+
+State 52
+
+   35 factor: name actuals •
+
+    $default  reduce using rule 35 (factor)
+
+
+State 53
+
+   17 stmt: "if" expr "then" • stmts "end"
+   18     | "if" expr "then" • stmts "else" stmts "end"
+
+    "ident"    shift, and go to state 16
+    "print"    shift, and go to state 17
+    "if"       shift, and go to state 18
+    "while"    shift, and go to state 19
+    "return"   shift, and go to state 20
+    "newline"  shift, and go to state 21
+
+    stmts      go to state 68
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 54
+
+   19 stmt: "while" expr "do" • stmts "end"
+
+    "ident"    shift, and go to state 16
+    "print"    shift, and go to state 17
+    "if"       shift, and go to state 18
+    "while"    shift, and go to state 19
+    "return"   shift, and go to state 20
+    "newline"  shift, and go to state 21
+
+    stmts      go to state 69
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 55
+
+   14 stmt_list: stmt_list ";" stmt •
+
+    $default  reduce using rule 14 (stmt_list)
+
+
+State 56
+
+   15 stmt: name ":=" expr •
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+
+    $default  reduce using rule 15 (stmt)
+
+
+State 57
+
+   10 formals: "(" ")" •
+
+    $default  reduce using rule 10 (formals)
+
+
+State 58
+
+    6 ident_list: ident_list • "," "ident"
+   11 formals: "(" ident_list • ")"
+
+    ")"  shift, and go to state 70
+    ","  shift, and go to state 10
+
+
+State 59
+
+    9 proc_decl: "proc" name formals ";" • block ";"
+
+    "var"  shift, and go to state 1
+
+    $default  reduce using rule 3 (var_decl)
+
+    block     go to state 71
+    var_decl  go to state 4
+
+
+State 60
+
+   38 factor: "(" expr ")" •
+
+    $default  reduce using rule 38 (factor)
+
+
+State 61
+
+   27 expr: expr "relop" simple •
+   29 simple: simple • "addop" term
+   30       | simple • "-" term
+
+    "addop"  shift, and go to state 48
+    "-"      shift, and go to state 49
+
+    $default  reduce using rule 27 (expr)
+
+
+State 62
+
+   29 simple: simple "addop" term •
+   32 term: term • "mulop" factor
+
+    "mulop"  shift, and go to state 50
+
+    $default  reduce using rule 29 (simple)
+
+
+State 63
+
+   30 simple: simple "-" term •
+   32 term: term • "mulop" factor
+
+    "mulop"  shift, and go to state 50
+
+    $default  reduce using rule 30 (simple)
+
+
+State 64
+
+   32 term: term "mulop" factor •
+
+    $default  reduce using rule 32 (term)
+
+
+State 65
+
+   22 actuals: "(" ")" •
+
+    $default  reduce using rule 22 (actuals)
+
+
+State 66
+
+   23 actuals: "(" expr_list • ")"
+   25 expr_list: expr_list • "," expr
+
+    ")"  shift, and go to state 72
+    ","  shift, and go to state 73
+
+
+State 67
+
+   24 expr_list: expr •
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+
+    $default  reduce using rule 24 (expr_list)
+
+
+State 68
+
+   17 stmt: "if" expr "then" stmts • "end"
+   18     | "if" expr "then" stmts • "else" stmts "end"
+
+    "end"   shift, and go to state 74
+    "else"  shift, and go to state 75
+
+
+State 69
+
+   19 stmt: "while" expr "do" stmts • "end"
+
+    "end"  shift, and go to state 76
+
+
+State 70
+
+   11 formals: "(" ident_list ")" •
+
+    $default  reduce using rule 11 (formals)
+
+
+State 71
+
+    9 proc_decl: "proc" name formals ";" block • ";"
+
+    ";"  shift, and go to state 77
+
+
+State 72
+
+   23 actuals: "(" expr_list ")" •
+
+    $default  reduce using rule 23 (actuals)
+
+
+State 73
+
+   25 expr_list: expr_list "," • expr
+
+    "number"  shift, and go to state 27
+    "ident"   shift, and go to state 16
+    "monop"   shift, and go to state 28
+    "-"       shift, and go to state 29
+    "("       shift, and go to state 30
+
+    expr    go to state 78
+    simple  go to state 32
+    term    go to state 33
+    factor  go to state 34
+    name    go to state 35
+
+
+State 74
+
+   17 stmt: "if" expr "then" stmts "end" •
+
+    $default  reduce using rule 17 (stmt)
+
+
+State 75
+
+   18 stmt: "if" expr "then" stmts "else" • stmts "end"
+
+    "ident"    shift, and go to state 16
+    "print"    shift, and go to state 17
+    "if"       shift, and go to state 18
+    "while"    shift, and go to state 19
+    "return"   shift, and go to state 20
+    "newline"  shift, and go to state 21
+
+    stmts      go to state 79
+    stmt_list  go to state 23
+    stmt       go to state 24
+    name       go to state 25
+
+
+State 76
+
+   19 stmt: "while" expr "do" stmts "end" •
+
+    $default  reduce using rule 19 (stmt)
+
+
+State 77
+
+    9 proc_decl: "proc" name formals ";" block ";" •
+
+    $default  reduce using rule 9 (proc_decl)
+
+
+State 78
+
+   25 expr_list: expr_list "," expr •
+   27 expr: expr • "relop" simple
+
+    "relop"  shift, and go to state 47
+
+    $default  reduce using rule 25 (expr_list)
+
+
+State 79
+
+   18 stmt: "if" expr "then" stmts "else" stmts • "end"
+
+    "end"  shift, and go to state 80
+
+
+State 80
+
+   18 stmt: "if" expr "then" stmts "else" stmts "end" •
+
+    $default  reduce using rule 18 (stmt)

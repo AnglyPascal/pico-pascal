@@ -39,6 +39,8 @@
 
 namespace Pascal {
 
+struct Program;
+
 // forward declare our simplistic AST node class so we
 // can declare container for it without the header
 
@@ -53,55 +55,55 @@ namespace Pascal {
  * vector with nodes, but this is only an example. Get off me.
  */
 class Driver {
-   public:
-    Driver();
+public:
+  Driver();
 
-    /**
-     * Run parser. Results are stored inside.
-     * \returns 0 on success, 1 on failure
-     */
-    int parse();
+  /**
+   * Run parser. Results are stored inside.
+   * \returns 0 on success, 1 on failure
+   */
+  int parse();
 
-    /**
-     * Clear AST
-     */
-    void clear();
+  /**
+   * Clear AST
+   */
+  void clear();
 
-    /**
-     * Print AST
-     */
-    std::string str() const;
+  /**
+   * Print AST
+   */
+  std::string str() const;
 
-    /**
-     * Switch scanner input stream. Default is standard input (std::cin).
-     * It will also reset AST.
-     */
-    void switchInputStream(std::istream *is);
+  /**
+   * Switch scanner input stream. Default is standard input (std::cin).
+   * It will also reset AST.
+   */
+  void switchInputStream(std::istream *is);
 
-    /**
-     * This is needed so that Scanner and Parser can call some
-     * methods that we want to keep hidden from the end user.
-     */
-    friend class Parser;
-    friend class Scanner;
+  /**
+   * This is needed so that Scanner and Parser can call some
+   * methods that we want to keep hidden from the end user.
+   */
+  friend class Parser;
+  friend class Scanner;
 
-   private:
-    // Used internally by Parser to insert AST nodes.
-    void addExpr(const Expr &cmd);
+private:
+  // Used internally by Parser to insert AST nodes.
+  void setProgram(Program *pgm);
 
-    // Used internally by Scanner YY_USER_ACTION to update location indicator
-    void increaseLocation(unsigned int loc);
+  // Used internally by Scanner YY_USER_ACTION to update location indicator
+  void increaseLocation(unsigned int loc);
 
-    // Used to get last Scanner location. Used in error messages.
-    unsigned int location() const;
+  // Used to get last Scanner location. Used in error messages.
+  unsigned int location() const;
 
-   private:
-    Scanner m_scanner;
-    Parser m_parser;
-    std::vector<Expr> m_commands;  // Example AST
-    unsigned int m_location;          // Used by scanner
+private:
+  Scanner m_scanner;
+  Parser m_parser;
+  Program *m_program;
+  unsigned int m_location; // Used by scanner
 };
 
-}  // namespace Pascal
+} // namespace Pascal
 
-#endif  // INTERPRETER_H
+#endif // INTERPRETER_H

@@ -37,7 +37,7 @@ using std::cout;
 using std::endl;
 
 Driver::Driver()
-    : m_commands(vector<Expr>()), m_scanner(*this), m_parser(m_scanner, *this),
+    : m_scanner(*this), m_parser(m_scanner, *this), m_program(nullptr),
       m_location(0) {}
 
 int Driver::parse() {
@@ -47,25 +47,17 @@ int Driver::parse() {
 
 void Driver::clear() {
   m_location = 0;
-  m_commands.clear();
+  m_program = nullptr;
 }
 
-std::string Driver::str() const {
-  std::stringstream s;
-  s << "Driver: " << m_commands.size()
-    << " commands received from command line." << endl;
-  for (int i = 0; i < m_commands.size(); i++) {
-    s << " * " << m_commands[i].str() << endl;
-  }
-  return s.str();
-}
+std::string Driver::str() const { return m_program->str(); }
 
 void Driver::switchInputStream(std::istream *is) {
   m_scanner.switch_streams(is, NULL);
-  m_commands.clear();
+  m_program = nullptr;
 }
 
-void Driver::addExpr(const Expr &cmd) { m_commands.push_back(cmd); }
+void Driver::setProgram(Program *pgm) { m_program = pgm; }
 
 void Driver::increaseLocation(unsigned int loc) {
   m_location += loc;

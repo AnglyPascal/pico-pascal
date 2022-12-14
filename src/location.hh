@@ -53,7 +53,7 @@
 #  endif
 # endif
 
-#line 9 "parser.y"
+#line 8 "parser.y"
 namespace  Pascal  {
 #line 59 "location.hh"
 
@@ -299,7 +299,7 @@ namespace  Pascal  {
     return ostr;
   }
 
-#line 9 "parser.y"
+#line 8 "parser.y"
 } //  Pascal 
 #line 305 "location.hh"
 

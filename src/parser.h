@@ -45,7 +45,7 @@
 #ifndef YY_YY_PARSER_H_INCLUDED
 # define YY_YY_PARSER_H_INCLUDED
 // "%code requires" blocks.
-#line 10 "parser.y"
+#line 14 "parser.y"
 
     #include <iostream>
     #include <string>
@@ -58,9 +58,13 @@
     namespace Pascal {
         class Scanner;
         class Driver;
+        typedef vector<string> *identList;
+        typedef vector<Expr *> *exprList;
+        typedef vector<Stmt *> *stmtList;
+        typedef vector<Proc *> *procList;
     }
 
-#line 64 "parser.h"
+#line 68 "parser.h"
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -199,9 +203,9 @@
 # define YYDEBUG 1
 #endif
 
-#line 9 "parser.y"
+#line 8 "parser.y"
 namespace  Pascal  {
-#line 205 "parser.h"
+#line 209 "parser.h"
 
 
 
@@ -420,11 +424,54 @@ namespace  Pascal  {
     /// An auxiliary type to compute the largest semantic type.
     union union_type
     {
+      // block
+      char dummy1[sizeof (Block *)];
+
       // expr
-      char dummy1[sizeof (Pascal::Expr)];
+      // simple
+      // term
+      // factor
+      char dummy2[sizeof (Expr *)];
+
+      // name
+      char dummy3[sizeof (Name *)];
+
+      // proc_decl
+      char dummy4[sizeof (Proc *)];
+
+      // program
+      char dummy5[sizeof (Program *)];
+
+      // stmts
+      // stmt
+      char dummy6[sizeof (Stmt *)];
+
+      // actuals
+      // expr_list
+      char dummy7[sizeof (exprList)];
+
+      // var_decl
+      // ident_list
+      // formals
+      char dummy8[sizeof (identList)];
+
+      // "monop"
+      // "mulop"
+      // "addop"
+      // "relop"
+      char dummy9[sizeof (op)];
+
+      // proc_decls
+      char dummy10[sizeof (procList)];
+
+      // stmt_list
+      char dummy11[sizeof (stmtList)];
+
+      // "ident"
+      char dummy12[sizeof (string)];
 
       // "number"
-      char dummy2[sizeof (uint64_t)];
+      char dummy13[sizeof (uint64_t)];
     };
 
     /// The size of the largest semantic type.
@@ -474,10 +521,36 @@ namespace  Pascal  {
       enum token_kind_type
       {
         TOKEN_YYEMPTY = -2,
-    TOKEN_END = 0,                 // "end of file"
+    TOKEN_EOF = 0,                 // "end of file"
     TOKEN_YYerror = 256,           // error
     TOKEN_YYUNDEF = 257,           // "invalid token"
-    TOKEN_NUMBER = 258             // "number"
+    TOKEN_NUMBER = 258,            // "number"
+    TOKEN_IDENT = 259,             // "ident"
+    TOKEN_MONOP = 260,             // "monop"
+    TOKEN_MULOP = 261,             // "mulop"
+    TOKEN_ADDOP = 262,             // "addop"
+    TOKEN_RELOP = 263,             // "relop"
+    TOKEN_MINUS = 264,             // "-"
+    TOKEN_LPAR = 265,              // "("
+    TOKEN_RPAR = 266,              // ")"
+    TOKEN_COMMA = 267,             // ","
+    TOKEN_SEMI = 268,              // ";"
+    TOKEN_DOT = 269,               // "."
+    TOKEN_ASSIGN = 270,            // ":="
+    TOKEN_BADTOK = 271,            // "_X_"
+    TOKEN_PROC_BEGIN = 272,        // "begin"
+    TOKEN_PROC_END = 273,          // "end"
+    TOKEN_VAR = 274,               // "var"
+    TOKEN_PRINT = 275,             // "print"
+    TOKEN_IF = 276,                // "if"
+    TOKEN_THEN = 277,              // "then"
+    TOKEN_ELSE = 278,              // "else"
+    TOKEN_WHILE = 279,             // "while"
+    TOKEN_DO = 280,                // "do"
+    TOKEN_PROC = 281,              // "proc"
+    TOKEN_RETURN = 282,            // "return"
+    TOKEN_NEWLINE = 283,           // "newline"
+    TOKEN_EOL = 284                // "end of line"
       };
       /// Backward compatibility alias (Bison 3.6).
       typedef token_kind_type yytokentype;
@@ -494,14 +567,56 @@ namespace  Pascal  {
     {
       enum symbol_kind_type
       {
-        YYNTOKENS = 4, ///< Number of tokens.
+        YYNTOKENS = 30, ///< Number of tokens.
         S_YYEMPTY = -2,
         S_YYEOF = 0,                             // "end of file"
         S_YYerror = 1,                           // error
         S_YYUNDEF = 2,                           // "invalid token"
         S_NUMBER = 3,                            // "number"
-        S_YYACCEPT = 4,                          // $accept
-        S_expr = 5                               // expr
+        S_IDENT = 4,                             // "ident"
+        S_MONOP = 5,                             // "monop"
+        S_MULOP = 6,                             // "mulop"
+        S_ADDOP = 7,                             // "addop"
+        S_RELOP = 8,                             // "relop"
+        S_MINUS = 9,                             // "-"
+        S_LPAR = 10,                             // "("
+        S_RPAR = 11,                             // ")"
+        S_COMMA = 12,                            // ","
+        S_SEMI = 13,                             // ";"
+        S_DOT = 14,                              // "."
+        S_ASSIGN = 15,                           // ":="
+        S_BADTOK = 16,                           // "_X_"
+        S_PROC_BEGIN = 17,                       // "begin"
+        S_PROC_END = 18,                         // "end"
+        S_VAR = 19,                              // "var"
+        S_PRINT = 20,                            // "print"
+        S_IF = 21,                               // "if"
+        S_THEN = 22,                             // "then"
+        S_ELSE = 23,                             // "else"
+        S_WHILE = 24,                            // "while"
+        S_DO = 25,                               // "do"
+        S_PROC = 26,                             // "proc"
+        S_RETURN = 27,                           // "return"
+        S_NEWLINE = 28,                          // "newline"
+        S_EOL = 29,                              // "end of line"
+        S_YYACCEPT = 30,                         // $accept
+        S_program = 31,                          // program
+        S_block = 32,                            // block
+        S_var_decl = 33,                         // var_decl
+        S_ident_list = 34,                       // ident_list
+        S_proc_decls = 35,                       // proc_decls
+        S_proc_decl = 36,                        // proc_decl
+        S_formals = 37,                          // formals
+        S_stmts = 38,                            // stmts
+        S_stmt_list = 39,                        // stmt_list
+        S_stmt = 40,                             // stmt
+        S_actuals = 41,                          // actuals
+        S_expr_list = 42,                        // expr_list
+        S_expr = 43,                             // expr
+        S_simple = 44,                           // simple
+        S_term = 45,                             // term
+        S_factor = 46,                           // factor
+        S_name = 47                              // name
       };
     };
 
@@ -538,8 +653,62 @@ namespace  Pascal  {
       {
         switch (this->kind ())
     {
+      case symbol_kind::S_block: // block
+        value.move< Block * > (std::move (that.value));
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (std::move (that.value));
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.move< Expr * > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_name: // name
+        value.move< Name * > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.move< Proc * > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_program: // program
+        value.move< Program * > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.move< Stmt * > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.move< exprList > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.move< identList > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.move< op > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.move< procList > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.move< stmtList > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.move< string > (std::move (that.value));
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -570,13 +739,167 @@ namespace  Pascal  {
 #endif
 
 #if 201103L <= YY_CPLUSPLUS
-      basic_symbol (typename Base::kind_type t, Pascal::Expr&& v, location_type&& l)
+      basic_symbol (typename Base::kind_type t, Block *&& v, location_type&& l)
         : Base (t)
         , value (std::move (v))
         , location (std::move (l))
       {}
 #else
-      basic_symbol (typename Base::kind_type t, const Pascal::Expr& v, const location_type& l)
+      basic_symbol (typename Base::kind_type t, const Block *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, Expr *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const Expr *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, Name *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const Name *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, Proc *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const Proc *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, Program *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const Program *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, Stmt *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const Stmt *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, exprList&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const exprList& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, identList&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const identList& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, op&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const op& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, procList&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const procList& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, stmtList&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const stmtList& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, string&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const string& v, const location_type& l)
         : Base (t)
         , value (v)
         , location (l)
@@ -621,8 +944,62 @@ namespace  Pascal  {
         // Value type destructor.
 switch (yykind)
     {
+      case symbol_kind::S_block: // block
+        value.template destroy< Block * > ();
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.template destroy< Pascal::Expr > ();
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.template destroy< Expr * > ();
+        break;
+
+      case symbol_kind::S_name: // name
+        value.template destroy< Name * > ();
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.template destroy< Proc * > ();
+        break;
+
+      case symbol_kind::S_program: // program
+        value.template destroy< Program * > ();
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.template destroy< Stmt * > ();
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.template destroy< exprList > ();
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.template destroy< identList > ();
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.template destroy< op > ();
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.template destroy< procList > ();
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.template destroy< stmtList > ();
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.template destroy< string > ();
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -726,8 +1103,33 @@ switch (yykind)
 #endif
       {
 #if !defined _MSC_VER || defined __clang__
-        YY_ASSERT (tok == token::TOKEN_END
-                   || (token::TOKEN_YYerror <= tok && tok <= token::TOKEN_YYUNDEF));
+        YY_ASSERT (tok == token::TOKEN_EOF
+                   || (token::TOKEN_YYerror <= tok && tok <= token::TOKEN_YYUNDEF)
+                   || (token::TOKEN_MINUS <= tok && tok <= token::TOKEN_EOL));
+#endif
+      }
+#if 201103L <= YY_CPLUSPLUS
+      symbol_type (int tok, op v, location_type l)
+        : super_type (token_kind_type (tok), std::move (v), std::move (l))
+#else
+      symbol_type (int tok, const op& v, const location_type& l)
+        : super_type (token_kind_type (tok), v, l)
+#endif
+      {
+#if !defined _MSC_VER || defined __clang__
+        YY_ASSERT ((token::TOKEN_MONOP <= tok && tok <= token::TOKEN_RELOP));
+#endif
+      }
+#if 201103L <= YY_CPLUSPLUS
+      symbol_type (int tok, string v, location_type l)
+        : super_type (token_kind_type (tok), std::move (v), std::move (l))
+#else
+      symbol_type (int tok, const string& v, const location_type& l)
+        : super_type (token_kind_type (tok), v, l)
+#endif
+      {
+#if !defined _MSC_VER || defined __clang__
+        YY_ASSERT (tok == token::TOKEN_IDENT);
 #endif
       }
 #if 201103L <= YY_CPLUSPLUS
@@ -793,16 +1195,16 @@ switch (yykind)
 #if 201103L <= YY_CPLUSPLUS
       static
       symbol_type
-      make_END (location_type l)
+      make_EOF (location_type l)
       {
-        return symbol_type (token::TOKEN_END, std::move (l));
+        return symbol_type (token::TOKEN_EOF, std::move (l));
       }
 #else
       static
       symbol_type
-      make_END (const location_type& l)
+      make_EOF (const location_type& l)
       {
-        return symbol_type (token::TOKEN_END, l);
+        return symbol_type (token::TOKEN_EOF, l);
       }
 #endif
 #if 201103L <= YY_CPLUSPLUS
@@ -848,6 +1250,396 @@ switch (yykind)
       make_NUMBER (const uint64_t& v, const location_type& l)
       {
         return symbol_type (token::TOKEN_NUMBER, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_IDENT (string v, location_type l)
+      {
+        return symbol_type (token::TOKEN_IDENT, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_IDENT (const string& v, const location_type& l)
+      {
+        return symbol_type (token::TOKEN_IDENT, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_MONOP (op v, location_type l)
+      {
+        return symbol_type (token::TOKEN_MONOP, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_MONOP (const op& v, const location_type& l)
+      {
+        return symbol_type (token::TOKEN_MONOP, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_MULOP (op v, location_type l)
+      {
+        return symbol_type (token::TOKEN_MULOP, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_MULOP (const op& v, const location_type& l)
+      {
+        return symbol_type (token::TOKEN_MULOP, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ADDOP (op v, location_type l)
+      {
+        return symbol_type (token::TOKEN_ADDOP, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_ADDOP (const op& v, const location_type& l)
+      {
+        return symbol_type (token::TOKEN_ADDOP, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_RELOP (op v, location_type l)
+      {
+        return symbol_type (token::TOKEN_RELOP, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_RELOP (const op& v, const location_type& l)
+      {
+        return symbol_type (token::TOKEN_RELOP, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_MINUS (location_type l)
+      {
+        return symbol_type (token::TOKEN_MINUS, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_MINUS (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_MINUS, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_LPAR (location_type l)
+      {
+        return symbol_type (token::TOKEN_LPAR, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_LPAR (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_LPAR, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_RPAR (location_type l)
+      {
+        return symbol_type (token::TOKEN_RPAR, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_RPAR (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_RPAR, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_COMMA (location_type l)
+      {
+        return symbol_type (token::TOKEN_COMMA, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_COMMA (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_COMMA, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_SEMI (location_type l)
+      {
+        return symbol_type (token::TOKEN_SEMI, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_SEMI (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_SEMI, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DOT (location_type l)
+      {
+        return symbol_type (token::TOKEN_DOT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DOT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DOT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ASSIGN (location_type l)
+      {
+        return symbol_type (token::TOKEN_ASSIGN, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_ASSIGN (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_ASSIGN, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_BADTOK (location_type l)
+      {
+        return symbol_type (token::TOKEN_BADTOK, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_BADTOK (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_BADTOK, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_PROC_BEGIN (location_type l)
+      {
+        return symbol_type (token::TOKEN_PROC_BEGIN, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_PROC_BEGIN (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_PROC_BEGIN, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_PROC_END (location_type l)
+      {
+        return symbol_type (token::TOKEN_PROC_END, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_PROC_END (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_PROC_END, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_VAR (location_type l)
+      {
+        return symbol_type (token::TOKEN_VAR, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_VAR (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_VAR, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_PRINT (location_type l)
+      {
+        return symbol_type (token::TOKEN_PRINT, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_PRINT (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_PRINT, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_IF (location_type l)
+      {
+        return symbol_type (token::TOKEN_IF, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_IF (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_IF, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_THEN (location_type l)
+      {
+        return symbol_type (token::TOKEN_THEN, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_THEN (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_THEN, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ELSE (location_type l)
+      {
+        return symbol_type (token::TOKEN_ELSE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_ELSE (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_ELSE, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_WHILE (location_type l)
+      {
+        return symbol_type (token::TOKEN_WHILE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_WHILE (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_WHILE, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DO (location_type l)
+      {
+        return symbol_type (token::TOKEN_DO, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DO (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_DO, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_PROC (location_type l)
+      {
+        return symbol_type (token::TOKEN_PROC, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_PROC (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_PROC, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_RETURN (location_type l)
+      {
+        return symbol_type (token::TOKEN_RETURN, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_RETURN (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_RETURN, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_NEWLINE (location_type l)
+      {
+        return symbol_type (token::TOKEN_NEWLINE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_NEWLINE (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_NEWLINE, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_EOL (location_type l)
+      {
+        return symbol_type (token::TOKEN_EOL, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_EOL (const location_type& l)
+      {
+        return symbol_type (token::TOKEN_EOL, l);
       }
 #endif
 
@@ -953,7 +1745,7 @@ switch (yykind)
 
 #if YYDEBUG
     // YYRLINE[YYN] -- Source line where rule number YYN was defined.
-    static const signed char yyrline_[];
+    static const unsigned char yyrline_[];
     /// Report on the debug stream that the rule \a r is going to be reduced.
     virtual void yy_reduce_print_ (int r) const;
     /// Print the state stack on the debug stream.
@@ -1180,9 +1972,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 1,     ///< Last index in yytable_.
-      yynnts_ = 2,  ///< Number of nonterminal symbols.
-      yyfinal_ = 3 ///< Termination state number.
+      yylast_ = 78,     ///< Last index in yytable_.
+      yynnts_ = 18,  ///< Number of nonterminal symbols.
+      yyfinal_ = 7 ///< Termination state number.
     };
 
 
@@ -1227,10 +2019,13 @@ switch (yykind)
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     1,     2,     3
+       2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
+       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27,    28,    29
     };
     // Last valid token kind.
-    const int code_max = 258;
+    const int code_max = 284;
 
     if (t <= 0)
       return symbol_kind::S_YYEOF;
@@ -1249,8 +2044,62 @@ switch (yykind)
   {
     switch (this->kind ())
     {
+      case symbol_kind::S_block: // block
+        value.copy< Block * > (YY_MOVE (that.value));
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.copy< Pascal::Expr > (YY_MOVE (that.value));
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.copy< Expr * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_name: // name
+        value.copy< Name * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.copy< Proc * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_program: // program
+        value.copy< Program * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.copy< Stmt * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.copy< exprList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.copy< identList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.copy< op > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.copy< procList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.copy< stmtList > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.copy< string > (YY_MOVE (that.value));
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -1288,8 +2137,62 @@ switch (yykind)
     super_type::move (s);
     switch (this->kind ())
     {
+      case symbol_kind::S_block: // block
+        value.move< Block * > (YY_MOVE (s.value));
+        break;
+
       case symbol_kind::S_expr: // expr
-        value.move< Pascal::Expr > (YY_MOVE (s.value));
+      case symbol_kind::S_simple: // simple
+      case symbol_kind::S_term: // term
+      case symbol_kind::S_factor: // factor
+        value.move< Expr * > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_name: // name
+        value.move< Name * > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_proc_decl: // proc_decl
+        value.move< Proc * > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_program: // program
+        value.move< Program * > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_stmts: // stmts
+      case symbol_kind::S_stmt: // stmt
+        value.move< Stmt * > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_actuals: // actuals
+      case symbol_kind::S_expr_list: // expr_list
+        value.move< exprList > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_var_decl: // var_decl
+      case symbol_kind::S_ident_list: // ident_list
+      case symbol_kind::S_formals: // formals
+        value.move< identList > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_MONOP: // "monop"
+      case symbol_kind::S_MULOP: // "mulop"
+      case symbol_kind::S_ADDOP: // "addop"
+      case symbol_kind::S_RELOP: // "relop"
+        value.move< op > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_proc_decls: // proc_decls
+        value.move< procList > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_stmt_list: // stmt_list
+        value.move< stmtList > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_IDENT: // "ident"
+        value.move< string > (YY_MOVE (s.value));
         break;
 
       case symbol_kind::S_NUMBER: // "number"
@@ -1361,9 +2264,9 @@ switch (yykind)
   }
 
 
-#line 9 "parser.y"
+#line 8 "parser.y"
 } //  Pascal 
-#line 1367 "parser.h"
+#line 2270 "parser.h"
 
 
 

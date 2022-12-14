@@ -44,7 +44,6 @@ enum op {
   Not
 };
 
-
 struct Expr {
   virtual string str() const;
   virtual ~Expr();
@@ -213,3 +212,4 @@ Name *makeName(ident x, int ln);
 } // Namespace Pascal
 
 #endif
+

@@ -38,7 +38,7 @@
 
 	// Original yyterminate() macro returns int. Since we're using Bison 3 variants
 	// as tokens, we must redefine it to change type from `int` to `Parser::semantic_type`
-	#define yyterminate() Pascal::Parser::make_END(Pascal::location());
+	#define yyterminate() Pascal::Parser::make_EOF(Pascal::location());
 
 	// This will track current scanner location.
 	// Action is called when length of the token is known.
@@ -63,20 +63,205 @@
 
 %%
 
-[\n\t ]     {
-                //cout << "Scanner: whitechar (ignored)" << endl;
-            }
+"true"    { 
+	cout << "Scanner: true" << endl;
+	return Pascal::Parser::make_NUMBER(1, Pascal::location()); 
+}
 
-[1-9][0-9]* {
-                int number = strtoull(yytext, 0, 10);
-                return Pascal::Parser::make_NUMBER(number, Pascal::location());
-            }
+"false"   { 
+	cout << "Scanner: false" << endl;
+	return Pascal::Parser::make_NUMBER(0, Pascal::location()); 
+}
 
-.           { 
-                cout << "Scanner: unknown character [" << yytext << "]" << endl; 
-            }
-            
-<<EOF>>     { return yyterminate(); }
+"and"     { 
+	cout << "Scanner: and" << endl;
+	return Pascal::Parser::make_ADDOP(Pascal::op::Plus, Pascal::location()); 
+}
 
+"or"      { 
+	cout << "Scanner: or" << endl;
+	return Pascal::Parser::make_ADDOP(Pascal::op::Or, Pascal::location()); 
+}
+
+"div"     { 
+	cout << "Scanner: div" << endl;
+	return Pascal::Parser::make_MULOP(Pascal::op::Div, Pascal::location()); 
+}
+
+"mod"     { 
+	cout << "Scanner: mod" << endl;
+	return Pascal::Parser::make_MULOP(Pascal::op::Mod, Pascal::location()); 
+}
+
+"not"     { 
+	cout << "Scanner: not" << endl;
+	return Pascal::Parser::make_MONOP(Pascal::op::Not, Pascal::location()); 
+}
+
+"begin"   { 
+	cout << "Scanner: begin" << endl;
+	return Pascal::Parser::make_PROC_BEGIN(Pascal::location());
+}
+
+"end"     { 
+	cout << "Scanner: end" << endl;
+	return Pascal::Parser::make_PROC_END(Pascal::location());
+}
+
+"var"     { 
+	cout << "Scanner: end" << endl;
+	return Pascal::Parser::make_VAR(Pascal::location());
+}
+
+"print"   { 
+	cout << "Scanner: print" << endl;
+	return Pascal::Parser::make_PRINT(Pascal::location());
+}
+
+"if"      { 
+	cout << "Scanner: if" << endl;
+	return Pascal::Parser::make_IF(Pascal::location());
+}
+
+"then"    { 
+	cout << "Scanner: then" << endl;
+	return Pascal::Parser::make_THEN(Pascal::location());
+}
+
+"else"    { 
+	cout << "Scanner: else" << endl;
+	return Pascal::Parser::make_ELSE(Pascal::location());
+}
+
+"while"   { 
+	cout << "Scanner: while" << endl;
+	return Pascal::Parser::make_WHILE(Pascal::location());
+}
+
+"do"      { 
+	cout << "Scanner: do" << endl;
+	return Pascal::Parser::make_DO(Pascal::location());
+}
+
+"proc"    { 
+	cout << "Scanner: do" << endl;
+	return Pascal::Parser::make_PROC(Pascal::location());
+}
+
+"return"  { 
+	cout << "Scanner: return" << endl;
+	return Pascal::Parser::make_RETURN(Pascal::location());
+}
+
+"newline" { 
+	cout << "Scanner: newline" << endl;
+	return Pascal::Parser::make_NEWLINE(Pascal::location());
+}
+
+
+[A-Za-z][A-Za-z0-9_]* { 
+	std::string str = yytext;
+	cout << "Scanner: ident \"" << str << "\"" << endl;
+	return Pascal::Parser::make_IDENT(str, Pascal::location());
+}
+
+[0-9]+	{ 
+	int number = strtoull(yytext, 0, 10);
+	cout << "Scanner: number " << number << endl;
+	return Pascal::Parser::make_NUMBER(number, Pascal::location()); 
+}
+
+"="  { 
+	cout << "Scanner: =" << endl;
+	return Pascal::Parser::make_RELOP(Pascal::op::Eq, Pascal::location());
+}
+
+"+"  { 
+	cout << "Scanner: +" << endl;
+	return Pascal::Parser::make_ADDOP(Pascal::op::Plus, Pascal::location());
+}
+
+"-"  { 
+	cout << "Scanner: -" << endl;
+	return Pascal::Parser::make_MINUS(Pascal::location());
+}
+
+"*"  { 
+	cout << "Scanner: *" << endl;
+	return Pascal::Parser::make_MULOP(Pascal::op::Times, Pascal::location());
+}
+
+"<"  { 
+	cout << "Scanner: <" << endl;
+	return Pascal::Parser::make_RELOP(Pascal::op::Lt, Pascal::location());
+}
+
+">"  { 
+	cout << "Scanner: >" << endl;
+	return Pascal::Parser::make_RELOP(Pascal::op::Gt, Pascal::location());
+}
+
+"<>" { 
+	cout << "Scanner: <>" << endl;
+	return Pascal::Parser::make_RELOP(Pascal::op::Neq, Pascal::location());
+}
+
+"<=" { 
+	cout << "Scanner: <=" << endl;
+	return Pascal::Parser::make_RELOP(Pascal::op::Leq, Pascal::location());
+}
+
+">=" { 
+	cout << "Scanner: >=" << endl;
+	return Pascal::Parser::make_RELOP(Pascal::op::Geq, Pascal::location());
+}
+
+
+\(   { 
+	cout << "Scanner: (" << endl;
+	return Pascal::Parser::make_LPAR(Pascal::location());
+}
+
+\)   { 
+	cout << "Scanner: )" << endl;
+	return Pascal::Parser::make_RPAR(Pascal::location());
+}
+
+,    { 
+	cout << "Scanner: ," << endl;
+	return Pascal::Parser::make_COMMA(Pascal::location());
+}
+
+;    { 
+	cout << "Scanner: ;" << endl;
+	return Pascal::Parser::make_SEMI(Pascal::location());
+}
+
+\.   { 
+	cout << "Scanner: ." << endl;
+	return Pascal::Parser::make_DOT(Pascal::location());
+}
+
+:=   { 
+	cout << "Scanner: :=" << endl;
+	return Pascal::Parser::make_ASSIGN(Pascal::location());
+}
+
+
+[ \t]+  { /* yylloc->step(); */ }
+"\r"    { /* yylloc->step(); */ }
+"\n"    { 
+	/* return Pascal::Parser::make_EOL(Pascal::location()); */ 
+}
+
+_       { 
+	cout << "Scanner: unknown character [" << yytext << "]" << endl;
+	return Pascal::Parser::make_BADTOK(Pascal::location()); 
+}
+
+<<EOF>> { 
+	cout << "Scanner: EOF" << endl;
+	return yyterminate(); 
+}
 
 %%
