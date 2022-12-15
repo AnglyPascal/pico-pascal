@@ -161,12 +161,11 @@ struct Seq : public Stmt {
 };
 
 struct Assign : public Stmt {
-  Name *x;
-  Expr *e;
+  Expr *x, *e;
 
   virtual ~Assign();
   Stmt *clone();
-  Assign(Name *_x, Expr *_e);
+  Assign(Expr *_x, Expr *_e);
   virtual string str() const;
 };
 

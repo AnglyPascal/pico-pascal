@@ -40,7 +40,7 @@ namespace Pascal {
 
 struct Type {
   Type() = default;
-  virtual ~Type() = 0;
+  virtual ~Type() = default;
   virtual Type *clone() = 0;
   virtual string str() const = 0;
 

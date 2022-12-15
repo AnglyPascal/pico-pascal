@@ -52,7 +52,6 @@
     namespace Pascal {
         class Scanner;
         class Driver;
-        typedef vector<string> *identList;
         typedef vector<Expr *> *exprList;
         typedef vector<Stmt *> *stmtList;
         typedef vector<Proc *> *procList;
@@ -109,6 +108,7 @@
 %token  SUB     "["
 %token  BUS     "]"
 %token  COMMA   ","
+%token  COLON   ":"
 %token  SEMI    ";"
 %token  DOT     "."
 %token  ASSIGN  ":="
@@ -118,8 +118,8 @@
 %token  BEGINT      "begin"
 %token  END         "end"
 
-%token  VAR ARRAY PROC 
-%token  IF THEN ELSE WHILE DO RETURN NEWLINE PRINT
+%token  VAR ARRAY PROC INTEGER BOOLEAN
+%token  IF THEN ELSE WHILE DO RETURN NEWLINE PRINT OF
 
 /* %token  NOT         "not" */
 
@@ -130,9 +130,7 @@
 %type <declList>    decls
 %type <Decl *>      decl
 %type <Block *>     block
-%type <identList>   ident_list
-%type <identList>   var_decl 
-%type <identList>   formals
+%type <declList>    formals
 %type <procList>    proc_decls
 %type <Proc *>      proc_decl
 %type <Stmt *>      stmts
@@ -146,6 +144,9 @@
 %type <Expr *>     ifexpr
 %type <Expr *>     term
 %type <Expr *>     factor
+%type <Expr *>     variable
+%type <Expr *>     constant
+
 %type <exprList>   expr_list 
 %type <exprList>   actuals
 
@@ -169,7 +170,7 @@ decl :
 names :
     name                { vector<Name *> *ns = new vector<Name *>(); 
                           ns->push_back($1); $$ = ns; }
-  | names COMMA name    { $1->push_back($2); $$ = $1; }
+  | names COMMA name    { $1->push_back($3); $$ = $1; }
   ;
 
 typexp :
@@ -179,17 +180,6 @@ typexp :
 
 block : 
     decls proc_decls "begin" stmts "end"     { $$ = new Block($1, $2, $4); } ;
-
-var_decl :
-    /* empty */                     { $$ = new vector<ident>(); }
-  | VAR ident_list SEMI             { $$ = $2; }
-	;
-
-ident_list :
-    IDENT                           { vector<ident> *ids = new vector<ident>(); 
-                                      ids->push_back($1); $$ = ids; }
-  | ident_list "," IDENT            { $1->push_back($3); $$ = $1; }
-	;
 
 proc_decls :
     /* empty */                     { $$ = new vector<Proc *>(); }
@@ -202,9 +192,7 @@ proc_decl :
   ;
 
 formals :
-    "(" ")"                         { $$ = new vector<ident>(); }
-  | "(" decls ")"                   { $$ = $2; }
-	;
+    "(" decls ")"                   { $$ = $2; } ;
 
 stmts : stmt_list                   { $$ = Pascal::sequence($1); } ;
 
@@ -216,7 +204,7 @@ stmt_list :
 
 stmt :
     /* empty */                            { $$ = new Skip(); }
-    variable ASSIGN expr                   { $$ = new Assign($1, $3); }
+  | variable ASSIGN expr                   { $$ = new Assign($1, $3); }
   | RETURN expr                            { $$ = new Return($2); }
   | IF expr THEN stmts END                 { $$ = new IfStmt($2, $4, new Skip()); }
   | IF expr THEN stmts ELSE stmts END      { $$ = new IfStmt($2, $4, $6); }
@@ -238,7 +226,7 @@ expr_list :
 
 expr :
     simple            { $$ = $1; }
-  | expr RELOP simple { $$ = new Binop($2, $1, $3); }
+  | simple RELOP simple { $$ = new Binop($2, $1, $3); }
   | ifexpr            { $$ = $1; }
 	;
 

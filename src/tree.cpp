@@ -128,7 +128,7 @@ Stmt *Seq::clone() {
 }
 
 // ------- Assign ----------
-Assign::Assign(Name *_x, Expr *_e) : x(_x), e(_e) {}
+Assign::Assign(Expr *_x, Expr *_e) : x(_x), e(_e) {}
 Assign::~Assign() {
   delete x;
   delete e;
