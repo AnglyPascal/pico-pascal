@@ -44,11 +44,21 @@ enum op {
   Not
 };
 
+/*****************
+ *    EXPR
+ *****************/
+
 struct Expr {
   virtual string str() const;
   virtual ~Expr();
   virtual Expr *clone() { return this; };
   virtual Expr &operator=(Expr &other);
+
+  // some methods on types
+  virtual Type *checkType();
+
+private:
+  Type *type = nullptr;
 };
 
 struct Constant : public Expr {
@@ -180,7 +190,7 @@ struct Print : public Stmt {
 struct Proc;
 
 struct Block {
-  vector<ident> *idents;
+  vector<ident> *idents; // These need to go, define declarations
   vector<Proc *> *procs;
   Stmt *st;
   virtual ~Block();
@@ -212,4 +222,3 @@ Name *makeName(ident x, int ln);
 } // Namespace Pascal
 
 #endif
-

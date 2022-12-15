@@ -26,56 +26,40 @@
  *
  */
 
-#include "dict.h"
+#include "types.h"
+#include <typeinfo>
 
 using namespace Pascal;
 
-
 /*****************
- *    DEFKIND
+ *    TYPES
  *****************/
 
-DefKind::~DefKind() {}
+Type *Int::clone() { return new Int(); }
+string Int::str() const { return "int"; }
+int Int::size() { return 4; }
+bool Int::isArray() { return false; }
 
-VarDef::~VarDef() {}
-DefKind *VarDef::clone() { return new VarDef(*this); }
+Type *Bool::clone() { return new Bool(); }
+string Bool::str() const { return "bool"; }
+int Bool::size() { return 1; }
+bool Bool::isArray() { return false; }
 
-ProcDef::~ProcDef() {}
-DefKind *ProcDef::clone() { return new ProcDef(_nparams); }
+Type *Void::clone() { return new Void(); }
+string Void::str() const { return "void"; }
+int Void::size() { return 0; }
+bool Void::isArray() { return false; }
 
-ProcDef &ProcDef::operator=(const ProcDef &other) {
-  if (&other != this) {
-    _nparams = other._nparams;
-  }
-  return *this;
+Type *Array::clone() { return new Void(); }
+string Array::str() const {
+  return "array " + std::to_string(length) + " of " + elemType->str();
 }
+int Array::size() { return length * elemType->size(); }
+bool Array::isArray() { return true; }
 
-/*****************
- *     DEFN
- *****************/
+bool equals(Type *t1, Type *t2) {
+  if (typeid(*t1) == typeid(*t2))
 
-Defn::Defn() = default;
 
-Defn::Defn(ident _tag, DefKind *_kind, int _level, string _label, int _off,
-           Type *_type)
-    : d_tag(_tag), d_level(_level), d_label(_label), d_offset(_off),
-      d_type(_type) {
-  d_kind = _kind;
-}
-
-Defn::~Defn() { delete d_kind; }
-Defn *Defn::clone() {
-  return new Defn(d_tag, d_kind->clone(), d_level, d_label, d_offset, d_type);
-}
-
-Defn &Defn::operator=(const Defn *other) {
-  delete d_kind;
-
-  d_tag = other->d_tag;
-  d_kind = other->d_kind;
-  d_level = other->d_level;
-  d_label = other->d_label;
-  d_offset = other->d_offset;
-
-  return *this;
+  return false;
 }

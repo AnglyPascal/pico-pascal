@@ -75,6 +75,7 @@ class Driver {
 
 public:
   Driver();
+  Driver(const std::string &filename);
 
   /**
    * Run parser. Results are stored inside.

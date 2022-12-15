@@ -27,18 +27,30 @@
  */
 
 #include "driver.h"
-
+#include "tree.h"
 #include <sstream>
 
-#include "tree.h"
-
 using namespace Pascal;
+
 using std::cout;
 using std::endl;
+using std::ifstream;
+using std::istream;
+using std::string;
 
 Driver::Driver()
     : m_scanner(*this), m_parser(m_scanner, *this), m_program(nullptr),
       m_location(0) {}
+
+Driver::Driver(const string &filename)
+    : m_scanner(*this), m_parser(m_scanner, *this), m_program(nullptr),
+      m_location(0) {
+  ifstream *in = new ifstream(filename.c_str());
+  if (!in->good())
+    return;
+  streamname = filename;
+  m_scanner.switch_streams(in, NULL);
+}
 
 int Driver::parse() {
   m_location = 0;
@@ -50,9 +62,9 @@ void Driver::clear() {
   m_program = nullptr;
 }
 
-std::string Driver::str() const { return m_program->str(); }
+string Driver::str() const { return m_program->str(); }
 
-void Driver::switchInputStream(std::istream *is) {
+void Driver::switchInputStream(istream *is) {
   m_scanner.switch_streams(is, NULL);
   m_program = nullptr;
 }
@@ -72,14 +84,14 @@ int Driver::parse_stream(std::istream &in, const std::string &sname) {
   return parse();
 }
 
-int Driver::parse_file(const std::string &filename) {
-  std::ifstream in(filename.c_str());
+int Driver::parse_file(const string &filename) {
+  ifstream in(filename.c_str());
   if (!in.good())
     return false;
   return parse_stream(in, filename);
 }
 
-int Driver::parse_string(const std::string &input, const std::string &sname) {
+int Driver::parse_string(const string &input, const string &sname) {
   std::istringstream iss(input);
   return parse_stream(iss, sname);
 }

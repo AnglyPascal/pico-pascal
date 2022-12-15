@@ -26,56 +26,77 @@
  *
  */
 
-#include "dict.h"
+#ifndef TYPES_H
+#define TYPES_H
 
-using namespace Pascal;
+#include <string>
+using std::string;
 
-
-/*****************
- *    DEFKIND
- *****************/
-
-DefKind::~DefKind() {}
-
-VarDef::~VarDef() {}
-DefKind *VarDef::clone() { return new VarDef(*this); }
-
-ProcDef::~ProcDef() {}
-DefKind *ProcDef::clone() { return new ProcDef(_nparams); }
-
-ProcDef &ProcDef::operator=(const ProcDef &other) {
-  if (&other != this) {
-    _nparams = other._nparams;
-  }
-  return *this;
-}
+namespace Pascal {
 
 /*****************
- *     DEFN
+ *    TYPES
  *****************/
 
-Defn::Defn() = default;
+struct Type {
+  Type() = default;
+  virtual ~Type() = 0;
+  virtual Type *clone() = 0;
+  virtual string str() const = 0;
 
-Defn::Defn(ident _tag, DefKind *_kind, int _level, string _label, int _off,
-           Type *_type)
-    : d_tag(_tag), d_level(_level), d_label(_label), d_offset(_off),
-      d_type(_type) {
-  d_kind = _kind;
-}
+  virtual int size() = 0;
+  virtual bool isArray() = 0;
+};
 
-Defn::~Defn() { delete d_kind; }
-Defn *Defn::clone() {
-  return new Defn(d_tag, d_kind->clone(), d_level, d_label, d_offset, d_type);
-}
+struct Int : public Type {
+  Int() = default;
+  ~Int() = default;
 
-Defn &Defn::operator=(const Defn *other) {
-  delete d_kind;
+  Type *clone();
+  string str() const;
 
-  d_tag = other->d_tag;
-  d_kind = other->d_kind;
-  d_level = other->d_level;
-  d_label = other->d_label;
-  d_offset = other->d_offset;
+  int size();
+  bool isArray();
+};
 
-  return *this;
-}
+struct Void : public Type {
+  Void() = default;
+  ~Void() = default;
+
+  Type *clone();
+  string str() const;
+
+  int size();
+  bool isArray();
+};
+
+struct Array : public Type {
+  int length;
+  Type *elemType;
+
+  Array(Type *_elemType);
+  ~Array();
+
+  Type *clone();
+  string str() const;
+
+  int size();
+  bool isArray();
+};
+
+struct Bool : public Type {
+  Bool() = default;
+  ~Bool() = default;
+
+  Type *clone();
+  string str() const;
+
+  int size();
+  bool isArray();
+};
+
+bool equals(Type *t1, Type *t2);
+
+} // namespace Pascal
+
+#endif

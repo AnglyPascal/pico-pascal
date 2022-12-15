@@ -45,7 +45,7 @@
 #ifndef YY_YY_PARSER_H_INCLUDED
 # define YY_YY_PARSER_H_INCLUDED
 // "%code requires" blocks.
-#line 14 "parser.y"
+#line 43 "parser.y"
 
     #include <iostream>
     #include <string>
@@ -203,7 +203,7 @@
 # define YYDEBUG 1
 #endif
 
-#line 8 "parser.y"
+#line 37 "parser.y"
 namespace  Pascal  {
 #line 209 "parser.h"
 
@@ -2264,7 +2264,7 @@ switch (yykind)
   }
 
 
-#line 8 "parser.y"
+#line 37 "parser.y"
 } //  Pascal 
 #line 2270 "parser.h"
 
