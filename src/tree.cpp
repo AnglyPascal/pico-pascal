@@ -74,6 +74,26 @@ Call::~Call() {
 }
 Expr *Call::clone() { return new Call(f->clone(), args); }
 
+// ------- IfExpr ----------
+IfExpr::IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec)
+    : cond(_cond), ifc(_ifc), elsec(_elsec) {}
+IfExpr::~IfExpr() {
+  delete cond;
+  delete ifc;
+  delete elsec;
+}
+Expr *IfExpr::clone() {
+  return new IfExpr(cond->clone(), ifc->clone(), elsec->clone());
+}
+
+// ------- Sub ----------
+Sub::Sub(Expr *_arr, Expr *_ind) : arr(_arr), ind(_ind) {}
+Sub::~Sub() {
+  delete arr;
+  delete ind;
+}
+Expr *Sub::clone() { return new Sub(arr->clone(), ind->clone()); }
+
 // ------- << operator ----------
 std::ostream &operator<<(std::ostream &s, const Expr &Expr) {
   return s << "(" << Expr.str() << ")";
@@ -148,17 +168,22 @@ Stmt *Print::clone() { return new Print(e->clone()); }
  **        Proc        **
  *************************/
 
-Proc::Proc(Name *_f, vector<ident> *_idents, Block *_blk)
-    : f(_f), idents(_idents), blk(_blk) {}
+Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk)
+    : f(_f), decls(_decls), type(_type), blk(_blk) {}
+
 Proc::~Proc() {
-  delete idents;
+  for (Decl *d : *decls)
+    delete d;
+  delete decls;
+  delete type;
   delete blk;
 }
+
 Proc *Proc::clone() {
-  vector<ident> *ids = new vector<ident>();
-  for (ident i : *idents)
-    ids->push_back(i);
-  return new Proc(f->clone(), ids, blk->clone());
+  vector<Decl *> *_decls = new vector<Decl *>();
+  for (Decl *d : *decls)
+    _decls->push_back(d);
+  return new Proc(f->clone(), _decls, type->clone(), blk->clone());
 }
 
 /************************
@@ -168,23 +193,25 @@ Proc *Proc::clone() {
 Block::~Block() {
   for (Proc *p : *procs)
     delete p;
-  delete idents;
+  for (Decl *d : *decls)
+    delete d;
+  delete decls;
   delete procs;
   delete st;
 }
 
 Block *Block::clone() {
-  vector<ident> *ids = new vector<ident>();
-  for (ident i : *idents)
-    ids->push_back(i);
-  vector<Proc *> *prs = new vector<Proc *>();
+  vector<Decl *> *_decls = new vector<Decl *>();
+  for (Decl *d : *decls)
+    _decls->push_back(d);
+  vector<Proc *> *_procs = new vector<Proc *>();
   for (Proc *p : *procs)
-    prs->push_back(p->clone());
-  return new Block(ids, prs, st->clone());
+    _procs->push_back(p->clone());
+  return new Block(_decls, _procs, st->clone());
 }
 
-Block::Block(vector<ident> *_idents, vector<Proc *> *_procs, Stmt *_st)
-    : idents(_idents), procs(_procs), st(_st) {}
+Block::Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st)
+    : decls(_decls), procs(_procs), st(_st) {}
 
 // ------- Program ---------
 Program::Program(Block *_prog) : prog(_prog) {}
@@ -211,6 +238,19 @@ Stmt *sequence(vector<Stmt *> *st) {
 }
 
 /************************
+ **  Decl              **
+ *************************/
+
+Decl::~Decl() {
+  for (Name *n : *names)
+    delete n;
+  delete names;
+  delete type;
+}
+
+Decl::Decl(vector<Name *> *_names, Type *_type) : names(_names), type(_type) {}
+
+/************************
  **  Printing the AST  **
  *************************/
 
@@ -229,6 +269,20 @@ string Binop::str() const {
 
 string Call::str() const { return string("Call ") + f->x_name; }
 
+string IfExpr::str() const {
+  return "if (" + cond->str() + ") " + ifc->str() + " else " + elsec->str();
+}
+
+string Sub::str() const { return arr->str() + "[" + ind->str() + "]"; }
+
+string Decl::str() const {
+  string s = "var ";
+  for (Name *n : *names)
+    s += n->str() + ", ";
+  s += ": " + type->str();
+  return s;
+}
+
 string Program::str() const {
   string str = "Program\nBEGIN\n" + prog->str() + "\nEOF.";
   return str;
@@ -236,8 +290,8 @@ string Program::str() const {
 
 string Block::str() const {
   string str = "Variables:\n";
-  for (ident i : *idents)
-    str += i + ", ";
+  for (Decl *d : *decls)
+    str += d->str() + "\n";
   str += "\nProcedures:\n";
   for (Proc *p : *procs)
     str += p->str();
@@ -248,8 +302,8 @@ string Block::str() const {
 string Proc::str() const {
   string str = "Name: " + f->str() + "\n";
   str += "Variables:\n";
-  for (ident i : *idents)
-    str += i + ", ";
+  for (Decl *d : *decls)
+    str += d->str() + "\n";
   str += "\n" + blk->str() + "\n";
   return str;
 }

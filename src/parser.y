@@ -56,6 +56,8 @@
         typedef vector<Expr *> *exprList;
         typedef vector<Stmt *> *stmtList;
         typedef vector<Proc *> *procList;
+        typedef vector<Decl *> *declList;
+        typedef vector<Name *> *nameList;
     }
 }
 
@@ -96,13 +98,10 @@
 
 %start program
 
-%token <uint64_t> NUMBER "number"
+%token <uint64_t> NUMBER BOOLCONST
 %token <string>   IDENT "ident"
 
-%token <op>   MONOP "monop"
-%token <op>   MULOP "mulop"
-%token <op>   ADDOP "addop"
-%token <op>   RELOP "relop"
+%token <op>   MONOP MULOP ADDOP RELOP
 %token        MINUS "-"
 
 %token  LPAR    "("
@@ -114,33 +113,22 @@
 %token  DOT     "."
 %token  ASSIGN  ":="
 %token  BADTOK  "_X_"
-%token  IMPOSSIBLE  "_XX_"
+/* %token  IMPOSSIBLE  "_XX_" */
 
-%token  PROC_BEGIN  "begin"
-%token  PROC_END    "end"
+%token  BEGINT      "begin"
+%token  END         "end"
 
-%token  VAR         "var"
-%token  ARRAY       "array"
-%token  PROC        "proc"
+%token  VAR ARRAY PROC 
+%token  IF THEN ELSE WHILE DO RETURN NEWLINE PRINT
 
-%token  PRINT       "print"
-
-%token  IF          "if"
-%token  THEN        "then"
-%token  ELSE        "else"
-
-%token  WHILE       "while"
-%token  DO          "do"
-
-%token  NOT         "not"
-
-%token  RETURN      "return"
-%token  NEWLINE     "newline"
+/* %token  NOT         "not" */
 
 %token  EOF 0  "end of file"
 %token  EOL    "end of line"
 
 %type <Program *>   program
+%type <declList>    decls
+%type <Decl *>      decl
 %type <Block *>     block
 %type <identList>   ident_list
 %type <identList>   var_decl 
@@ -151,13 +139,17 @@
 %type <Stmt *>      stmt
 %type <stmtList>    stmt_list
 %type <Name *>      name
+%type <nameList>    names
 
 %type <Expr *>     expr
 %type <Expr *>     simple
+%type <Expr *>     ifexpr
 %type <Expr *>     term
 %type <Expr *>     factor
 %type <exprList>   expr_list 
 %type <exprList>   actuals
+
+%type <Type *>     typexp
 
 %locations
 
@@ -166,12 +158,31 @@
 program : 
     block "."         { Program *pgm = new Program($1); driver.setProgram(pgm); } ;
 
+decls :
+    /* empty */       { $$ = new vector<Decl *>(); }
+  | decls decl        { $1->push_back($2); $$ = $1; }
+  ;
+
+decl :
+    VAR names COLON typexp SEMI { $$ = new Decl($2, $4); } ;
+
+names :
+    name                { vector<Name *> *ns = new vector<Name *>(); 
+                          ns->push_back($1); $$ = ns; }
+  | names COMMA name    { $1->push_back($2); $$ = $1; }
+  ;
+
+typexp :
+    INTEGER                     { $$ = new Int(); }
+  | BOOLEAN                     { $$ = new Bool(); }
+  | ARRAY NUMBER OF typexp      { $$ = new Array($2, $4); }
+
 block : 
-    var_decl proc_decls "begin" stmts "end"     { $$ = new Block($1, $2, $4); } ;
+    decls proc_decls "begin" stmts "end"     { $$ = new Block($1, $2, $4); } ;
 
 var_decl :
     /* empty */                     { $$ = new vector<ident>(); }
-  | VAR ident_list ";"              { $$ = $2; }
+  | VAR ident_list SEMI             { $$ = $2; }
 	;
 
 ident_list :
@@ -186,12 +197,13 @@ proc_decls :
 	;
 
 proc_decl :
-    PROC name formals ";" block ";" { new Proc($2, $3, $5); }
-    ;
+    PROC name formals SEMI block SEMI             { new Proc($2, $3, new Void(), $5); }
+  | PROC name formals ":" typexp SEMI block SEMI  { new Proc($2, $3, $5, $7); }
+  ;
 
 formals :
     "(" ")"                         { $$ = new vector<ident>(); }
-  | "(" ident_list ")"              { $$ = $2; }
+  | "(" decls ")"                   { $$ = $2; }
 	;
 
 stmts : stmt_list                   { $$ = Pascal::sequence($1); } ;
@@ -199,16 +211,16 @@ stmts : stmt_list                   { $$ = Pascal::sequence($1); } ;
 stmt_list :
     stmt                            { vector<Stmt *> *sts = new vector<Stmt *>(); 
                                       sts->push_back($1); $$ = sts; }
-  | stmt_list ";" stmt              { $1->push_back($3); $$ = $1; }
+  | stmt_list SEMI stmt             { $1->push_back($3); $$ = $1; }
 	;
 
 stmt :
     /* empty */                            { $$ = new Skip(); }
-   name ASSIGN expr                        { $$ = new Assign($1, $3); }
+    variable ASSIGN expr                   { $$ = new Assign($1, $3); }
   | RETURN expr                            { $$ = new Return($2); }
-  | IF expr THEN stmts PROC_END            { $$ = new IfStmt($2, $4, new Skip()); }
-  | IF expr THEN stmts ELSE stmts PROC_END { $$ = new IfStmt($2, $4, $6); }
-  | WHILE expr DO stmts PROC_END           { $$ = new WhileStmt($2, $4); }
+  | IF expr THEN stmts END                 { $$ = new IfStmt($2, $4, new Skip()); }
+  | IF expr THEN stmts ELSE stmts END      { $$ = new IfStmt($2, $4, $6); }
+  | WHILE expr DO stmts END                { $$ = new WhileStmt($2, $4); }
   | PRINT expr                             { $$ = new Print($2); }
   | NEWLINE                                { $$ = new Newline(); }
 	;
@@ -227,7 +239,11 @@ expr_list :
 expr :
     simple            { $$ = $1; }
   | expr RELOP simple { $$ = new Binop($2, $1, $3); }
+  | ifexpr            { $$ = $1; }
 	;
+
+ifexpr :
+    IF expr THEN expr ELSE expr     { $$ = new IfExpr($2, $4, $6); };
 
 simple :
     term              { $$ = $1; }
@@ -241,13 +257,24 @@ term :
 	;
 
 factor :
-    NUMBER            { $$ = new Constant($1); }
-  | name              { $$ = new Variable($1); }
+    constant          { $$ = $1; }
+  | variable          { $$ = $1; }
   | name actuals      { $$ = new Call($1, $2); }
   | MONOP factor      { $$ = new Monop($1, $2); }
   | MINUS factor      { $$ = new Monop(Uminus, $2); }
   | "(" expr ")"      { $$ = $2; }
 	;
+
+variable :
+    name                    { $$ = new Variable($1); }
+  | variable "[" expr "]"   { $$ = new Sub($1, $3); }
+  ;
+
+/* might change my decision to not have a type inside constant later */
+constant :
+    NUMBER            { Expr *ex = new Constant($1); ex->type = new Int(); }
+  | BOOLCONST         { Expr *ex = new Constant($1); ex->type = new Bool(); }
+  ;
 
 name :
     IDENT             { $$ = Pascal::makeName($1, 0); }

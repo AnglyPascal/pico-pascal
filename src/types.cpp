@@ -50,16 +50,25 @@ string Void::str() const { return "void"; }
 int Void::size() { return 0; }
 bool Void::isArray() { return false; }
 
+Array::Array(int _length, Type *_elemType)
+    : length(_length), elemType(_elemType) {}
 Type *Array::clone() { return new Void(); }
 string Array::str() const {
-  return "array " + std::to_string(length) + " of " + elemType->str();
+  return "[" + elemType->str() + "](" + std::to_string(length) + ")";
 }
 int Array::size() { return length * elemType->size(); }
 bool Array::isArray() { return true; }
+Array::~Array() { delete elemType; }
 
-bool equals(Type *t1, Type *t2) {
-  if (typeid(*t1) == typeid(*t2))
-
-
+bool equalType(Type *t1, Type *t2) {
+  if (typeid(*t1) == typeid(*t2)) {
+    if (typeid(*t1) == typeid(Array)) {
+      Array *_t1 = (Array *)t1;
+      Array *_t2 = (Array *)t2;
+      return _t1->length == _t2->length &&
+             equalType(_t1->elemType, _t2->elemType);
+    }
+    return true;
+  }
   return false;
 }

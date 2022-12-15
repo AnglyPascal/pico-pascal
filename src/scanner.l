@@ -35,10 +35,11 @@
 	#include "location.hh"
 
 	using namespace std;
+	using namespace Pascal;
 
 	// Original yyterminate() macro returns int. Since we're using Bison 3 variants
 	// as tokens, we must redefine it to change type from `int` to `Parser::semantic_type`
-	#define yyterminate() Pascal::Parser::make_EOF(Pascal::location());
+	#define yyterminate() Parser::make_EOF(location());
 
 	// This will track current scanner location.
 	// Action is called when length of the token is known.
@@ -53,6 +54,11 @@
 	//
 	// Location class can be found in location.hh and posistion.hh files. It's just a bit too much
 	// boilerplate for this small example. Bummer.
+
+	void debug(string mssg) {
+		cout << "Scanner: " + mssg << endl;
+	}
+
 %}
 
 %option nodefault
@@ -63,205 +69,77 @@
 
 %%
 
-"true"    { 
-	cout << "Scanner: true" << endl;
-	return Pascal::Parser::make_NUMBER(1, Pascal::location()); 
-}
+"true"    { debug("true"); return Parser::make_BOOLCONST(1, location()); }
+"false"   { debug("false"); return Parser::make_BOOLCONST(0, location()); }
 
-"false"   { 
-	cout << "Scanner: false" << endl;
-	return Pascal::Parser::make_NUMBER(0, Pascal::location()); 
-}
+"and"     { debug("and"); return Parser::make_ADDOP(op::Plus, location()); }
+"or"      { debug("or"); return Parser::make_ADDOP(op::Or, location()); }
+"div"     { debug("div"); return Parser::make_MULOP(op::Div, location()); }
+"mod"     { debug("mod"); return Parser::make_MULOP(op::Mod, location()); }
+"not"     { debug("not"); return Parser::make_MONOP(op::Not, location()); }
 
-"and"     { 
-	cout << "Scanner: and" << endl;
-	return Pascal::Parser::make_ADDOP(Pascal::op::Plus, Pascal::location()); 
-}
+"begin"   { debug("begin"); return Parser::make_BEGINT(location()); }
+"end"     { debug("end"); return Parser::make_END(location()); }
 
-"or"      { 
-	cout << "Scanner: or" << endl;
-	return Pascal::Parser::make_ADDOP(Pascal::op::Or, Pascal::location()); 
-}
+"var"     { debug("var"); return Parser::make_VAR(location()); }
+"array"   { debug("array"); return Parser::make_ARRAY(location()); }
+"of"      { debug("of"); return Parser::make_OF(location()); }
+"integer" { debug("integer type"); return Parser::make_INTEGER(location()); }
+"boolean" { debug("boolean type"); return Parser::make_BOOLEAN(location()); }
 
-"div"     { 
-	cout << "Scanner: div" << endl;
-	return Pascal::Parser::make_MULOP(Pascal::op::Div, Pascal::location()); 
-}
+"if"      { debug("if"); return Parser::make_IF(location()); }
+"then"    { debug("then"); return Parser::make_THEN(location()); }
+"else"    { debug("else"); return Parser::make_ELSE(location()); }
+"while"   { debug("while"); return Parser::make_WHILE(location()); }
+"do"      { debug("do"); return Parser::make_DO(location()); }
 
-"mod"     { 
-	cout << "Scanner: mod" << endl;
-	return Pascal::Parser::make_MULOP(Pascal::op::Mod, Pascal::location()); 
-}
-
-"not"     { 
-	cout << "Scanner: not" << endl;
-	return Pascal::Parser::make_MONOP(Pascal::op::Not, Pascal::location()); 
-}
-
-"begin"   { 
-	cout << "Scanner: begin" << endl;
-	return Pascal::Parser::make_PROC_BEGIN(Pascal::location());
-}
-
-"end"     { 
-	cout << "Scanner: end" << endl;
-	return Pascal::Parser::make_PROC_END(Pascal::location());
-}
-
-"var"     { 
-	cout << "Scanner: end" << endl;
-	return Pascal::Parser::make_VAR(Pascal::location());
-}
-
-"print"   { 
-	cout << "Scanner: print" << endl;
-	return Pascal::Parser::make_PRINT(Pascal::location());
-}
-
-"if"      { 
-	cout << "Scanner: if" << endl;
-	return Pascal::Parser::make_IF(Pascal::location());
-}
-
-"then"    { 
-	cout << "Scanner: then" << endl;
-	return Pascal::Parser::make_THEN(Pascal::location());
-}
-
-"else"    { 
-	cout << "Scanner: else" << endl;
-	return Pascal::Parser::make_ELSE(Pascal::location());
-}
-
-"while"   { 
-	cout << "Scanner: while" << endl;
-	return Pascal::Parser::make_WHILE(Pascal::location());
-}
-
-"do"      { 
-	cout << "Scanner: do" << endl;
-	return Pascal::Parser::make_DO(Pascal::location());
-}
-
-"proc"    { 
-	cout << "Scanner: do" << endl;
-	return Pascal::Parser::make_PROC(Pascal::location());
-}
-
-"return"  { 
-	cout << "Scanner: return" << endl;
-	return Pascal::Parser::make_RETURN(Pascal::location());
-}
-
-"newline" { 
-	cout << "Scanner: newline" << endl;
-	return Pascal::Parser::make_NEWLINE(Pascal::location());
-}
-
+"proc"    { debug("do"); return Parser::make_PROC(location()); }
+"print"   { debug("print"); return Parser::make_PRINT(location()); }
+"return"  { debug("return"); return Parser::make_RETURN(location()); }
+"newline" { debug("newline"); return Parser::make_NEWLINE(location()); }
 
 [A-Za-z][A-Za-z0-9_]* { 
 	std::string str = yytext;
-	cout << "Scanner: ident \"" << str << "\"" << endl;
-	return Pascal::Parser::make_IDENT(str, Pascal::location());
+	debug("ident \"" << str << "\"");
+	return Parser::make_IDENT(str, location());
 }
 
 [0-9]+	{ 
 	int number = strtoull(yytext, 0, 10);
 	cout << "Scanner: number " << number << endl;
-	return Pascal::Parser::make_NUMBER(number, Pascal::location()); 
+	return Parser::make_NUMBER(number, location()); 
 }
 
-"="  { 
-	cout << "Scanner: =" << endl;
-	return Pascal::Parser::make_RELOP(Pascal::op::Eq, Pascal::location());
-}
+"+"  { debug("+"); return Parser::make_ADDOP(op::Plus, location()); }
+"-"  { debug("-"); return Parser::make_MINUS(location()); }
+"*"  { debug("*"); return Parser::make_MULOP(op::Times, location()); }
 
-"+"  { 
-	cout << "Scanner: +" << endl;
-	return Pascal::Parser::make_ADDOP(Pascal::op::Plus, Pascal::location());
-}
+"<"  { debug("<"); return Parser::make_RELOP(op::Lt, location()); }
+">"  { debug(">"); return Parser::make_RELOP(op::Gt, location()); }
+"="  { debug("="); return Parser::make_RELOP(op::Eq, location()); }
+"<>" { debug("<>"); return Parser::make_RELOP(op::Neq, location()); }
+"<=" { debug("<="); return Parser::make_RELOP(op::Leq, location()); }
+">=" { debug(">="); return Parser::make_RELOP(op::Geq, location()); }
 
-"-"  { 
-	cout << "Scanner: -" << endl;
-	return Pascal::Parser::make_MINUS(Pascal::location());
-}
+\(   { debug("("); return Parser::make_LPAR(location()); }
+\)   { debug(")"); return Parser::make_RPAR(location()); }
+"["  { debug("["); return Parser::make_SUB(location()); }
+"]"  { debug("]"); return Parser::make_BUS(location()); }
 
-"*"  { 
-	cout << "Scanner: *" << endl;
-	return Pascal::Parser::make_MULOP(Pascal::op::Times, Pascal::location());
-}
-
-"<"  { 
-	cout << "Scanner: <" << endl;
-	return Pascal::Parser::make_RELOP(Pascal::op::Lt, Pascal::location());
-}
-
-">"  { 
-	cout << "Scanner: >" << endl;
-	return Pascal::Parser::make_RELOP(Pascal::op::Gt, Pascal::location());
-}
-
-"<>" { 
-	cout << "Scanner: <>" << endl;
-	return Pascal::Parser::make_RELOP(Pascal::op::Neq, Pascal::location());
-}
-
-"<=" { 
-	cout << "Scanner: <=" << endl;
-	return Pascal::Parser::make_RELOP(Pascal::op::Leq, Pascal::location());
-}
-
-">=" { 
-	cout << "Scanner: >=" << endl;
-	return Pascal::Parser::make_RELOP(Pascal::op::Geq, Pascal::location());
-}
-
-
-\(   { 
-	cout << "Scanner: (" << endl;
-	return Pascal::Parser::make_LPAR(Pascal::location());
-}
-
-\)   { 
-	cout << "Scanner: )" << endl;
-	return Pascal::Parser::make_RPAR(Pascal::location());
-}
-
-,    { 
-	cout << "Scanner: ," << endl;
-	return Pascal::Parser::make_COMMA(Pascal::location());
-}
-
-;    { 
-	cout << "Scanner: ;" << endl;
-	return Pascal::Parser::make_SEMI(Pascal::location());
-}
-
-\.   { 
-	cout << "Scanner: ." << endl;
-	return Pascal::Parser::make_DOT(Pascal::location());
-}
-
-:=   { 
-	cout << "Scanner: :=" << endl;
-	return Pascal::Parser::make_ASSIGN(Pascal::location());
-}
-
+,    { debug(","); return Parser::make_COMMA(location()); }
+;    { debug(";"); return Parser::make_SEMI(location()); }
+\.   { debug("."); return Parser::make_DOT(location()); }
+:=   { debug(":="); return Parser::make_ASSIGN(location()); }
 
 [ \t]+  { /* yylloc->step(); */ }
 "\r"    { /* yylloc->step(); */ }
-"\n"    { 
-	/* return Pascal::Parser::make_EOL(Pascal::location()); */ 
-}
+"\n"    { /* return Parser::make_EOL(location()); */ }
 
 _       { 
-	cout << "Scanner: unknown character [" << yytext << "]" << endl;
-	return Pascal::Parser::make_BADTOK(Pascal::location()); 
+	debug("unknown character [" << yytext << "]");
+	return Parser::make_BADTOK(location()); 
 }
 
-<<EOF>> { 
-	cout << "Scanner: EOF" << endl;
-	return yyterminate(); 
-}
+<<EOF>> { debug("EOF"); return yyterminate(); }
 
 %%

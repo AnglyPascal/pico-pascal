@@ -49,24 +49,23 @@ enum op {
  *****************/
 
 struct Expr {
+  Type *type = nullptr;
+
   virtual string str() const;
-  virtual ~Expr();
-  virtual Expr *clone() { return this; };
+  virtual ~Expr() = 0;
+  virtual Expr *clone() = 0;
   virtual Expr &operator=(Expr &other);
 
   // some methods on types
-  virtual Type *checkType();
-
-private:
-  Type *type = nullptr;
+  /* virtual Type *checkType() = 0; */
 };
 
 struct Constant : public Expr {
   int n;
   Constant(int _n);
 
-  virtual ~Constant();
-  virtual Expr *clone();
+  ~Constant();
+  Expr *clone();
   string str() const;
 };
 
@@ -74,8 +73,8 @@ struct Variable : public Expr {
   Name *x;
   Variable(Name *_x);
 
-  virtual ~Variable();
-  virtual Expr *clone();
+  ~Variable();
+  Expr *clone();
   string str() const;
 };
 
@@ -84,8 +83,8 @@ struct Monop : public Expr {
   Expr *e;
   Monop(op _o, Expr *_e);
 
-  virtual ~Monop();
-  virtual Expr *clone();
+  ~Monop();
+  Expr *clone();
   string str() const;
 };
 
@@ -94,8 +93,8 @@ struct Binop : public Expr {
   Expr *el, *er;
   Binop(op _o, Expr *_el, Expr *_er);
 
-  virtual ~Binop();
-  virtual Expr *clone();
+  ~Binop();
+  Expr *clone();
   string str() const;
 };
 
@@ -105,12 +104,34 @@ struct Call : public Expr {
 
   Call(Name *_f, vector<Expr *> *_args);
   // should it share Expressions with other nodes?
-  virtual ~Call();
+  ~Call();
+  Expr *clone();
+  string str() const;
+};
+
+struct IfExpr : public Expr {
+  Expr *cond, *ifc, *elsec;
+
+  IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec);
+  ~IfExpr();
+  virtual Expr *clone();
+  string str() const;
+};
+
+struct Sub : public Expr {
+  Expr *arr, *ind;
+
+  Sub(Expr *_arr, Expr *_ind);
+  ~Sub();
   virtual Expr *clone();
   string str() const;
 };
 
 std::ostream &operator<<(std::ostream &s, const Expr &Expr);
+
+/******************
+ **   Stmt       **
+ ******************/
 
 struct Stmt {
   virtual ~Stmt();
@@ -187,26 +208,35 @@ struct Print : public Stmt {
   virtual string str() const;
 };
 
+struct Decl {
+  vector<Name *> *names;
+  Type *type;
+  ~Decl();
+  Decl(vector<Name *> *_names, Type *_type);
+  string str() const;
+};
+
 struct Proc;
 
 struct Block {
-  vector<ident> *idents; // These need to go, define declarations
+  vector<Decl *> *decls;
   vector<Proc *> *procs;
   Stmt *st;
   virtual ~Block();
   virtual Block *clone();
-  Block(vector<ident> *_idents, vector<Proc *> *_procs, Stmt *_st);
+  Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st);
   string str() const;
 };
 
 struct Proc {
   Name *f;
-  vector<ident> *idents;
+  vector<Decl *> *decls;
+  Type *type;
   Block *blk;
 
   virtual ~Proc();
   virtual Proc *clone();
-  Proc(Name *_f, vector<ident> *_idents, Block *_blk);
+  Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk);
   string str() const;
 };
 

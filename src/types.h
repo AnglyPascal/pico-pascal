@@ -74,7 +74,7 @@ struct Array : public Type {
   int length;
   Type *elemType;
 
-  Array(Type *_elemType);
+  Array(int _length, Type *_elemType);
   ~Array();
 
   Type *clone();
