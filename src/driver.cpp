@@ -40,11 +40,11 @@ using std::string;
 
 Driver::Driver()
     : m_scanner(*this), m_parser(m_scanner, *this), m_program(nullptr),
-      m_location(0) {}
+      m_column(0) {}
 
 Driver::Driver(const string &filename)
     : m_scanner(*this), m_parser(m_scanner, *this), m_program(nullptr),
-      m_location(0) {
+      m_column(0), m_line(1) {
   ifstream *in = new ifstream(filename.c_str());
   if (!in->good())
     return;
@@ -53,12 +53,14 @@ Driver::Driver(const string &filename)
 }
 
 int Driver::parse() {
-  m_location = 0;
+  m_column = 0;
+  m_line = 1;
   return m_parser.parse();
 }
 
 void Driver::clear() {
-  m_location = 0;
+  m_column = 0;
+  m_line = 1;
   m_program = nullptr;
 }
 
@@ -72,11 +74,22 @@ void Driver::switchInputStream(istream *is) {
 void Driver::setProgram(Program *pgm) { m_program = pgm; }
 
 void Driver::increaseLocation(unsigned int loc) {
-  m_location += loc;
-  cout << "increaseLocation(): " << loc << ", total = " << m_location << endl;
+  m_column += loc;
+  /* cout << "increaseLocation(): " << loc << ", total = " << m_column << endl;
+   */
 }
 
-unsigned int Driver::location() const { return m_location; }
+void Driver::line() { 
+  m_column = 0;
+  m_line += 1; 
+}
+unsigned int Driver::totalLines() { return m_line; }
+
+location Driver::yylloc() const {
+  class location l;
+  l.initialize(new string(streamname), m_line, m_column);
+  return l;
+}
 
 int Driver::parse_stream(std::istream &in, const std::string &sname) {
   streamname = sname;

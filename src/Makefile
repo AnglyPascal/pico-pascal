@@ -22,7 +22,7 @@ CLEANLIST =  $(addsuffix .o, $(SOBJ)) $(OBJS) \
 
 all: ppc
 
-ppc: $(FILES)
+ppc: $(FILES) parser.y scanner.l
 	$(MAKE) $(SOBJ)
 	$(MAKE) $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(EXE) $(OBJS) $(ASTOBJS) parser.o scanner.o $(LIBS)

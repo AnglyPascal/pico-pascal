@@ -157,7 +157,8 @@
 %%
 
 program : 
-    block "."         { Program *pgm = new Program($1); driver.setProgram(pgm); } ;
+    block "."         { Program *pgm = new Program($1); 
+                        driver.setProgram(pgm); } ;
 
 decls :
     /* empty */       { $$ = new vector<Decl *>(); }
@@ -179,7 +180,7 @@ typexp :
   | ARRAY NUMBER OF typexp      { $$ = new Array($2, $4); }
 
 block : 
-    decls proc_decls "begin" stmts "end"     { $$ = new Block($1, $2, $4); } ;
+    decls proc_decls "begin" stmts "end"  { $$ = new Block($1, $2, $4); } ;
 
 proc_decls :
     /* empty */                     { $$ = new vector<Proc *>(); }
@@ -187,8 +188,8 @@ proc_decls :
 	;
 
 proc_decl :
-    PROC name formals SEMI block SEMI             { new Proc($2, $3, new Void(), $5); }
-  | PROC name formals ":" typexp SEMI block SEMI  { new Proc($2, $3, $5, $7); }
+    PROC name formals SEMI block SEMI             { $$ = new Proc($2, $3, new Void(), $5); }
+  | PROC name formals ":" typexp SEMI block SEMI  { $$ = new Proc($2, $3, $5, $7); }
   ;
 
 formals :
@@ -225,9 +226,9 @@ expr_list :
 	;
 
 expr :
-    simple            { $$ = $1; }
+    simple              { $$ = $1; }
   | simple RELOP simple { $$ = new Binop($2, $1, $3); }
-  | ifexpr            { $$ = $1; }
+  | ifexpr              { $$ = $1; }
 	;
 
 ifexpr :
@@ -260,12 +261,12 @@ variable :
 
 /* might change my decision to not have a type inside constant later */
 constant :
-    NUMBER            { Expr *ex = new Constant($1); ex->type = new Int(); }
-  | BOOLCONST         { Expr *ex = new Constant($1); ex->type = new Bool(); }
+    NUMBER            { Expr *ex = new Constant($1); ex->type = new Int(); $$ = ex; }
+  | BOOLCONST         { Expr *ex = new Constant($1); ex->type = new Bool(); $$ = ex; }
   ;
 
 name :
-    IDENT             { $$ = Pascal::makeName($1, 0); }
+    IDENT             { $$ = Pascal::makeName($1, @1.begin.line, @1.begin.column); }
 	;
 
 %%
@@ -278,5 +279,5 @@ void Parser::error(const location &loc, const std::string &message) {
 
   // cout << "Error: " << message << endl << "Location: " << loc << endl;
   cout << "Error: " << message << endl
-       << "Error location: " << driver.location() << endl;
+       << "Error location: " << driver.yylloc() << endl;
 }

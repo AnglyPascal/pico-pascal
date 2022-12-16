@@ -35,6 +35,7 @@
 #include "check.h"
 #include "parser.h"
 #include "scanner.h"
+#include "location.hh"
 
 namespace Pascal {
 
@@ -63,13 +64,16 @@ class Driver {
   // Used internally by Scanner YY_USER_ACTION to update location indicator
   void increaseLocation(unsigned int loc);
 
+  void line();
+
   // Used to get last Scanner location. Used in error messages.
-  unsigned int location() const;
+  location yylloc() const;
 
   Scanner m_scanner;
   Parser m_parser;
   Program *m_program;
-  unsigned int m_location; // Used by scanner
+  unsigned int m_column; // Used by scanner
+  unsigned int m_line;
 
 public:
   Driver();
@@ -119,6 +123,8 @@ public:
    */
   void switchInputStream(std::istream *is);
 
+
+  unsigned int totalLines();
   /**
    * This is needed so that Scanner and Parser can call some
    * methods that we want to keep hidden from the end user.

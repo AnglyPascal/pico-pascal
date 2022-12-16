@@ -6,11 +6,12 @@
 namespace Pascal {
 
 // ------- Name ----------
-Name::Name(ident name, int line) : x_name(name), x_line(line){};
+Name::Name(ident name, int line, int column)
+    : x_name(name), x_line(line), x_column(column){};
 Name::~Name() { delete x_def; }
 
 Name *Name::clone() {
-  Name *nn = new Name(x_name, x_line);
+  Name *nn = new Name(x_name, x_line, x_column);
   nn->x_def = x_def->clone();
   return nn;
 }
@@ -216,7 +217,7 @@ Block::Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st)
 // ------- Program ---------
 Program::Program(Block *_prog) : prog(_prog) {}
 
-Name *makeName(ident x, int ln) { return new Name(x, ln); };
+Name *makeName(ident x, int ln, int cm) { return new Name(x, ln, cm); };
 
 Stmt *sequence(vector<Stmt *> *st) {
   if (!st)

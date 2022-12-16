@@ -52,6 +52,7 @@
 #define YY_DECL Pascal::Parser::symbol_type Pascal::Scanner::get_next_token()
 
 #include "parser.h" // this is needed for symbol_type
+#include "location.hh" // this is needed for symbol_type
 
 namespace Pascal {
 
@@ -64,6 +65,7 @@ public:
   Scanner(Driver &driver) : m_driver(driver) {}
   virtual ~Scanner() {}
   virtual Pascal::Parser::symbol_type get_next_token();
+  location yylloc();
 
 private:
   Driver &m_driver;

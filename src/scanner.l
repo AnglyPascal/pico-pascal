@@ -44,18 +44,10 @@
 	// This will track current scanner location.
 	// Action is called when length of the token is known.
 	#define YY_USER_ACTION m_driver.increaseLocation(yyleng);
-	
-	// !!!WARNING!!!
-	// Location API is used, but the location is not initialized, 'cause I'm lazy. When making
-	// a token with make_{something} method you can pass detailed token location. Current location
-	// is accessible with m_driver.location() method. All puzzle elements are there - just
-	// pass location value in every action code block below. I'm going to waste more time writing
-	// this excuse than putting this boilerplate below...
-	//
-	// Location class can be found in location.hh and posistion.hh files. It's just a bit too much
-	// boilerplate for this small example. Bummer.
 
-	void scannerTrace(string mssg) { cout << "Scanner: " + mssg << endl; }
+	void scannerTrace(string mssg) { 
+		/* cout << "Scanner: " + mssg << endl; */ 
+	}
 %}
 
 %option nodefault
@@ -66,77 +58,85 @@
 
 %%
 
-"true"    { scannerTrace("true"); return Parser::make_BOOLCONST(1, location()); }
-"false"   { scannerTrace("false"); return Parser::make_BOOLCONST(0, location()); }
+"true"    { scannerTrace("true"); return Parser::make_BOOLCONST(1, yylloc()); }
+"false"   { scannerTrace("false"); return Parser::make_BOOLCONST(0, yylloc()); }
 
-"and"     { scannerTrace("and"); return Parser::make_ADDOP(op::Plus, location()); }
-"or"      { scannerTrace("or"); return Parser::make_ADDOP(op::Or, location()); }
-"div"     { scannerTrace("div"); return Parser::make_MULOP(op::Div, location()); }
-"mod"     { scannerTrace("mod"); return Parser::make_MULOP(op::Mod, location()); }
-"not"     { scannerTrace("not"); return Parser::make_MONOP(op::Not, location()); }
+"and"     { scannerTrace("and"); return Parser::make_ADDOP(op::Plus, yylloc()); }
+"or"      { scannerTrace("or"); return Parser::make_ADDOP(op::Or, yylloc()); }
+"div"     { scannerTrace("div"); return Parser::make_MULOP(op::Div, yylloc()); }
+"mod"     { scannerTrace("mod"); return Parser::make_MULOP(op::Mod, yylloc()); }
+"not"     { scannerTrace("not"); return Parser::make_MONOP(op::Not, yylloc()); }
 
-"begin"   { scannerTrace("begin"); return Parser::make_BEGINT(location()); }
-"end"     { scannerTrace("end"); return Parser::make_END(location()); }
+"begin"   { scannerTrace("begin"); return Parser::make_BEGINT(yylloc()); }
+"end"     { scannerTrace("end"); return Parser::make_END(yylloc()); }
 
-"var"     { scannerTrace("var"); return Parser::make_VAR(location()); }
-"array"   { scannerTrace("array"); return Parser::make_ARRAY(location()); }
-"of"      { scannerTrace("of"); return Parser::make_OF(location()); }
-"integer" { scannerTrace("integer type"); return Parser::make_INTEGER(location()); }
-"boolean" { scannerTrace("boolean type"); return Parser::make_BOOLEAN(location()); }
+"var"     { scannerTrace("var"); return Parser::make_VAR(yylloc()); }
+"array"   { scannerTrace("array"); return Parser::make_ARRAY(yylloc()); }
+"of"      { scannerTrace("of"); return Parser::make_OF(yylloc()); }
+"integer" { scannerTrace("integer type"); return Parser::make_INTEGER(yylloc()); }
+"boolean" { scannerTrace("boolean type"); return Parser::make_BOOLEAN(yylloc()); }
 
-"if"      { scannerTrace("if"); return Parser::make_IF(location()); }
-"then"    { scannerTrace("then"); return Parser::make_THEN(location()); }
-"else"    { scannerTrace("else"); return Parser::make_ELSE(location()); }
-"while"   { scannerTrace("while"); return Parser::make_WHILE(location()); }
-"do"      { scannerTrace("do"); return Parser::make_DO(location()); }
+"if"      { scannerTrace("if"); return Parser::make_IF(yylloc()); }
+"then"    { scannerTrace("then"); return Parser::make_THEN(yylloc()); }
+"else"    { scannerTrace("else"); return Parser::make_ELSE(yylloc()); }
+"while"   { scannerTrace("while"); return Parser::make_WHILE(yylloc()); }
+"do"      { scannerTrace("do"); return Parser::make_DO(yylloc()); }
 
-"proc"    { scannerTrace("do"); return Parser::make_PROC(location()); }
-"print"   { scannerTrace("print"); return Parser::make_PRINT(location()); }
-"return"  { scannerTrace("return"); return Parser::make_RETURN(location()); }
-"newline" { scannerTrace("newline"); return Parser::make_NEWLINE(location()); }
+"proc"    { scannerTrace("do"); return Parser::make_PROC(yylloc()); }
+"print"   { scannerTrace("print"); return Parser::make_PRINT(yylloc()); }
+"return"  { scannerTrace("return"); return Parser::make_RETURN(yylloc()); }
+"newline" { scannerTrace("newline"); return Parser::make_NEWLINE(yylloc()); }
 
 [A-Za-z][A-Za-z0-9_]* { 
 	std::string str = yytext;
 	scannerTrace("ident \"" + str + "\"");
-	return Parser::make_IDENT(str, location());
+	return Parser::make_IDENT(str, yylloc());
 }
 
 [0-9]+	{ 
 	int number = strtoull(yytext, 0, 10);
-	cout << "Scanner: number " << number << endl;
-	return Parser::make_NUMBER(number, location()); 
+	scannerTrace("number " + std::to_string(number));
+	return Parser::make_NUMBER(number, yylloc()); 
 }
 
-"+"  { scannerTrace("+"); return Parser::make_ADDOP(op::Plus, location()); }
-"-"  { scannerTrace("-"); return Parser::make_MINUS(location()); }
-"*"  { scannerTrace("*"); return Parser::make_MULOP(op::Times, location()); }
+"+"  { scannerTrace("+"); return Parser::make_ADDOP(op::Plus, yylloc()); }
+"-"  { scannerTrace("-"); return Parser::make_MINUS(yylloc()); }
+"*"  { scannerTrace("*"); return Parser::make_MULOP(op::Times, yylloc()); }
 
-"<"  { scannerTrace("<"); return Parser::make_RELOP(op::Lt, location()); }
-">"  { scannerTrace(">"); return Parser::make_RELOP(op::Gt, location()); }
-"="  { scannerTrace("="); return Parser::make_RELOP(op::Eq, location()); }
-"<>" { scannerTrace("<>"); return Parser::make_RELOP(op::Neq, location()); }
-"<=" { scannerTrace("<="); return Parser::make_RELOP(op::Leq, location()); }
-">=" { scannerTrace(">="); return Parser::make_RELOP(op::Geq, location()); }
+"<"  { scannerTrace("<"); return Parser::make_RELOP(op::Lt, yylloc()); }
+">"  { scannerTrace(">"); return Parser::make_RELOP(op::Gt, yylloc()); }
+"="  { scannerTrace("="); return Parser::make_RELOP(op::Eq, yylloc()); }
+"<>" { scannerTrace("<>"); return Parser::make_RELOP(op::Neq, yylloc()); }
+"<=" { scannerTrace("<="); return Parser::make_RELOP(op::Leq, yylloc()); }
+">=" { scannerTrace(">="); return Parser::make_RELOP(op::Geq, yylloc()); }
 
-\(   { scannerTrace("("); return Parser::make_LPAR(location()); }
-\)   { scannerTrace(")"); return Parser::make_RPAR(location()); }
-"["  { scannerTrace("["); return Parser::make_SUB(location()); }
-"]"  { scannerTrace("]"); return Parser::make_BUS(location()); }
+\(   { scannerTrace("("); return Parser::make_LPAR(yylloc()); }
+\)   { scannerTrace(")"); return Parser::make_RPAR(yylloc()); }
+"["  { scannerTrace("["); return Parser::make_SUB(yylloc()); }
+"]"  { scannerTrace("]"); return Parser::make_BUS(yylloc()); }
 
-,    { scannerTrace(","); return Parser::make_COMMA(location()); }
-;    { scannerTrace(";"); return Parser::make_SEMI(location()); }
-\.   { scannerTrace("."); return Parser::make_DOT(location()); }
-:=   { scannerTrace(":="); return Parser::make_ASSIGN(location()); }
+,    { scannerTrace(","); return Parser::make_COMMA(yylloc()); }
+:    { scannerTrace(":"); return Parser::make_COLON(yylloc()); }
+;    { scannerTrace(";"); return Parser::make_SEMI(yylloc()); }
+\.   { scannerTrace("."); return Parser::make_DOT(yylloc()); }
+:=   { scannerTrace(":="); return Parser::make_ASSIGN(yylloc()); }
 
-[ \t]+  { /* yylloc->step(); */ }
-"\r"    { /* yylloc->step(); */ }
-"\n"    { /* return Parser::make_EOL(location()); */ }
+[ \t]+  { /* IGNORE WHITESPACE */ }
+"\r"    { /* IGNORE WHITESPACE */ }
+"\n"    { m_driver.line(); }
+
+[\(][*][^*]*[*]+([^*\)][^*]*[*]+)*[\)]    { /* DO NOTHING */ }
+[\(][*]                                   { /* unfinished comment error */ }
 
 _       { 
 	scannerTrace("unknown character [" + string(yytext) + "]");
-	return Parser::make_BADTOK(location()); 
+	return Parser::make_BADTOK(yylloc()); 
 }
 
 <<EOF>> { scannerTrace("EOF"); return yyterminate(); }
 
 %%
+
+location Scanner::yylloc() {
+	return m_driver.yylloc();
+}

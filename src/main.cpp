@@ -58,7 +58,6 @@ int main(int argc, char **argv) {
   else
     /** assume file, prod code, use stat to check **/
     res = driver.parse_file(argv[1]);
-  cout << driver.str() << endl;
 
   return res;
 

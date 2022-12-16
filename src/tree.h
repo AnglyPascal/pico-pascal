@@ -15,9 +15,10 @@ namespace Pascal {
 struct Name {
   ident x_name;
   int x_line;
+  int x_column;
   Defn *x_def = nullptr;
 
-  Name(ident Name, int line);
+  Name(ident Name, int line, int column);
   virtual ~Name();
   virtual Name *clone();
 
@@ -246,7 +247,7 @@ struct Program {
 };
 
 Stmt *sequence(vector<Stmt *> *st);
-Name *makeName(ident x, int ln);
+Name *makeName(ident x, int ln, int cm);
 
 } // Namespace Pascal
 
