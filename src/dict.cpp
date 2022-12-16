@@ -30,7 +30,6 @@
 
 using namespace Pascal;
 
-
 /*****************
  *    DEFKIND
  *****************/
@@ -79,3 +78,33 @@ Defn &Defn::operator=(const Defn *other) {
 
   return *this;
 }
+
+Defn *Defn::clone() const {
+  return new Defn(d_tag, d_kind->clone(), d_level, d_label, d_offset,
+                  d_type->clone());
+}
+
+/*****************
+ *     Env
+ *****************/
+
+void Env::define(Defn *d) {
+  if (env.count(d->d_tag))
+    throw std::domain_error("variable " + d->d_tag + " is already declared");
+  env[d->d_tag] = d;
+}
+
+Defn *Env::lookup(string tag) {
+  if (!env.count(tag))
+    throw std::domain_error("variable " + tag + " is not declared");
+  return env[tag];
+}
+
+Env::Env() : env(map<string, Defn *>()) {}
+
+Env::Env(Env *e) : env(map<string, Defn *>()) {
+  for (const auto &[key, value] : e->env)
+    env[key] = value;
+}
+
+Env::~Env() {}
