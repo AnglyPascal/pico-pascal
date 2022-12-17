@@ -58,7 +58,26 @@ string Array::str() const {
 }
 int Array::size() { return length * elemType->size(); }
 bool Array::isArray() { return true; }
-Array::~Array() { delete elemType; }
+Array::~Array() {}
+
+Func::Func(vector<Type *> _args, Type *_returnType)
+    : args(_args), returnType(_returnType) {}
+Type *Func::clone() {
+  vector<Type *> nargs = vector<Type *>();
+  for (Type *t : args)
+    nargs.push_back(t->clone());
+  return new Func(nargs, returnType->clone());
+}
+string Func::str() const {
+  string s = "(";
+  for (Type *t : args)
+    s += t->str() + ", ";
+  return ") -> " + returnType->str();
+}
+// maybe useful when passing function types as arguments
+int Func::size() { return 0; }
+bool Func::isArray() { return false; }
+Func::~Func() {}
 
 bool equalType(Type *t1, Type *t2) {
   if (typeid(*t1) == typeid(*t2)) {
@@ -67,6 +86,18 @@ bool equalType(Type *t1, Type *t2) {
       Array *_t2 = (Array *)t2;
       return _t1->length == _t2->length &&
              equalType(_t1->elemType, _t2->elemType);
+    }
+    if (typeid(*t1) == typeid(Func)) {
+      Func *_t1 = (Func *)t1;
+      Func *_t2 = (Func *)t2;
+
+      if (_t1->args.size() != _t2->args.size())
+        return false;
+      if (!equalType(_t1->returnType, _t2->returnType))
+        return false;
+      for (int i = 0; i < _t1->args.size(); i++)
+        if (!equalType(_t1->args[i], _t2->args[i]))
+          return false;
     }
     return true;
   }

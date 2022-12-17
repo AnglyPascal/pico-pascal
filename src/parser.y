@@ -154,6 +154,8 @@
 
 %locations
 
+// TODO need to implement proc_heading to facilitate passing functions as arguments
+
 %%
 
 program : 

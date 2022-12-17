@@ -30,7 +30,10 @@
 #define TYPES_H
 
 #include <string>
+#include <vector>
+
 using std::string;
+using std::vector;
 
 namespace Pascal {
 
@@ -95,7 +98,21 @@ struct Bool : public Type {
   bool isArray();
 };
 
-bool equals(Type *t1, Type *t2);
+struct Func : public Type {
+  vector<Type *> args;
+  Type *returnType;
+
+  Func(vector<Type *> _args, Type *_returnType);
+  ~Func();
+
+  Type *clone();
+  string str() const;
+
+  int size();
+  bool isArray();
+};
+
+bool equalType(Type *t1, Type *t2);
 
 } // namespace Pascal
 

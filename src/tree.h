@@ -259,8 +259,8 @@ struct Block {
 struct Proc {
   Name *f;
   vector<Decl *> *decls;
-  Type *type;
   Block *blk;
+  Func *type;
 
   virtual ~Proc();
   virtual Proc *clone();
@@ -269,7 +269,7 @@ struct Proc {
 };
 
 struct Program {
-  const Block *prog;
+  Block *prog;
   Program(Block *_prog);
   string str() const;
 };

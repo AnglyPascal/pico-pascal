@@ -169,8 +169,13 @@ Stmt *Print::clone() { return new Print(e->clone()); }
  **        Proc        **
  *************************/
 
-Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk)
-    : f(_f), decls(_decls), type(_type), blk(_blk) {}
+Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_returnType, Block *_blk)
+    : f(_f), decls(_decls), blk(_blk), type(nullptr) {
+  vector<Type *> args = vector<Type *>();
+  for (Decl *d : *decls)
+    args.push_back(d->type);
+  type = new Func(args, _returnType);
+}
 
 Proc::~Proc() {
   for (Decl *d : *decls)
@@ -184,7 +189,7 @@ Proc *Proc::clone() {
   vector<Decl *> *_decls = new vector<Decl *>();
   for (Decl *d : *decls)
     _decls->push_back(d);
-  return new Proc(f->clone(), _decls, type->clone(), blk->clone());
+  return new Proc(f->clone(), _decls, type->returnType->clone(), blk->clone());
 }
 
 /************************
@@ -224,16 +229,16 @@ Stmt *sequence(vector<Stmt *> *st) {
     return new Skip();
 
   switch (st->size()) {
-  case 0:
-    delete st;
-    return new Skip();
-  case 1: {
-    Stmt *s = (*st)[0];
-    delete st;
-    return s;
-  }
-  default:
-    return new Seq(st);
+    case 0:
+      delete st;
+      return new Skip();
+    case 1: {
+      Stmt *s = (*st)[0];
+      delete st;
+      return s;
+    }
+    default:
+      return new Seq(st);
   }
   return new Skip();
 }

@@ -48,12 +48,21 @@ class Check {
   Check(Program *_pgm);
   ~Check();
 
-  Type *check(Env *env);
+  void check(Env *env);
 
-  void check(Stmt *stmt, bool inproc, Env *env);
+  void checkStmt(Stmt *stmt, bool inproc, Env *env);
+  void check(Seq *sts, bool inproc, Env *env);
+  void check(Assign *ae, bool inproc, Env *env);
+  void check(Return *rt, bool inproc, Env *env);
+  void check(IfStmt *ist, bool inproc, Env *env);
+  void check(WhileStmt *wst, bool inproc, Env *env);
+  void check(Print *p, bool inproc, Env *env);
+
+  void checkVar(Expr *expr, Env *env);
+
   void check(Proc *proc, int level, Env *env);
 
-  Type *check(Expr *expr, Env *env);
+  Type *checkExpr(Expr *expr, Env *env);
   Type *check(Monop *monop, Env *env);
   Type *check(Binop *binop, Env *env);
   Type *check(Sub *sub, Env *env);

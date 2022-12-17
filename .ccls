@@ -1,5 +1,5 @@
 clang++
-%h %cpp -std=c++17
+%h %cpp -std=c++17 -Wno-c++17-extensions
 %h -x c++-header
 -I antlr4_runtime/src/antlr4_runtime/runtime/Cpp/runtime/src/
 -I.
