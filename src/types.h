@@ -31,6 +31,7 @@
 
 #include <string>
 #include <vector>
+#include <typeinfo>
 
 using std::string;
 using std::vector;

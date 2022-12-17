@@ -7,7 +7,7 @@ EXE = ppc
 
 SRC_DIR := src
 
-CPPOBJ = main driver types dict tree
+CPPOBJ = main driver types dict tree check
 SOBJ = parser scanner
 
 FILES = $(addsuffix .cpp, $(CPPOBJ))

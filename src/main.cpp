@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
     /** assume file, prod code, use stat to check **/
     res = driver.parse_file(argv[1]);
 
+  driver.check();
+
   return res;
 
 }

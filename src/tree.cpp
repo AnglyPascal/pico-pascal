@@ -6,12 +6,11 @@
 namespace Pascal {
 
 // ------- Name ----------
-Name::Name(ident name, int line, int column)
-    : x_name(name), x_line(line), x_column(column){};
+Name::Name(ident name, location _loc) : x_name(name), x_loc(_loc) {}
 Name::~Name() { delete x_def; }
 
 Name *Name::clone() {
-  Name *nn = new Name(x_name, x_line, x_column);
+  Name *nn = new Name(x_name, x_loc);
   nn->x_def = x_def->clone();
   return nn;
 }
@@ -41,31 +40,37 @@ map<op, string> opNames = {
 Expr::~Expr() {}
 
 // ------- Constant ----------
-Constant::Constant(int _n) : n(_n) {}
+Constant::Constant(int _n, location _loc) : n(_n) { loc = _loc; }
 Constant::~Constant() {}
-Expr *Constant::clone() { return new Constant(n); }
+Expr *Constant::clone() { return new Constant(n, loc); }
 Expr &Expr::operator=(Expr &other) { return other; }
 
 // ------- Variable ----------
-Variable::Variable(Name *_x) : x(_x) {}
+Variable::Variable(Name *_x, location _loc) : x(_x) { loc = _loc; }
 Variable::~Variable() { delete x; }
-Expr *Variable::clone() { return new Variable(x->clone()); }
+Expr *Variable::clone() { return new Variable(x->clone(), loc); }
 
 // ------- Monop ----------
-Monop::Monop(op _o, Expr *_e) : o(_o), e(_e){};
+Monop::Monop(op _o, Expr *_e, location _loc) : o(_o), e(_e) { loc = _loc; };
 Monop::~Monop() { delete e; }
-Expr *Monop::clone() { return new Monop(o, e->clone()); }
+Expr *Monop::clone() { return new Monop(o, e->clone(), loc); }
 
 // ------- Binop ----------
-Binop::Binop(op _o, Expr *_el, Expr *_er) : o(_o), el(_el), er(_er){};
+Binop::Binop(op _o, Expr *_el, Expr *_er, location _loc)
+    : o(_o), el(_el), er(_er) {
+  loc = _loc;
+};
 Binop::~Binop() {
   delete el;
   delete er;
 }
-Expr *Binop::clone() { return new Binop(o, el->clone(), er->clone()); }
+Expr *Binop::clone() { return new Binop(o, el->clone(), er->clone(), loc); }
 
 // ------- Call ----------
-Call::Call(Name *_f, vector<Expr *> *_args) : f(_f), args(_args) {}
+Call::Call(Name *_f, vector<Expr *> *_args, location _loc)
+    : f(_f), args(_args) {
+  loc = _loc;
+}
 // should it share Expressions with other nodes?
 Call::~Call() {
   delete f;
@@ -73,27 +78,31 @@ Call::~Call() {
     delete e;
   delete args;
 }
-Expr *Call::clone() { return new Call(f->clone(), args); }
+Expr *Call::clone() { return new Call(f->clone(), args, loc); }
 
 // ------- IfExpr ----------
-IfExpr::IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec)
-    : cond(_cond), ifc(_ifc), elsec(_elsec) {}
+IfExpr::IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec, location _loc)
+    : cond(_cond), ifc(_ifc), elsec(_elsec) {
+  loc = _loc;
+}
 IfExpr::~IfExpr() {
   delete cond;
   delete ifc;
   delete elsec;
 }
 Expr *IfExpr::clone() {
-  return new IfExpr(cond->clone(), ifc->clone(), elsec->clone());
+  return new IfExpr(cond->clone(), ifc->clone(), elsec->clone(), loc);
 }
 
 // ------- Sub ----------
-Sub::Sub(Expr *_arr, Expr *_ind) : arr(_arr), ind(_ind) {}
+Sub::Sub(Expr *_arr, Expr *_ind, location _loc) : arr(_arr), ind(_ind) {
+  loc = _loc;
+}
 Sub::~Sub() {
   delete arr;
   delete ind;
 }
-Expr *Sub::clone() { return new Sub(arr->clone(), ind->clone()); }
+Expr *Sub::clone() { return new Sub(arr->clone(), ind->clone(), loc); }
 
 // ------- << operator ----------
 std::ostream &operator<<(std::ostream &s, const Expr &Expr) {
@@ -107,15 +116,17 @@ std::ostream &operator<<(std::ostream &s, const Expr &Expr) {
 Stmt::~Stmt() {}
 
 // ------- Skip ----------
+Skip::Skip() { loc = location(); }
 Skip::~Skip() {}
 Stmt *Skip::clone() { return new Skip(); }
 
 // ------- Newline ----------
+Newline::Newline(location _loc) { loc = _loc; }
 Newline::~Newline() {}
-Stmt *Newline::clone() { return new Newline(); }
+Stmt *Newline::clone() { return new Newline(loc); }
 
 // ------- Seq ----------
-Seq::Seq(vector<Stmt *> *_stmts) : stmts(_stmts) {}
+Seq::Seq(vector<Stmt *> *_stmts) : stmts(_stmts) { loc = location(); }
 Seq::~Seq() {
   for (Stmt *s : *stmts)
     delete s;
@@ -129,48 +140,70 @@ Stmt *Seq::clone() {
 }
 
 // ------- Assign ----------
-Assign::Assign(Expr *_x, Expr *_e) : x(_x), e(_e) {}
+Assign::Assign(Expr *_x, Expr *_e, location _loc) : x(_x), e(_e) { loc = _loc; }
 Assign::~Assign() {
   delete x;
   delete e;
 }
-Stmt *Assign::clone() { return new Assign(x->clone(), e->clone()); }
+Stmt *Assign::clone() { return new Assign(x->clone(), e->clone(), loc); }
 
 // ------- Return ----------
-Return::Return(Expr *_e) : e(_e) {}
+Return::Return(Expr *_e, location _loc) : e(_e) { loc = _loc; }
 Return::~Return() { delete e; }
-Stmt *Return::clone() { return new Return(e->clone()); }
+Stmt *Return::clone() { return new Return(e->clone(), loc); }
 
 // ------- IfStmt ----------
-IfStmt::IfStmt(Expr *c, Stmt *i, Stmt *e) : cond(c), ifStmt(i), elseStmt(e) {}
+IfStmt::IfStmt(Expr *c, Stmt *i, Stmt *e, location _loc)
+    : cond(c), ifStmt(i), elseStmt(e) {
+  loc = _loc;
+}
 IfStmt::~IfStmt() {
   delete cond;
   delete ifStmt;
   delete elseStmt;
 }
 Stmt *IfStmt::clone() {
-  return new IfStmt(cond->clone(), ifStmt->clone(), elseStmt->clone());
+  return new IfStmt(cond->clone(), ifStmt->clone(), elseStmt->clone(), loc);
 }
 
 // ------- WhileStmt ----------
-WhileStmt::WhileStmt(Expr *c, Stmt *i) : cond(c), st(i) {}
+WhileStmt::WhileStmt(Expr *c, Stmt *i, location _loc) : cond(c), st(i) {
+  loc = _loc;
+}
 WhileStmt::~WhileStmt() {
   delete cond;
   delete st;
 }
-Stmt *WhileStmt::clone() { return new WhileStmt(cond->clone(), st->clone()); }
+Stmt *WhileStmt::clone() {
+  return new WhileStmt(cond->clone(), st->clone(), loc);
+}
 
 // ------- Print ----------
-Print::Print(Expr *_e) : e(_e){};
+Print::Print(Expr *_e, location _loc) : e(_e) { loc = _loc; };
 Print::~Print() { delete e; }
-Stmt *Print::clone() { return new Print(e->clone()); }
+Stmt *Print::clone() { return new Print(e->clone(), loc); }
+
+/************************
+ **  Decl              **
+ *************************/
+
+Decl::~Decl() {
+  for (Name *n : *names)
+    delete n;
+  delete names;
+  delete type;
+}
+
+Decl::Decl(vector<Name *> *_names, Type *_type, location _loc)
+    : names(_names), type(_type), loc(_loc) {}
 
 /************************
  **        Proc        **
  *************************/
 
-Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_returnType, Block *_blk)
-    : f(_f), decls(_decls), blk(_blk), type(nullptr) {
+Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_returnType, Block *_blk,
+           location _loc)
+    : f(_f), decls(_decls), blk(_blk), type(nullptr), loc(_loc) {
   vector<Type *> args = vector<Type *>();
   for (Decl *d : *decls)
     args.push_back(d->type);
@@ -189,7 +222,8 @@ Proc *Proc::clone() {
   vector<Decl *> *_decls = new vector<Decl *>();
   for (Decl *d : *decls)
     _decls->push_back(d);
-  return new Proc(f->clone(), _decls, type->returnType->clone(), blk->clone());
+  return new Proc(f->clone(), _decls, type->returnType->clone(), blk->clone(),
+                  loc);
 }
 
 /************************
@@ -222,7 +256,7 @@ Block::Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st)
 // ------- Program ---------
 Program::Program(Block *_prog) : prog(_prog) {}
 
-Name *makeName(ident x, int ln, int cm) { return new Name(x, ln, cm); };
+Name *makeName(ident x, location _l) { return new Name(x, _l); };
 
 Stmt *sequence(vector<Stmt *> *st) {
   if (!st)
@@ -242,19 +276,6 @@ Stmt *sequence(vector<Stmt *> *st) {
   }
   return new Skip();
 }
-
-/************************
- **  Decl              **
- *************************/
-
-Decl::~Decl() {
-  for (Name *n : *names)
-    delete n;
-  delete names;
-  delete type;
-}
-
-Decl::Decl(vector<Name *> *_names, Type *_type) : names(_names), type(_type) {}
 
 /************************
  **  Printing the AST  **

@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "dict.h"
+#include "location.hh"
 #include <iostream>
 #include <map>
 #include <vector>
@@ -42,11 +43,10 @@ namespace Pascal {
 
 struct Name {
   ident x_name;
-  int x_line;
-  int x_column;
+  location x_loc;
   Defn *x_def = nullptr;
 
-  Name(ident Name, int line, int column);
+  Name(ident Name, location _loc);
   virtual ~Name();
   virtual Name *clone();
 
@@ -79,6 +79,7 @@ enum op {
 
 struct Expr {
   Type *type = nullptr;
+  location loc;
 
   virtual string str() const;
   virtual ~Expr() = 0;
@@ -91,7 +92,7 @@ struct Expr {
 
 struct Constant : public Expr {
   int n;
-  Constant(int _n);
+  Constant(int _n, location _loc);
 
   ~Constant();
   Expr *clone();
@@ -100,7 +101,7 @@ struct Constant : public Expr {
 
 struct Variable : public Expr {
   Name *x;
-  Variable(Name *_x);
+  Variable(Name *_x, location _loc);
 
   ~Variable();
   Expr *clone();
@@ -110,7 +111,7 @@ struct Variable : public Expr {
 struct Monop : public Expr {
   op o;
   Expr *e;
-  Monop(op _o, Expr *_e);
+  Monop(op _o, Expr *_e, location _loc);
 
   ~Monop();
   Expr *clone();
@@ -120,7 +121,7 @@ struct Monop : public Expr {
 struct Binop : public Expr {
   op o;
   Expr *el, *er;
-  Binop(op _o, Expr *_el, Expr *_er);
+  Binop(op _o, Expr *_el, Expr *_er, location _loc);
 
   ~Binop();
   Expr *clone();
@@ -131,7 +132,7 @@ struct Call : public Expr {
   Name *f;
   vector<Expr *> *args;
 
-  Call(Name *_f, vector<Expr *> *_args);
+  Call(Name *_f, vector<Expr *> *_args, location _loc);
   // should it share Expressions with other nodes?
   ~Call();
   Expr *clone();
@@ -141,7 +142,7 @@ struct Call : public Expr {
 struct IfExpr : public Expr {
   Expr *cond, *ifc, *elsec;
 
-  IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec);
+  IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec, location _loc);
   ~IfExpr();
   virtual Expr *clone();
   string str() const;
@@ -150,7 +151,7 @@ struct IfExpr : public Expr {
 struct Sub : public Expr {
   Expr *arr, *ind;
 
-  Sub(Expr *_arr, Expr *_ind);
+  Sub(Expr *_arr, Expr *_ind, location _loc);
   ~Sub();
   virtual Expr *clone();
   string str() const;
@@ -163,48 +164,51 @@ std::ostream &operator<<(std::ostream &s, const Expr &Expr);
  ******************/
 
 struct Stmt {
+  location loc;
   virtual ~Stmt();
   virtual Stmt *clone() = 0;
   virtual string str() const;
 };
 
 struct Skip : public Stmt {
-  virtual ~Skip();
+  Skip();
+  ~Skip();
   Stmt *clone();
   string str() const;
 };
 
 struct Newline : public Stmt {
-  virtual ~Newline();
+  Newline(location _loc);
+  ~Newline();
   Stmt *clone();
-  virtual string str() const;
+  string str() const;
 };
 
 struct Seq : public Stmt {
-  const vector<Stmt *> *stmts;
+  vector<Stmt *> *stmts;
 
-  virtual ~Seq();
+  ~Seq();
   Stmt *clone();
   Seq(vector<Stmt *> *_stmts);
-  virtual string str() const;
+  string str() const;
 };
 
 struct Assign : public Stmt {
   Expr *x, *e;
 
-  virtual ~Assign();
+  ~Assign();
   Stmt *clone();
-  Assign(Expr *_x, Expr *_e);
-  virtual string str() const;
+  Assign(Expr *_x, Expr *_e, location _loc);
+  string str() const;
 };
 
 struct Return : public Stmt {
   Expr *e;
 
-  virtual ~Return();
+  ~Return();
   Stmt *clone();
-  Return(Expr *_e);
-  virtual string str() const;
+  Return(Expr *_e, location _loc);
+  string str() const;
 };
 
 struct IfStmt : public Stmt {
@@ -213,7 +217,7 @@ struct IfStmt : public Stmt {
 
   virtual ~IfStmt();
   Stmt *clone();
-  IfStmt(Expr *c, Stmt *i, Stmt *e);
+  IfStmt(Expr *c, Stmt *i, Stmt *e, location _loc);
   virtual string str() const;
 };
 
@@ -223,7 +227,7 @@ struct WhileStmt : public Stmt {
 
   virtual ~WhileStmt();
   Stmt *clone();
-  WhileStmt(Expr *c, Stmt *i);
+  WhileStmt(Expr *c, Stmt *i, location _loc);
   virtual string str() const;
 };
 
@@ -232,15 +236,17 @@ struct Print : public Stmt {
 
   virtual ~Print();
   Stmt *clone();
-  Print(Expr *_e);
+  Print(Expr *_e, location _loc);
   virtual string str() const;
 };
 
 struct Decl {
   vector<Name *> *names;
   Type *type;
+  location loc;
+
   ~Decl();
-  Decl(vector<Name *> *_names, Type *_type);
+  Decl(vector<Name *> *_names, Type *_type, location _loc);
   string str() const;
 };
 
@@ -261,10 +267,11 @@ struct Proc {
   vector<Decl *> *decls;
   Block *blk;
   Func *type;
+  location loc;
 
   virtual ~Proc();
   virtual Proc *clone();
-  Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk);
+  Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk, location _loc);
   string str() const;
 };
 
@@ -275,7 +282,7 @@ struct Program {
 };
 
 Stmt *sequence(vector<Stmt *> *st);
-Name *makeName(ident x, int ln, int cm);
+Name *makeName(ident x, location _l);
 
 } // Namespace Pascal
 

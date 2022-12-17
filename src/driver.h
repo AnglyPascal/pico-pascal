@@ -123,8 +123,10 @@ public:
    */
   void switchInputStream(std::istream *is);
 
-
   unsigned int totalLines();
+
+  void check();
+
   /**
    * This is needed so that Scanner and Parser can call some
    * methods that we want to keep hidden from the end user.

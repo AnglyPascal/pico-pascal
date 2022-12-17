@@ -27,7 +27,6 @@
  */
 
 #include "types.h"
-#include <typeinfo>
 
 using namespace Pascal;
 
@@ -79,7 +78,7 @@ int Func::size() { return 0; }
 bool Func::isArray() { return false; }
 Func::~Func() {}
 
-bool equalType(Type *t1, Type *t2) {
+bool Pascal::equalType(Type *t1, Type *t2) {
   if (typeid(*t1) == typeid(*t2)) {
     if (typeid(*t1) == typeid(Array)) {
       Array *_t1 = (Array *)t1;
@@ -95,7 +94,7 @@ bool equalType(Type *t1, Type *t2) {
         return false;
       if (!equalType(_t1->returnType, _t2->returnType))
         return false;
-      for (int i = 0; i < _t1->args.size(); i++)
+      for (std::size_t i = 0, max = _t1->args.size(); i < max; i++)
         if (!equalType(_t1->args[i], _t2->args[i]))
           return false;
     }

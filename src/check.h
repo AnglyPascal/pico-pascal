@@ -40,9 +40,8 @@ using std::vector;
 
 namespace Pascal {
 
-int err_line = 0;
-
 class Check {
+public:
   Program *pgm;
 
   Check(Program *_pgm);
@@ -50,6 +49,7 @@ class Check {
 
   void check(Env *env);
 
+private:
   void checkStmt(Stmt *stmt, bool inproc, Env *env);
   void check(Seq *sts, bool inproc, Env *env);
   void check(Assign *ae, bool inproc, Env *env);

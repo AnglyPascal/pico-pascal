@@ -168,7 +168,7 @@ decls :
   ;
 
 decl :
-    VAR names COLON typexp SEMI { $$ = new Decl($2, $4); } ;
+    VAR names COLON typexp SEMI { $$ = new Decl($2, $4, @1); } ;
 
 names :
     name                { vector<Name *> *ns = new vector<Name *>(); 
@@ -190,8 +190,8 @@ proc_decls :
 	;
 
 proc_decl :
-    PROC name formals SEMI block SEMI             { $$ = new Proc($2, $3, new Void(), $5); }
-  | PROC name formals ":" typexp SEMI block SEMI  { $$ = new Proc($2, $3, $5, $7); }
+    PROC name formals SEMI block SEMI             { $$ = new Proc($2, $3, new Void(), $5, @1); }
+  | PROC name formals ":" typexp SEMI block SEMI  { $$ = new Proc($2, $3, $5, $7, @1); }
   ;
 
 formals :
@@ -207,13 +207,13 @@ stmt_list :
 
 stmt :
     /* empty */                            { $$ = new Skip(); }
-  | variable ASSIGN expr                   { $$ = new Assign($1, $3); }
-  | RETURN expr                            { $$ = new Return($2); }
-  | IF expr THEN stmts END                 { $$ = new IfStmt($2, $4, new Skip()); }
-  | IF expr THEN stmts ELSE stmts END      { $$ = new IfStmt($2, $4, $6); }
-  | WHILE expr DO stmts END                { $$ = new WhileStmt($2, $4); }
-  | PRINT expr                             { $$ = new Print($2); }
-  | NEWLINE                                { $$ = new Newline(); }
+  | variable ASSIGN expr                   { $$ = new Assign($1, $3, @1); }
+  | RETURN expr                            { $$ = new Return($2, @1); }
+  | IF expr THEN stmts END                 { $$ = new IfStmt($2, $4, new Skip(), @1); }
+  | IF expr THEN stmts ELSE stmts END      { $$ = new IfStmt($2, $4, $6, @1); }
+  | WHILE expr DO stmts END                { $$ = new WhileStmt($2, $4, @1); }
+  | PRINT expr                             { $$ = new Print($2, @1); }
+  | NEWLINE                                { $$ = new Newline(@1); }
 	;
 
 actuals :
@@ -229,46 +229,46 @@ expr_list :
 
 expr :
     simple              { $$ = $1; }
-  | simple RELOP simple { $$ = new Binop($2, $1, $3); }
+  | simple RELOP simple { $$ = new Binop($2, $1, $3, @1); }
   | ifexpr              { $$ = $1; }
 	;
 
 ifexpr :
-    IF expr THEN expr ELSE expr     { $$ = new IfExpr($2, $4, $6); };
+    IF expr THEN expr ELSE expr     { $$ = new IfExpr($2, $4, $6, @1); };
 
 simple :
     term              { $$ = $1; }
-  | simple ADDOP term { $$ = new Binop($2, $1, $3); }
-  | simple MINUS term { $$ = new Binop(Minus, $1, $3); }
+  | simple ADDOP term { $$ = new Binop($2, $1, $3, @1); }
+  | simple MINUS term { $$ = new Binop(Minus, $1, $3, @1); }
 	;
 
 term :
     factor            { $$ = $1; }
-  | term MULOP factor { $$ = new Binop($2, $1, $3); }
+  | term MULOP factor { $$ = new Binop($2, $1, $3, @1); }
 	;
 
 factor :
     constant          { $$ = $1; }
   | variable          { $$ = $1; }
-  | name actuals      { $$ = new Call($1, $2); }
-  | MONOP factor      { $$ = new Monop($1, $2); }
-  | MINUS factor      { $$ = new Monop(Uminus, $2); }
+  | name actuals      { $$ = new Call($1, $2, @1); }
+  | MONOP factor      { $$ = new Monop($1, $2, @2); }
+  | MINUS factor      { $$ = new Monop(Uminus, $2, @2); }
   | "(" expr ")"      { $$ = $2; }
 	;
 
 variable :
-    name                    { $$ = new Variable($1); }
-  | variable "[" expr "]"   { $$ = new Sub($1, $3); }
+    name                    { $$ = new Variable($1, @1); }
+  | variable "[" expr "]"   { $$ = new Sub($1, $3, @1); }
   ;
 
 /* might change my decision to not have a type inside constant later */
 constant :
-    NUMBER            { Expr *ex = new Constant($1); ex->type = new Int(); $$ = ex; }
-  | BOOLCONST         { Expr *ex = new Constant($1); ex->type = new Bool(); $$ = ex; }
+    NUMBER            { Expr *ex = new Constant($1, @1); ex->type = new Int(); $$ = ex; }
+  | BOOLCONST         { Expr *ex = new Constant($1, @1); ex->type = new Bool(); $$ = ex; }
   ;
 
 name :
-    IDENT             { $$ = Pascal::makeName($1, @1.begin.line, @1.begin.column); }
+    IDENT             { $$ = Pascal::makeName($1, @1); }
 	;
 
 %%

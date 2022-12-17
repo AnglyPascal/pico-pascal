@@ -27,8 +27,11 @@
  */
 
 #include "check.h"
+#include "location.hh"
 
 using namespace Pascal;
+
+location err_loc = location();
 
 inline Defn *findDef(Name *x, Env *env) {
   Defn *d = env->lookup(x->x_name);
@@ -40,8 +43,13 @@ inline void define(Defn *d, Env *env) { env->define(d); }
 
 Type *currentReturn = new Void();
 
+/*********************
+ *  semantic_error
+ *********************/
+
 semantic_error::semantic_error(char const *const message) throw()
-    : domain_error(message) {}
+    : domain_error("(" + std::to_string(err_loc.begin.line) + "." +
+                   std::to_string(err_loc.begin.column) + "): " + message) {}
 
 // TODO might not work
 char const *semantic_error::what() const throw() {
@@ -49,7 +57,7 @@ char const *semantic_error::what() const throw() {
 }
 
 /*********************
- *  Constructor
+ *  Check Constructor
  *********************/
 
 Check::Check(Program *_pgm) : pgm(_pgm) {}
@@ -94,6 +102,7 @@ Type *Check::check(Binop *binop, Env *env) {
         throw semantic_error("binary operation on non-compatibale expressions");
       if (typeid(*tl) != typeid(Int))
         throw semantic_error("integer binary operation non integer expression");
+      binop->type = tl;
       break;
     }
     case Eq:
@@ -104,6 +113,7 @@ Type *Check::check(Binop *binop, Env *env) {
     case Neq: {
       if (typeid(*tl) != typeid(*tr))
         throw semantic_error("binary operation on non-compatibale expressions");
+      binop->type = new Bool();
       break;
     }
     case And:
@@ -112,13 +122,13 @@ Type *Check::check(Binop *binop, Env *env) {
         throw semantic_error("binary operation on non-compatibale expressions");
       if (typeid(*tl) != typeid(Bool))
         throw semantic_error("boolean binary operation non boolean expression");
+      binop->type = tl;
       break;
     }
     default:
       throw semantic_error("bad binop");
   }
-  binop->type = tl;
-  return tl;
+  return binop->type;
 }
 
 Type *Check::check(Sub *sub, Env *env) {
@@ -153,7 +163,7 @@ Type *Check::check(Call *fe, Env *env) {
   if (t->args.size() != fe->args->size())
     throw semantic_error(
         "calling procedure without the correct number of arguments");
-  for (int i = 0; i < t->args.size(); i++) {
+  for (std::size_t i = 0, max = t->args.size(); i < max; i++) {
     Type *ta = checkExpr((*fe->args)[i], env);
     if (!equalType(t->args[i], ta))
       throw semantic_error("argument type mismatch");
@@ -162,6 +172,7 @@ Type *Check::check(Call *fe, Env *env) {
 }
 
 Type *Check::checkExpr(Expr *e, Env *env) {
+  err_loc = e->loc;
   const std::type_info &t = typeid(*e);
   if (t == typeid(Variable)) {
     Variable *v = (Variable *)e;
@@ -201,10 +212,12 @@ void Check::checkVar(Expr *_exp, Env *env) {
     Defn *d = findDef(exp->x, env);
     if (typeid(*d->d_kind) == typeid(ProcDef))
       throw semantic_error("assigning to proecedure variable");
+    return;
   }
   if (typeid(*_exp) == typeid(Sub)) {
     Sub *exp = (Sub *)_exp;
     checkVar(exp->arr, env);
+    return;
   }
   throw semantic_error("assigning to non-variable or substitution expression");
 }
@@ -224,7 +237,7 @@ void Check::check(Assign *ae, bool inproc, Env *env) {
   checkVar(ae->x, env);
   if (!equalType(tl, tr))
     throw semantic_error("assignment on non-compatibale types");
-  if (typeid(*tl) != typeid(Int) || typeid(*tl) != typeid(Bool))
+  if (typeid(*tl) != typeid(Int) && typeid(*tl) != typeid(Bool))
     throw semantic_error("assignment only allowed on ints or bools");
 }
 
@@ -257,6 +270,8 @@ void Check::check(WhileStmt *wst, bool inproc, Env *env) {
 void Check::check(Print *p, bool inproc, Env *env) { checkExpr(p->e, env); }
 
 void Check::checkStmt(Stmt *_stmt, bool inproc, Env *env) {
+  err_loc = _stmt->loc;
+
   const std::type_info &t = typeid(*_stmt);
   if (t == typeid(Seq)) {
     Seq *s = (Seq *)_stmt;
@@ -325,6 +340,8 @@ inline void declareProcs(vector<Proc *> *procs, int level, Env *env) {
 }
 
 void Check::check(Proc *proc, int level, Env *_env) {
+  err_loc = proc->loc;
+
   Env *env = new Env(_env);
 
   for (Decl *decl : *proc->decls)

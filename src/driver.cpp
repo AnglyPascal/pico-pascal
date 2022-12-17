@@ -27,7 +27,6 @@
  */
 
 #include "driver.h"
-#include "tree.h"
 #include <sstream>
 
 using namespace Pascal;
@@ -79,9 +78,9 @@ void Driver::increaseLocation(unsigned int loc) {
    */
 }
 
-void Driver::line() { 
+void Driver::line() {
   m_column = 0;
-  m_line += 1; 
+  m_line += 1;
 }
 unsigned int Driver::totalLines() { return m_line; }
 
@@ -107,4 +106,10 @@ int Driver::parse_file(const string &filename) {
 int Driver::parse_string(const string &input, const string &sname) {
   std::istringstream iss(input);
   return parse_stream(iss, sname);
+}
+
+void Driver::check() {
+  Check ck = Check(m_program);
+  Env *env = new Env();
+  ck.check(env);
 }
