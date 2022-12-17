@@ -1,7 +1,6 @@
 var a: array 10 of integer;
+var b: array 10 of array 5 of integer;
 var i: integer;
-
-(* haha *)
 
 begin
   i := 2; 

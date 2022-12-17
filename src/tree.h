@@ -167,21 +167,21 @@ struct Stmt {
   location loc;
   virtual ~Stmt();
   virtual Stmt *clone() = 0;
-  virtual string str() const;
+  virtual string str(string pad) const;
 };
 
 struct Skip : public Stmt {
   Skip();
   ~Skip();
   Stmt *clone();
-  string str() const;
+  string str(string pad) const;
 };
 
 struct Newline : public Stmt {
   Newline(location _loc);
   ~Newline();
   Stmt *clone();
-  string str() const;
+  string str(string pad) const;
 };
 
 struct Seq : public Stmt {
@@ -190,7 +190,7 @@ struct Seq : public Stmt {
   ~Seq();
   Stmt *clone();
   Seq(vector<Stmt *> *_stmts);
-  string str() const;
+  string str(string pad) const;
 };
 
 struct Assign : public Stmt {
@@ -199,7 +199,7 @@ struct Assign : public Stmt {
   ~Assign();
   Stmt *clone();
   Assign(Expr *_x, Expr *_e, location _loc);
-  string str() const;
+  string str(string pad) const;
 };
 
 struct Return : public Stmt {
@@ -208,7 +208,7 @@ struct Return : public Stmt {
   ~Return();
   Stmt *clone();
   Return(Expr *_e, location _loc);
-  string str() const;
+  string str(string pad) const;
 };
 
 struct IfStmt : public Stmt {
@@ -218,7 +218,7 @@ struct IfStmt : public Stmt {
   virtual ~IfStmt();
   Stmt *clone();
   IfStmt(Expr *c, Stmt *i, Stmt *e, location _loc);
-  virtual string str() const;
+  string str(string pad) const;
 };
 
 struct WhileStmt : public Stmt {
@@ -228,7 +228,7 @@ struct WhileStmt : public Stmt {
   virtual ~WhileStmt();
   Stmt *clone();
   WhileStmt(Expr *c, Stmt *i, location _loc);
-  virtual string str() const;
+  string str(string pad) const;
 };
 
 struct Print : public Stmt {
@@ -237,7 +237,7 @@ struct Print : public Stmt {
   virtual ~Print();
   Stmt *clone();
   Print(Expr *_e, location _loc);
-  virtual string str() const;
+  string str(string pad) const;
 };
 
 struct Decl {
@@ -256,6 +256,8 @@ struct Block {
   vector<Decl *> *decls;
   vector<Proc *> *procs;
   Stmt *st;
+  int level;
+
   virtual ~Block();
   virtual Block *clone();
   Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st);

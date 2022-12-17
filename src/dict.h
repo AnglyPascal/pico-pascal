@@ -45,6 +45,17 @@ typedef int codelab;
 namespace Pascal {
 
 /*****************
+ *  LABEL
+ *****************/
+
+struct {
+  int incr() { return ++lab; }
+
+private:
+  int lab = 0;
+} Label;
+
+/*****************
  *    DEFKIND
  *****************/
 
@@ -90,16 +101,6 @@ struct Defn {
   Defn &operator=(const Defn *other);
 };
 
-/*****************
- *  LABEL
- *****************/
-
-struct {
-  int incr() { return ++lab; }
-
-private:
-  int lab = 0;
-} Label;
 
 /*****************
  *  ENVIRONMENT

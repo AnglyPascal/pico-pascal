@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+string pad_const = "  ";
+
 namespace Pascal {
 
 // ------- Name ----------
@@ -251,7 +253,7 @@ Block *Block::clone() {
 }
 
 Block::Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st)
-    : decls(_decls), procs(_procs), st(_st) {}
+    : decls(_decls), procs(_procs), st(_st), level(0) {}
 
 // ------- Program ---------
 Program::Program(Block *_prog) : prog(_prog) {}
@@ -282,47 +284,62 @@ Stmt *sequence(vector<Stmt *> *st) {
  *************************/
 
 string Expr::str() const { return "Expr"; }
-string Constant::str() const { return "Constant " + std::to_string(n); }
-string Variable::str() const { return "Variable " + x->x_name; }
-
-string Monop::str() const {
-  return string("Monop (") + opNames[o] + e->str() + string(")");
+string Constant::str() const {
+  return std::to_string(n);
 }
+string Variable::str() const { return x->x_name; }
+
+string Monop::str() const { return "(" + opNames[o] + e->str() + ")"; }
 
 string Binop::str() const {
-  return string("Binop (") + el->str() + string(" ") + opNames[o] +
-         string(" ") + er->str() + string(")");
+  return "(" + el->str() + " " + opNames[o] + " " + er->str() + ")";
 }
 
-string Call::str() const { return string("Call ") + f->x_name; }
+string Call::str() const {
+  string a = "";
+  for (Expr *e : *args)
+    a += e->str() + ", ";
+  return f->x_name + "(" + a + ")";
+}
 
 string IfExpr::str() const {
   return "if (" + cond->str() + ") " + ifc->str() + " else " + elsec->str();
 }
 
-string Sub::str() const { return arr->str() + "[" + ind->str() + "]"; }
+string Sub::str() const {
+  return arr->str() + "[" + ind->str() + "]";
+}
 
 string Decl::str() const {
   string s = "var ";
-  for (Name *n : *names)
-    s += n->str() + ", ";
+  int n = names->size();
+  for (int i = 0; i < n-1; i ++)
+    s += (*names)[i]->str() + ", ";
+  s += (*names)[n-1]->str();
   s += ": " + type->str();
   return s;
 }
 
 string Program::str() const {
-  string str = "Program\nBEGIN\n" + prog->str() + "\nEOF.";
+  string str = "**Program**\n\n" + prog->str() + "\n**eof**";
   return str;
 }
 
 string Block::str() const {
-  string str = "Variables:\n";
+  string pad = "";
+  for (int i = 0; i < level; i++)
+    pad += pad_const;
+
+  string str = "";
   for (Decl *d : *decls)
-    str += d->str() + "\n";
-  str += "\nProcedures:\n";
+    str += pad + d->str() + "\n";
+
   for (Proc *p : *procs)
     str += p->str();
-  str += "\nStatements:\n" + st->str();
+
+  str += pad + "begin\n";
+  str += st->str(pad + pad_const);
+  str += pad + "end\n";
   return str;
 }
 
@@ -337,31 +354,39 @@ string Proc::str() const {
 
 string Name::str() const { return x_name; }
 
-string Stmt::str() const { return ""; }
-string Skip::str() const { return "SKIP\n"; }
-string Newline::str() const { return "NEWLINE\n"; }
+string Stmt::str(string pad) const { return pad; }
+string Skip::str(string pad) const { return ""; }
+string Newline::str(string pad) const { return pad + "newline\n"; }
 
-string Seq::str() const {
+string Seq::str(string pad) const {
   string str = "";
   for (Stmt *st : *stmts)
-    str += st->str() + "\n";
+    str += st->str(pad);
   return str;
 }
 
-string Assign::str() const { return x->str() + " = " + e->str() + "\n"; }
-string Return::str() const { return "return " + e->str() + "\n"; }
+string Assign::str(string pad) const {
+  return pad + x->str() + " = " + e->str() + "\n";
+}
+string Return::str(string pad) const {
+  return pad + "return " + e->str() + "\n";
+}
 
-string IfStmt::str() const {
-  string str = "if (" + cond->str() + ") {\n" + ifStmt->str() + "}";
-  str += "else {\n" + elseStmt->str() + "\n}\n";
+string IfStmt::str(string pad) const {
+  string str =
+      pad + "if (" + cond->str() + ") {\n" + ifStmt->str(pad + pad_const) + "}";
+  str += " else {\n" + elseStmt->str(pad + pad_const) + "\n}\n";
   return str;
 }
 
-string WhileStmt::str() const {
-  string str = "while (" + cond->str() + ") {\n" + st->str() + "}";
+string WhileStmt::str(string pad) const {
+  string str =
+      pad + "while (" + cond->str() + ") {\n" + st->str(pad + pad_const) + pad + "}\n";
   return str;
 }
 
-string Print::str() const { return "print (" + e->str() + ")\n"; }
+string Print::str(string pad) const {
+  return pad + "print (" + e->str() + ")\n";
+}
 
 } // namespace Pascal

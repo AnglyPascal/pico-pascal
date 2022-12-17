@@ -177,6 +177,7 @@ Type *Check::checkExpr(Expr *e, Env *env) {
   if (t == typeid(Variable)) {
     Variable *v = (Variable *)e;
     Defn *d = findDef(v->x, env);
+    e->type = d->d_type;
     return d->d_type;
   }
   if (t == typeid(Monop)) {
@@ -356,6 +357,7 @@ void Check::check(Proc *proc, int level, Env *_env) {
   currentReturn = proc->type->returnType;
   checkStmt(proc->blk->st, true, env);
   currentReturn = new Void();
+  proc->blk->level = level;
 }
 
 /******************
@@ -370,4 +372,5 @@ void Check::check(Env *env) {
   for (Proc *p : *blk->procs)
     check(p, 1, env);
   checkStmt(blk->st, false, env);
+  blk->level = 0;
 }
