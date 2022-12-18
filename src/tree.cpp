@@ -24,17 +24,18 @@ void Name::setDef(Defn *d) {
 
 Defn *Name::getDef() {
   if (!x_def) {
-    /*  throw error */
+    throw std::domain_error("definition not found: " + x_name);
   }
   return x_def;
 }
 
 // ------- opName ----------
 map<op, string> opNames = {
-    {Plus, "+"}, {Minus, "-"},  {Times, "*"}, {Div, "/"}, {Mod, "%"},
-    {Eq, "=="},  {Uminus, "-"}, {Lt, "<"},    {Gt, ">"},  {Leq, "<="},
-    {Geq, ">="}, {Neq, "!="},   {And, "&&"},  {Or, "||"}, {Not, "!"},
-};
+    {Plus, "+"},  {Minus, "-"},  {Times, "*"}, {Div, "/"},    {Mod, "%"},
+    {Eq, "=="},   {Uminus, "-"}, {Lt, "<"},    {Gt, ">"},     {Leq, "<="},
+    {Geq, ">="},  {Neq, "!="},   {And, "&&"},  {Or, "||"},    {Not, "!"},
+    {Lsl, "<<"},  {Lsr, ">>"},   {Asr, "asr"}, {BitAnd, "&"}, {BitOr, "|"},
+    {BitNot, "~"}};
 
 /************************
  **        Expr        **
@@ -284,9 +285,7 @@ Stmt *sequence(vector<Stmt *> *st) {
  *************************/
 
 string Expr::str() const { return "Expr"; }
-string Constant::str() const {
-  return std::to_string(n);
-}
+string Constant::str() const { return std::to_string(n); }
 string Variable::str() const { return x->x_name; }
 
 string Monop::str() const { return "(" + opNames[o] + e->str() + ")"; }
@@ -306,16 +305,14 @@ string IfExpr::str() const {
   return "if (" + cond->str() + ") " + ifc->str() + " else " + elsec->str();
 }
 
-string Sub::str() const {
-  return arr->str() + "[" + ind->str() + "]";
-}
+string Sub::str() const { return arr->str() + "[" + ind->str() + "]"; }
 
 string Decl::str() const {
   string s = "var ";
   int n = names->size();
-  for (int i = 0; i < n-1; i ++)
+  for (int i = 0; i < n - 1; i++)
     s += (*names)[i]->str() + ", ";
-  s += (*names)[n-1]->str();
+  s += (*names)[n - 1]->str();
   s += ": " + type->str();
   return s;
 }
@@ -380,13 +377,27 @@ string IfStmt::str(string pad) const {
 }
 
 string WhileStmt::str(string pad) const {
-  string str =
-      pad + "while (" + cond->str() + ") {\n" + st->str(pad + pad_const) + pad + "}\n";
+  string str = pad + "while (" + cond->str() + ") {\n" +
+               st->str(pad + pad_const) + pad + "}\n";
   return str;
 }
 
 string Print::str(string pad) const {
   return pad + "print (" + e->str() + ")\n";
+}
+
+/*************
+ * Functions *
+ *************/
+
+int bound(Expr *e) {
+  Type *t = e->type;
+  if (typeid(t) == typeid(Array)) {
+    Array *a = (Array *)t;
+    return a->length;
+  }
+  // change the error type
+  throw std::domain_error("bound on non-array type");
 }
 
 } // namespace Pascal

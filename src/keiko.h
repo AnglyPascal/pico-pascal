@@ -29,74 +29,45 @@
 #ifndef KEIKO_H
 #define KEIKO_H
 
+#include "tree.h"
 #include <string>
 
 using std::string;
 
 namespace Keiko {
 
-enum op {
-  Plus,
-  Minus,
-  Times,
-  Div,
-  Mod,
-  Eq,
-  Uminus,
-  Lt,
-  Gt,
-  Leq,
-  Geq,
-  Neq,
-  And,
-  Or,
-  Not,
-  Lsl,
-  Lsr,
-  Asr,
-  BitAnd,
-  BitOr,
-  BitNot
-};
-
-/*****************
- *  LABEL
- *****************/
-
-struct {
-  int incr() { return ++lab; }
-
-private:
-  int lab = 0;
-} Label;
-
 typedef string symbol;
+typedef Pascal::op op;
 typedef std::pair<op, int> fork;
 
 struct Inst {
   Inst();
   virtual ~Inst() = 0;
+  virtual void simplify() = 0;
 };
 
 struct Const : public Inst {
   int n;
 
   Const(int _n);
-  ~Const();
+  ~Const() = default;
+  void simplify();
 };
 
 struct Global : public Inst {
   symbol x;
 
   Global(symbol _x);
-  ~Global();
+  ~Global() = default;
+  void simplify();
 };
 
 struct Local : public Inst {
   int offset;
 
   Local(int _offset);
-  ~Local();
+  ~Local() = default;
+  void simplify();
 };
 
 struct Loadc : public Inst {
@@ -104,6 +75,7 @@ struct Loadc : public Inst {
 
   Loadc(Inst *_inst);
   ~Loadc();
+  void simplify();
 };
 
 struct Loadw : public Inst {
@@ -111,6 +83,7 @@ struct Loadw : public Inst {
 
   Loadw(Inst *_inst);
   ~Loadw();
+  void simplify();
 };
 
 struct Storec : public Inst {
@@ -118,30 +91,37 @@ struct Storec : public Inst {
 
   Storec(Inst *_inst);
   ~Storec();
+  void simplify();
 };
+
 struct Storew : public Inst {
   Inst *inst;
 
   Storew(Inst *_inst);
   ~Storew();
+  void simplify();
 };
+
 struct Resultw : public Inst {
   Inst *inst;
 
   Resultw(Inst *_inst);
   ~Resultw();
+  void simplify();
 };
 
 struct Arg : public Inst {
   int ind;
 
   Arg(int _ind);
-  ~Arg();
+  ~Arg() = default;
+  void simplify();
 };
 
 struct Static : public Inst {
-  Static();
-  ~Static();
+  Static() = default;
+  ~Static() = default;
+  void simplify();
 };
 
 struct Call : public Inst {
@@ -150,6 +130,7 @@ struct Call : public Inst {
 
   Call(int _nparams, Inst *_func);
   ~Call();
+  void simplify();
 };
 
 struct Monop : public Inst {
@@ -158,6 +139,7 @@ struct Monop : public Inst {
 
   Monop(op _o, Inst *_e);
   ~Monop();
+  void simplify();
 };
 
 struct Binop : public Inst {
@@ -166,6 +148,7 @@ struct Binop : public Inst {
 
   Binop(op _o, Inst *_el, Inst *_er);
   ~Binop();
+  void simplify();
 };
 
 struct Offset : public Inst {
@@ -173,6 +156,7 @@ struct Offset : public Inst {
 
   Offset(Inst *_base, Inst *_offset);
   ~Offset();
+  void simplify();
 };
 
 struct Bound : public Inst {
@@ -180,13 +164,23 @@ struct Bound : public Inst {
 
   Bound(Inst *_arr, Inst *_bound);
   ~Bound();
+  void simplify();
+};
+
+struct Label : public Inst {
+  int lab;
+
+  Label(int _lab);
+  ~Label() = default;
+  void simplify();
 };
 
 struct Jump : public Inst {
   int lab;
 
   Jump(int _lab);
-  ~Jump();
+  ~Jump() = default;
+  void simplify();
 };
 
 struct Jumpc : public Inst {
@@ -195,6 +189,23 @@ struct Jumpc : public Inst {
 
   Jumpc(fork _lab, Inst *_ifc, Inst *_elsec);
   ~Jumpc();
+  void simplify();
+};
+
+struct Seq : public Inst {
+  vector<Inst *> *insts;
+
+  Seq(vector<Inst *> *_insts);
+  ~Seq();
+  void simplify();
+};
+
+struct Line : public Inst {
+  int line;
+
+  Line(int _line);
+  ~Line() = default;
+  void simplify();
 };
 
 } // namespace Keiko

@@ -43,6 +43,8 @@ inline void define(Defn *d, Env *env) { env->define(d); }
 
 Type *currentReturn = new Void();
 
+Label label = Label();
+
 /*********************
  *  semantic_error
  *********************/
@@ -167,6 +169,9 @@ Type *Check::check(Call *fe, Env *env) {
     Type *ta = checkExpr((*fe->args)[i], env);
     if (!equalType(t->args[i], ta))
       throw semantic_error("argument type mismatch");
+    if (typeid(*ta) == typeid(Func) &&
+        typeid((*fe->args)[i]) != typeid(Variable))
+      throw semantic_error("function arguments need to passed as variables");
   }
   return t->returnType;
 }
@@ -318,6 +323,7 @@ inline void declareLocal(Decl *decl, int level, int base_offset, bool arg,
   for (Name *n : *decl->names) {
     offset += i * t->size();
     Defn *d = new Defn(n->x_name, new VarDef(), level, "", offset, t);
+    n->x_def = d;
     define(d, env);
   }
 }
@@ -326,16 +332,18 @@ inline void declareGlobal(Decl *decl, Env *env) {
   Type *t = decl->type;
   for (Name *n : *decl->names) {
     Defn *d = new Defn(n->x_name, new VarDef(), 0, "_" + n->x_name, 0, t);
+    n->x_def = d;
     define(d, env);
   }
 }
 
 inline void declareProcs(vector<Proc *> *procs, int level, Env *env) {
   for (Proc *proc : *procs) {
-    string label = proc->f->x_name + "_" + std::to_string(Label.incr());
+    string lab = proc->f->x_name + "_" + std::to_string(label.incr());
     int n = proc->decls->size();
     Defn *d =
-        new Defn(proc->f->x_name, new ProcDef(n), level, label, 0, proc->type);
+        new Defn(proc->f->x_name, new ProcDef(n), level, lab, 0, proc->type);
+    proc->f->x_def = d;
     define(d, env);
   }
 }
@@ -347,6 +355,13 @@ void Check::check(Proc *proc, int level, Env *_env) {
 
   for (Decl *decl : *proc->decls)
     declareLocal(decl, level, 16, true, env);
+
+  // maybe not the best idea to create a new pointer? idk 
+  vector<Defn *> *pps = proc->type->params;
+  for (Decl *decl : *proc->decls)
+    for (Name *n : *decl->names)
+      pps->push_back(n->x_def);
+
   for (Decl *decl : *proc->blk->decls)
     declareLocal(decl, level, 0, false, env);
 

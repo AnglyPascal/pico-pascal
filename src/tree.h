@@ -70,7 +70,13 @@ enum op {
   Neq,
   And,
   Or,
-  Not
+  Not,
+  Lsl,
+  Lsr,
+  Asr,
+  BitAnd,
+  BitOr,
+  BitNot
 };
 
 /*****************
@@ -285,6 +291,8 @@ struct Program {
 
 Stmt *sequence(vector<Stmt *> *st);
 Name *makeName(ident x, location _l);
+
+int bound(Expr *e);
 
 } // Namespace Pascal
 

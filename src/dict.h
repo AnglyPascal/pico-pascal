@@ -48,12 +48,12 @@ namespace Pascal {
  *  LABEL
  *****************/
 
-struct {
+struct Label {
   int incr() { return ++lab; }
 
 private:
   int lab = 0;
-} Label;
+};
 
 /*****************
  *    DEFKIND

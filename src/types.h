@@ -30,13 +30,15 @@
 #define TYPES_H
 
 #include <string>
-#include <vector>
 #include <typeinfo>
+#include <vector>
 
 using std::string;
 using std::vector;
 
 namespace Pascal {
+
+struct Defn;
 
 /*****************
  *    TYPES
@@ -50,6 +52,7 @@ struct Type {
 
   virtual int size() = 0;
   virtual bool isArray() = 0;
+  virtual bool isScalar() = 0;
 };
 
 struct Int : public Type {
@@ -61,6 +64,7 @@ struct Int : public Type {
 
   int size();
   bool isArray();
+  bool isScalar();
 };
 
 struct Void : public Type {
@@ -72,6 +76,7 @@ struct Void : public Type {
 
   int size();
   bool isArray();
+  bool isScalar();
 };
 
 struct Array : public Type {
@@ -86,6 +91,7 @@ struct Array : public Type {
 
   int size();
   bool isArray();
+  bool isScalar();
 };
 
 struct Bool : public Type {
@@ -97,11 +103,13 @@ struct Bool : public Type {
 
   int size();
   bool isArray();
+  bool isScalar();
 };
 
 struct Func : public Type {
   vector<Type *> args;
   Type *returnType;
+  vector<Defn *> *params;
 
   Func(vector<Type *> _args, Type *_returnType);
   ~Func();
@@ -111,6 +119,7 @@ struct Func : public Type {
 
   int size();
   bool isArray();
+  bool isScalar();
 };
 
 bool equalType(Type *t1, Type *t2);

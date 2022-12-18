@@ -60,19 +60,22 @@ bool Array::isArray() { return true; }
 Array::~Array() {}
 
 Func::Func(vector<Type *> _args, Type *_returnType)
-    : args(_args), returnType(_returnType) {}
+    : args(_args), returnType(_returnType), params(new vector<Defn *>()) {}
+
 Type *Func::clone() {
   vector<Type *> nargs = vector<Type *>();
   for (Type *t : args)
     nargs.push_back(t->clone());
   return new Func(nargs, returnType->clone());
 }
+
 string Func::str() const {
   string s = "(";
   for (Type *t : args)
     s += t->str() + ", ";
   return ") -> " + returnType->str();
 }
+
 // maybe useful when passing function types as arguments
 int Func::size() { return 0; }
 bool Func::isArray() { return false; }
@@ -102,3 +105,11 @@ bool Pascal::equalType(Type *t1, Type *t2) {
   }
   return false;
 }
+
+/** Scalar check **/
+
+bool Int::isScalar() { return true; }
+bool Bool::isScalar() { return true; }
+bool Array::isScalar() { return false; }
+bool Func::isScalar() { return false; }
+bool Void::isScalar() { return false; }
