@@ -77,7 +77,7 @@ string Func::str() const {
 }
 
 // maybe useful when passing function types as arguments
-int Func::size() { return 0; }
+int Func::size() { return 8; }
 bool Func::isArray() { return false; }
 Func::~Func() {}
 

@@ -32,7 +32,7 @@
 using namespace Pascal;
 
 int level = 0;
-Label label = Label();
+Label label1 = Label();
 
 Inst *staticChain(int n) {
   if (n == 0)
@@ -45,6 +45,39 @@ Inst *staticChain(int n) {
  ** GenExpr **
  *************/
 
+Inst *KGen::genExpr(Expr *e) {
+  const std::type_info &t = typeid(*e);
+  if (t == typeid(Constant)) {
+    Constant *v = (Constant *)e;
+    return genExpr(v);
+  }
+  if (t == typeid(Variable)) {
+    Variable *v = (Variable *)e;
+    return genExpr(v);
+  }
+  if (t == typeid(Monop)) {
+    Monop *monop = (Monop *)e;
+    return genExpr(monop);
+  }
+  if (t == typeid(Binop)) {
+    Binop *binop = (Binop *)e;
+    return genExpr(binop);
+  }
+  if (t == typeid(Call)) {
+    Call *call = (Call *)e;
+    return genExpr(call);
+  }
+  if (t == typeid(IfExpr)) {
+    IfExpr *ie = (IfExpr *)e;
+    return genExpr(ie);
+  }
+  if (t == typeid(Sub)) {
+    Sub *sub = (Sub *)e;
+    return genExpr(sub);
+  }
+  throw std::domain_error("failed to match any expression type");
+}
+
 Inst *KGen::genExpr(Constant *c) { return new Keiko::Const(c->n); }
 
 Inst *KGen::genExpr(Variable *v) {
@@ -53,20 +86,30 @@ Inst *KGen::genExpr(Variable *v) {
   insts->push_back(new Keiko::Line(v->x->x_loc.begin.line));
 
   if (typeid(d->d_kind) == typeid(VarDef)) {
-    insts->push_back(new Keiko::Loadw(genAddr(v)));
+    if (v->type->size() == 1)
+      insts->push_back(new Keiko::Loadc(genAddr(v)));
+    else
+      insts->push_back(new Keiko::Loadw(genAddr(v)));
     return new Keiko::Seq(insts);
   }
 
-  int lev = d->d_level;
-  int off = d->d_offset;
+  throw std::domain_error("generating expression for ProcDef");
+  /* int lev = d->d_level; */
+  /* Inst *sl; */
+  /* if (lev == 0) */
+  /*   sl = new Keiko::Const(0); */
+  /* else if (level + 1 < lev) */
+  /*   throw std::domain_error("accessing out of scope procedure"); */
+  /* else */
+  /*   sl = staticChain(level + 1 - lev); */
+
+  /* int off = d->d_offset; */
 }
 
 Inst *KGen::genExpr(Sub *s) {
-  Inst *a = genAddr(s->arr);
-  Inst *i = genExpr(s->ind);
-  Inst *b = new Keiko::Bound(i, new Keiko::Const(bound(s->arr)));
-  return new Keiko::Offset(
-      a, new Keiko::Binop(Times, b, new Keiko::Const(s->type->size())));
+  if (s->type->size() == 1)
+    return new Keiko::Loadc(genAddr(s));
+  return new Keiko::Loadw(genAddr(s));
 }
 
 Inst *KGen::genExpr(Monop *monop) {
@@ -78,9 +121,9 @@ Inst *KGen::genExpr(Binop *binop) {
 }
 
 Inst *KGen::genExpr(IfExpr *ie) {
-  int l1 = label.incr();
-  int l2 = label.incr();
-  int l3 = label.incr();
+  int l1 = label1.incr();
+  int l2 = label1.incr();
+  int l3 = label1.incr();
 
   vector<Inst *> *insts = new vector<Inst *>();
   insts->push_back(genCond(ie->cond, l1, l2));
@@ -102,24 +145,22 @@ Inst *KGen::genCall(Call *call) {
   Func *t = (Func *)d->d_type;
 
   vector<Inst *> *args = new vector<Inst *>();
+  int *index = 0;
+  for (int i = 0, max = call->args->size(); i < max; i++)
+    genArg(index, (*t->params)[i], (*call->args)[i], args);
+  int n = args->size();
+  delete index;
 
+  // get the closure of the function definition
   pair<Inst *, Inst *> p = genClosure(d);
-  args->push_back(p.first);
-  args->push_back(p.second);
-
-  for (int i = 0, max = call->args->size(); i < max; i++) {
-    genArg((*t->params)[i], (*call->args)[i], args);
-  }
-
-  int n = args->size() - 2;
-  // now need to return n, addr, static_link, args
-  return new Keiko::Call(n, new Keiko::Seq(args));
+  return new Keiko::Call(n, p.first, new Keiko::Static(p.second),
+                         new Keiko::Seq(args));
 }
 
-void KGen::genArg(Defn *d, Expr *e, vector<Inst *> *args) {
+void KGen::genArg(int *index, Defn *d, Expr *e, vector<Inst *> *args) {
   if (typeid(d->d_kind) == typeid(VarDef)) {
     if (d->d_type->isScalar())
-      args->push_back(genExpr(e));
+      args->push_back(new Keiko::Arg(*index, genExpr(e)));
     else
       // TODO might be a problem
       args->push_back(genAddr(e));
@@ -128,9 +169,11 @@ void KGen::genArg(Defn *d, Expr *e, vector<Inst *> *args) {
       throw std::domain_error("function must be passed as a variable");
     Variable *v = (Variable *)e;
     pair<Inst *, Inst *> p = genClosure(v->x->getDef());
-    args->push_back(p.first);
-    args->push_back(p.second);
+    args->push_back(new Keiko::Arg(*index, p.first));
+    (*index)++;
+    args->push_back(new Keiko::Arg(*index, p.second));
   }
+  (*index)++;
 }
 
 pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
@@ -139,5 +182,114 @@ pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
     st = new Keiko::Const(0);
   else
     st = staticChain(level + 1 - d->d_level);
-  return pair<Inst *, Inst *>(genAddr(d), st);
+  return pair<Inst *, Inst *>(address(d), st);
+}
+
+/***************
+ *  GenAddr
+ **************/
+
+Inst *KGen::address(Defn *d) {
+  int lev = d->d_level;
+  // global variable or procedure definition
+  if (lev == 0 || typeid(d->d_kind) == typeid(ProcDef))
+    return new Keiko::Global(d->d_label);
+  if (level < lev)
+    throw std::domain_error("trying to access variable defined out of scope");
+  if (level == d->d_offset)
+    return new Keiko::Local(d->d_offset);
+  Inst *chain = staticChain(level - lev);
+  return new Keiko::Offset(chain, new Keiko::Const(d->d_offset));
+}
+
+Inst *boundCheck(Inst *inst, Expr *e) {
+  if (typeid(e->type) != typeid(Array))
+    throw std::domain_error("bound on non aray");
+  Array *t = (Array *)e->type;
+  return new Keiko::Bound(inst, new Keiko::Const(t->length));
+}
+
+Inst *KGen::genAddr(Variable *v) { return address(v->x->getDef()); }
+
+Inst *KGen::genAddr(Sub *sub) {
+  Inst *arr = genAddr(sub->arr);
+  Inst *ind = genExpr(sub->ind);
+  Inst *word = new Keiko::Const(sub->type->size());
+  Inst *off;
+  if (boundcheck)
+    off = new Keiko::Binop(Times, boundCheck(ind, sub->arr), word);
+  else
+    off = new Keiko::Binop(Times, ind, word);
+  return new Keiko::Offset(arr, off);
+}
+
+Inst *KGen::genAddr(Expr *e) {
+  const std::type_info &t = typeid(*e);
+  if (t == typeid(Variable)) {
+    Variable *v = (Variable *)e;
+    return genAddr(v);
+  }
+  if (t == typeid(Sub)) {
+    Sub *sub = (Sub *)e;
+    return genAddr(sub);
+  }
+  throw std::domain_error("genAddr called on invalid value");
+}
+
+/***************
+ *  GenCond
+ **************/
+
+Inst *KGen::genCond(Binop *binop, int lab1, int lab2) {
+  vector<Inst *> *insts = new vector<Inst *>();
+
+  if (binop->o == Or) {
+    int lab3 = label1.incr();
+    insts->push_back(genCond(binop->el, lab1, lab3));
+    insts->push_back(new Keiko::Label(lab3));
+    insts->push_back(genCond(binop->er, lab1, lab2));
+  } else if (binop->o == And) {
+    int lab3 = label1.incr();
+    insts->push_back(genCond(binop->el, lab3, lab2));
+    insts->push_back(new Keiko::Label(lab3));
+    insts->push_back(genCond(binop->er, lab1, lab2));
+  } else if (binop->o == Eq || binop->o == Neq || binop->o == Gt ||
+             binop->o == Lt || binop->o == Leq || binop->o == Geq) {
+    insts->push_back(new Keiko::Jumpc(pair<op, int>(binop->o, lab1),
+                                      genExpr(binop->el), genExpr(binop->er)));
+    insts->push_back(new Keiko::Jump(lab2));
+  } else {
+    insts->push_back(new Keiko::Jumpc(pair<op, int>(Neq, lab1), genExpr(binop),
+                                      new Keiko::Const(0)));
+    insts->push_back(new Keiko::Jump(lab2));
+  }
+
+  return new Keiko::Seq(insts);
+}
+
+Inst *KGen::genCond(Monop *monop, int lab1, int lab2) {
+  vector<Inst *> *insts = new vector<Inst *>();
+  if (monop->o == Not)
+    return genCond(monop->e, lab2, lab1);
+  else {
+    insts->push_back(new Keiko::Jumpc(pair<op, int>(Neq, lab1), genExpr(monop),
+                                      new Keiko::Const(0)));
+    insts->push_back(new Keiko::Jump(lab2));
+  }
+  return new Keiko::Seq(insts);
+}
+
+Inst *KGen::genCond(Expr *e, int lab1, int lab2) {
+  const std::type_info &t = typeid(*e);
+  if (t == typeid(Monop))
+    return genCond((Monop *)e, lab1, lab2);
+  else if (t == typeid(Binop))
+    return genCond((Binop *)e, lab1, lab2);
+  else {
+    vector<Inst *> *insts = new vector<Inst *>();
+    insts->push_back(new Keiko::Jumpc(pair<op, int>(Neq, lab1), genExpr(e),
+                                      new Keiko::Const(0)));
+    insts->push_back(new Keiko::Jump(lab2));
+    return new Keiko::Seq(insts);
+  }
 }

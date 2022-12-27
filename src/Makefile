@@ -7,11 +7,12 @@ EXE = ppc
 
 SRC_DIR := src
 
-CPPOBJ = main driver types dict tree check
+CPPOBJ = main driver check
+COMP = types dict tree keiko kgen
 SOBJ = parser scanner
 
-FILES = $(addsuffix .cpp, $(CPPOBJ))
-OBJS = $(addsuffix .o, $(CPPOBJ))
+FILES = $(addsuffix .cpp, $(COMP) $(CPPOBJ))
+OBJS = $(addsuffix .o, $(COMP) $(CPPOBJ))
 
 CLEANLIST =  $(addsuffix .o, $(SOBJ)) $(OBJS) \
 				 parser.cpp location.hh position.hh   \
@@ -21,6 +22,22 @@ CLEANLIST =  $(addsuffix .o, $(SOBJ)) $(OBJS) \
 .PHONY: all
 
 all: ppc
+
+keiko: keiko.h keiko.cpp
+	$(CXX) $(CXXFLAGS) -c -o keiko.o keiko.cpp
+
+kgen: kgen.h kgen.cpp consts.h consts.cpp
+	$(CXX) $(CXXFLAGS) -c -o consts.o consts.cpp
+	$(CXX) $(CXXFLAGS) -c -o kgen.o kgen.cpp
+
+dict: dict.h dict.cpp types
+	$(CXX) $(CXXFLAGS) -c -o dict.o dict.cpp
+
+tree: tree.h tree.cpp dict types
+	$(CXX) $(CXXFLAGS) -c -o tree.o tree.cpp
+
+types: types.h types.cpp
+	$(CXX) $(CXXFLAGS) -c -o types.o types.cpp
 
 ppc: $(FILES) parser.y scanner.l
 	$(MAKE) $(SOBJ)

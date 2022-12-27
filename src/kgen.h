@@ -37,16 +37,17 @@ using std::pair;
 
 namespace Pascal {
 
+bool boundcheck = true;
+
 class KGen {
 public:
+  Inst *transform(Program *program);
+
 private:
-  Inst *genAddr(Defn *d);
+  Inst *address(Defn *d);
+
   Inst *genAddr(Expr *e);
-  Inst *genAddr(Constant *c);
   Inst *genAddr(Variable *x);
-  Inst *genAddr(Monop *monop);
-  Inst *genAddr(Binop *binop);
-  Inst *genAddr(IfExpr *e);
   Inst *genAddr(Sub *sub);
 
   Inst *genExpr(Expr *exp);
@@ -60,11 +61,12 @@ private:
 
   Inst *genCond(Expr *exp, int lab1, int lab2);
   Inst *genCond(Binop *binop, int lab1, int lab2);
+  Inst *genCond(Monop *monop, int lab1, int lab2);
 
   Inst *genCall(Call *call);
 
-  void genArg(Defn *d, Expr *e, vector<Inst *> *args);
-  pair<Inst*, Inst*> genClosure(Defn *d);
+  void genArg(int *i, Defn *d, Expr *e, vector<Inst *> *args);
+  pair<Inst *, Inst *> genClosure(Defn *d);
 };
 
 } // namespace Pascal

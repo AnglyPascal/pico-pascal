@@ -321,10 +321,10 @@ inline void declareLocal(Decl *decl, int level, int base_offset, bool arg,
   int offset = base_offset;
 
   for (Name *n : *decl->names) {
-    offset += i * t->size();
     Defn *d = new Defn(n->x_name, new VarDef(), level, "", offset, t);
     n->x_def = d;
     define(d, env);
+    offset += i * t->size();
   }
 }
 
@@ -356,7 +356,6 @@ void Check::check(Proc *proc, int level, Env *_env) {
   for (Decl *decl : *proc->decls)
     declareLocal(decl, level, 16, true, env);
 
-  // maybe not the best idea to create a new pointer? idk 
   vector<Defn *> *pps = proc->type->params;
   for (Decl *decl : *proc->decls)
     for (Name *n : *decl->names)

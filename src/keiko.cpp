@@ -30,6 +30,21 @@
 
 using namespace Keiko;
 
+map<op, string> opNames = {{Pascal::Plus, "Plus"},     {Pascal::Minus, "Minus"},
+                           {Pascal::Times, "Times"},   {Pascal::Div, "Div"},
+                           {Pascal::Mod, "Mod"},       {Pascal::Eq, "Eq"},
+                           {Pascal::Uminus, "Uminus"}, {Pascal::Lt, "Lt"},
+                           {Pascal::Gt, "Gt"},         {Pascal::Leq, "Leq"},
+                           {Pascal::Geq, "Geq"},       {Pascal::Neq, "Neq"},
+                           {Pascal::And, "And"},       {Pascal::Or, "Or"},
+                           {Pascal::Not, "Not"},       {Pascal::Lsl, "Lsl"},
+                           {Pascal::Lsr, "Lsr"},       {Pascal::Asr, "Asr"},
+                           {Pascal::BitAnd, "BitAnd"}, {Pascal::BitOr, "BitOr"},
+                           {Pascal::BitNot, "BitNot"}};
+
+Inst::Inst() {}
+Inst::~Inst() {}
+
 Const::Const(int _n) : n(_n) {}
 
 Global::Global(symbol _x) : x(_x) {}
@@ -51,10 +66,18 @@ Storew::~Storew() { delete inst; }
 Resultw::Resultw(Inst *_inst) : inst(_inst) {}
 Resultw::~Resultw() { delete inst; }
 
-Arg::Arg(int _ind) : ind(_ind) {}
+Arg::Arg(int _ind, Inst *_arg) : ind(_ind), arg(_arg) { delete arg; }
 
-Call::Call(int _nparams, Inst *_func) : nparams(_nparams), func(_func) {}
-Call::~Call() { delete func; }
+Call::Call(int _nparams, Inst *_func, Static *_staticLink, Seq *_args)
+    : nparams(_nparams), func(_func), staticLink(_staticLink), args(_args) {}
+Call::~Call() {
+  delete func;
+  delete staticLink;
+  delete args;
+}
+
+Static::Static(Inst *_link) : link(_link) {}
+Static::~Static() { delete link; }
 
 Monop::Monop(op _o, Inst *_e) : o(_o), e(_e) {}
 Monop::~Monop() { delete e; }
@@ -95,3 +118,112 @@ Seq::~Seq() {
 }
 
 Line::Line(int _line) : line(_line) {}
+
+/***********************
+ ** string generation **
+ ***********************/
+
+string Const::str(string tab) const {
+  return tab + "<CONST " + std::to_string(n) + ">";
+}
+string Global::str(string tab) const { return tab + "<GLOBAL " + x + ">"; }
+string Local::str(string tab) const {
+  return tab + "<LOCAL " + std::to_string(offset) + ">";
+}
+string Loadc::str(string tab) const {
+  return tab + "<LOADC,\n" + inst->str(tab + " ") + ">";
+}
+string Loadw::str(string tab) const {
+  return tab + "<LOADW,\n" + inst->str(tab + " ") + ">";
+}
+string Storec::str(string tab) const {
+  return tab + "<STOREC,\n" + inst->str(tab + " ") + ">";
+}
+string Storew::str(string tab) const {
+  return tab + "<STOREW,\n" + inst->str(tab + " ") + ">";
+}
+string Resultw::str(string tab) const {
+  return tab + "<RESULTW,\n" + inst->str(tab + " ") + ">";
+}
+string Arg::str(string tab) const {
+  return tab + "<ARG " + std::to_string(ind) + ",\n" + arg->str(tab) + ">";
+}
+string Static::str(string tab) const {
+  return tab + "<STATIC\n" + link->str(tab) + ">";
+}
+string Call::str(string tab) const {
+  string s = tab + "<CALL " + std::to_string(nparams) + ",\n";
+  s += func->str(tab);
+  s += ", ";
+  s += staticLink->str(tab);
+  s += ", ";
+
+  string a = "";
+  for (Inst *arg : *args->insts)
+    a += arg->str(tab) + "\n";
+  s += a + tab + ">";
+  return s;
+}
+string Monop::str(string tab) const {
+  return tab + "<MONOP " + opNames[o] + ",\n" + e->str(tab + " ") + ">";
+}
+string Binop::str(string tab) const {
+  return tab + "<MONOP " + opNames[o] + ",\n" + el->str(tab + " ") + "\n" +
+         er->str(tab + " ") + ">";
+}
+string Offset::str(string tab) const {
+  return tab + "<OFFSET,\n" + base->str(tab + " ") + "\n" +
+         offset->str(tab + " ") + ">";
+}
+string Bound::str(string tab) const {
+  return tab + "<BOUND,\n" + arr->str(tab + " ") + "\n" +
+         bound->str(tab + " ") + ">";
+}
+string Label::str(string tab) const {
+  return tab + "<LABEL " + std::to_string(lab) + ">";
+}
+string Jump::str(string tab) const {
+  return tab + "<JUMP " + std::to_string(lab) + ">";
+}
+string Jumpc::str(string tab) const {
+  string s = tab + "<JUMPC " + opNames[lab.first] + " " +
+             std::to_string(lab.second) + "\n";
+  s += ifc->str(tab + " ");
+  s += elsec->str(tab + " ");
+  s += "\n" + tab + ">";
+  return s;
+}
+string Seq::str(string tab) const {
+  string s = tab + "<SEQ,\n";
+  for (Inst *inst : *insts)
+    s += inst->str(tab + " ") + "\n";
+  return s + tab + ">\n";
+}
+string Line::str(string tab) const {
+  return tab + "<LINE " + std::to_string(line) + ">";
+}
+
+/**************
+ ** Simplify **
+ **************/
+
+void Seq::simplify() {};
+void Line::simplify() {};
+void Const::simplify() {};
+void Global::simplify() {};
+void Local::simplify() {};
+void Loadw::simplify() {};
+void Loadc::simplify() {};
+void Storew::simplify() {};
+void Storec::simplify() {};
+void Resultw::simplify() {};
+void Arg::simplify() {};
+void Static::simplify() {};
+void Call::simplify() {};
+void Monop::simplify() {};
+void Binop::simplify() {};
+void Offset::simplify() {};
+void Label::simplify() {};
+void Jump::simplify() {};
+void Jumpc::simplify() {};
+void Bound::simplify() {};

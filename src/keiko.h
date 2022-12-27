@@ -42,9 +42,29 @@ typedef std::pair<op, int> fork;
 
 struct Inst {
   Inst();
-  virtual ~Inst() = 0;
+  virtual ~Inst();
   virtual void simplify() = 0;
+  virtual string str(string tab) const = 0;
 };
+
+struct Seq : public Inst {
+  vector<Inst *> *insts;
+
+  Seq(vector<Inst *> *_insts);
+  ~Seq();
+  void simplify();
+  string str(string tab) const;
+};
+
+struct Line : public Inst {
+  int line;
+
+  Line(int _line);
+  ~Line() = default;
+  void simplify();
+  string str(string tab) const;
+};
+
 
 struct Const : public Inst {
   int n;
@@ -52,6 +72,7 @@ struct Const : public Inst {
   Const(int _n);
   ~Const() = default;
   void simplify();
+  string str(string tab) const;
 };
 
 struct Global : public Inst {
@@ -60,6 +81,7 @@ struct Global : public Inst {
   Global(symbol _x);
   ~Global() = default;
   void simplify();
+  string str(string tab) const;
 };
 
 struct Local : public Inst {
@@ -68,6 +90,7 @@ struct Local : public Inst {
   Local(int _offset);
   ~Local() = default;
   void simplify();
+  string str(string tab) const;
 };
 
 struct Loadc : public Inst {
@@ -76,6 +99,7 @@ struct Loadc : public Inst {
   Loadc(Inst *_inst);
   ~Loadc();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Loadw : public Inst {
@@ -84,6 +108,7 @@ struct Loadw : public Inst {
   Loadw(Inst *_inst);
   ~Loadw();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Storec : public Inst {
@@ -92,6 +117,7 @@ struct Storec : public Inst {
   Storec(Inst *_inst);
   ~Storec();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Storew : public Inst {
@@ -100,6 +126,7 @@ struct Storew : public Inst {
   Storew(Inst *_inst);
   ~Storew();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Resultw : public Inst {
@@ -108,29 +135,38 @@ struct Resultw : public Inst {
   Resultw(Inst *_inst);
   ~Resultw();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Arg : public Inst {
   int ind;
+  Inst *arg; 
 
-  Arg(int _ind);
+  Arg(int _ind, Inst *_arg);
   ~Arg() = default;
   void simplify();
+  string str(string tab) const;
 };
 
 struct Static : public Inst {
-  Static() = default;
-  ~Static() = default;
+  Inst *link; 
+
+  Static(Inst *_link);
+  ~Static();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Call : public Inst {
   int nparams;
   Inst *func;
+  Static *staticLink; 
+  Seq *args;
 
-  Call(int _nparams, Inst *_func);
+  Call(int _nparams, Inst *_func, Static *staticLink, Seq *args);
   ~Call();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Monop : public Inst {
@@ -140,6 +176,7 @@ struct Monop : public Inst {
   Monop(op _o, Inst *_e);
   ~Monop();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Binop : public Inst {
@@ -149,6 +186,7 @@ struct Binop : public Inst {
   Binop(op _o, Inst *_el, Inst *_er);
   ~Binop();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Offset : public Inst {
@@ -157,6 +195,7 @@ struct Offset : public Inst {
   Offset(Inst *_base, Inst *_offset);
   ~Offset();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Bound : public Inst {
@@ -165,6 +204,7 @@ struct Bound : public Inst {
   Bound(Inst *_arr, Inst *_bound);
   ~Bound();
   void simplify();
+  string str(string tab) const;
 };
 
 struct Label : public Inst {
@@ -173,6 +213,7 @@ struct Label : public Inst {
   Label(int _lab);
   ~Label() = default;
   void simplify();
+  string str(string tab) const;
 };
 
 struct Jump : public Inst {
@@ -181,6 +222,7 @@ struct Jump : public Inst {
   Jump(int _lab);
   ~Jump() = default;
   void simplify();
+  string str(string tab) const;
 };
 
 struct Jumpc : public Inst {
@@ -190,22 +232,7 @@ struct Jumpc : public Inst {
   Jumpc(fork _lab, Inst *_ifc, Inst *_elsec);
   ~Jumpc();
   void simplify();
-};
-
-struct Seq : public Inst {
-  vector<Inst *> *insts;
-
-  Seq(vector<Inst *> *_insts);
-  ~Seq();
-  void simplify();
-};
-
-struct Line : public Inst {
-  int line;
-
-  Line(int _line);
-  ~Line() = default;
-  void simplify();
+  string str(string tab) const;
 };
 
 } // namespace Keiko
