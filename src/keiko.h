@@ -56,6 +56,13 @@ struct Seq : public Inst {
   string str(string tab) const;
 };
 
+struct Nop : public Inst {
+  Nop() = default;
+  ~Nop() = default;
+  void simplify();
+  string str(string tab) const;
+};
+
 struct Line : public Inst {
   int line;
 
@@ -64,7 +71,6 @@ struct Line : public Inst {
   void simplify();
   string str(string tab) const;
 };
-
 
 struct Const : public Inst {
   int n;
@@ -112,18 +118,18 @@ struct Loadw : public Inst {
 };
 
 struct Storec : public Inst {
-  Inst *inst;
+  Inst *source, *addr;
 
-  Storec(Inst *_inst);
+  Storec(Inst *_source, Inst *_addr);
   ~Storec();
   void simplify();
   string str(string tab) const;
 };
 
 struct Storew : public Inst {
-  Inst *inst;
+  Inst *source, *addr;
 
-  Storew(Inst *_inst);
+  Storew(Inst *_source, Inst *_addr);
   ~Storew();
   void simplify();
   string str(string tab) const;
@@ -140,7 +146,7 @@ struct Resultw : public Inst {
 
 struct Arg : public Inst {
   int ind;
-  Inst *arg; 
+  Inst *arg;
 
   Arg(int _ind, Inst *_arg);
   ~Arg() = default;
@@ -149,7 +155,7 @@ struct Arg : public Inst {
 };
 
 struct Static : public Inst {
-  Inst *link; 
+  Inst *link;
 
   Static(Inst *_link);
   ~Static();
@@ -160,7 +166,7 @@ struct Static : public Inst {
 struct Call : public Inst {
   int nparams;
   Inst *func;
-  Static *staticLink; 
+  Static *staticLink;
   Seq *args;
 
   Call(int _nparams, Inst *_func, Static *staticLink, Seq *args);

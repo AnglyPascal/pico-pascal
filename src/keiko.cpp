@@ -57,11 +57,17 @@ Loadc::~Loadc() { delete inst; }
 Loadw::Loadw(Inst *_inst) : inst(_inst) {}
 Loadw::~Loadw() { delete inst; }
 
-Storec::Storec(Inst *_inst) : inst(_inst) {}
-Storec::~Storec() { delete inst; }
+Storec::Storec(Inst *_source, Inst *_addr) : source(_source), addr(_addr) {}
+Storec::~Storec() {
+  delete source;
+  delete addr;
+}
 
-Storew::Storew(Inst *_inst) : inst(_inst) {}
-Storew::~Storew() { delete inst; }
+Storew::Storew(Inst *_source, Inst *_addr) : source(_source), addr(_addr) {}
+Storew::~Storew() {
+  delete source;
+  delete addr;
+}
 
 Resultw::Resultw(Inst *_inst) : inst(_inst) {}
 Resultw::~Resultw() { delete inst; }
@@ -137,10 +143,12 @@ string Loadw::str(string tab) const {
   return tab + "<LOADW,\n" + inst->str(tab + " ") + ">";
 }
 string Storec::str(string tab) const {
-  return tab + "<STOREC,\n" + inst->str(tab + " ") + ">";
+  return tab + "<STOREC,\n" + source->str(tab + " ") + "\n" +
+         addr->str(tab + " ") + ">";
 }
 string Storew::str(string tab) const {
-  return tab + "<STOREW,\n" + inst->str(tab + " ") + ">";
+  return tab + "<STOREW,\n" + source->str(tab + " ") + "\n" +
+         addr->str(tab + " ") + ">";
 }
 string Resultw::str(string tab) const {
   return tab + "<RESULTW,\n" + inst->str(tab + " ") + ">";
@@ -202,28 +210,29 @@ string Seq::str(string tab) const {
 string Line::str(string tab) const {
   return tab + "<LINE " + std::to_string(line) + ">";
 }
+string Nop::str(string tab) const { return ""; }
 
 /**************
  ** Simplify **
  **************/
 
-void Seq::simplify() {};
-void Line::simplify() {};
-void Const::simplify() {};
-void Global::simplify() {};
-void Local::simplify() {};
-void Loadw::simplify() {};
-void Loadc::simplify() {};
-void Storew::simplify() {};
-void Storec::simplify() {};
-void Resultw::simplify() {};
-void Arg::simplify() {};
-void Static::simplify() {};
-void Call::simplify() {};
-void Monop::simplify() {};
-void Binop::simplify() {};
-void Offset::simplify() {};
-void Label::simplify() {};
-void Jump::simplify() {};
-void Jumpc::simplify() {};
-void Bound::simplify() {};
+void Seq::simplify(){};
+void Line::simplify(){};
+void Const::simplify(){};
+void Global::simplify(){};
+void Local::simplify(){};
+void Loadw::simplify(){};
+void Loadc::simplify(){};
+void Storew::simplify(){};
+void Storec::simplify(){};
+void Resultw::simplify(){};
+void Arg::simplify(){};
+void Static::simplify(){};
+void Call::simplify(){};
+void Monop::simplify(){};
+void Binop::simplify(){};
+void Offset::simplify(){};
+void Label::simplify(){};
+void Jump::simplify(){};
+void Jumpc::simplify(){};
+void Bound::simplify(){};

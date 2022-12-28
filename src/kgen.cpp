@@ -32,6 +32,7 @@
 using namespace Pascal;
 
 int level = 0;
+int retlab = 0;
 Label label1 = Label();
 
 Inst *staticChain(int n) {
@@ -293,3 +294,127 @@ Inst *KGen::genCond(Expr *e, int lab1, int lab2) {
     return new Keiko::Seq(insts);
   }
 }
+
+/***************
+ *  GenStmt
+ **************/
+
+Inst *KGen::genStmt(Stmt *e) {
+  const std::type_info &t = typeid(*e);
+  if (t == typeid(Skip)) {
+    Skip *s = (Skip *)e;
+    return genStmt(s);
+  }
+  if (t == typeid(Newline)) {
+    Newline *n = (Newline *)e;
+    return genStmt(n);
+  }
+  if (t == typeid(Seq)) {
+    Seq *monop = (Seq *)e;
+    return genStmt(monop);
+  }
+  if (t == typeid(Assign)) {
+    Assign *binop = (Assign *)e;
+    return genStmt(binop);
+  }
+  if (t == typeid(Return)) {
+    Return *call = (Return *)e;
+    return genStmt(call);
+  }
+  if (t == typeid(IfStmt)) {
+    IfStmt *ie = (IfStmt *)e;
+    return genStmt(ie);
+  }
+  if (t == typeid(WhileStmt)) {
+    WhileStmt *sub = (WhileStmt *)e;
+    return genStmt(sub);
+  }
+  if (t == typeid(Print)) {
+    Print *sub = (Print *)e;
+    return genStmt(sub);
+  }
+  throw std::domain_error("failed to match any expression type");
+}
+
+Inst *KGen::genStmt(Skip *skip) { return new Keiko::Nop(); }
+
+Inst *KGen::genStmt(Newline *nl) { return new Keiko::Nop(); }
+
+Inst *KGen::genStmt(Seq *sequence) {
+  vector<Inst *> *stmts = new vector<Inst *>();
+  for (Stmt *stmt : *sequence->stmts)
+    stmts->push_back(genStmt(stmt));
+  return new Keiko::Seq(stmts);
+}
+
+Inst *KGen::genStmt(Assign *assign) {
+  Inst *source = genExpr(assign->e);
+  Inst *addr = genAddr(assign->x);
+  if (assign->x->type->size() == 1)
+    return new Keiko::Storec(source, addr);
+  else
+    return new Keiko::Storew(source, addr);
+}
+
+Inst *KGen::genStmt(Return *rt) {
+  if (rt->e) {
+    vector<Inst *> *stmts = new vector<Inst *>();
+    stmts->push_back(new Keiko::Resultw(genExpr(rt->e)));
+    stmts->push_back(new Keiko::Jump(retlab));
+    return new Keiko::Seq(stmts);
+  } else
+    return new Keiko::Jump(retlab);
+}
+
+Inst *KGen::genStmt(IfStmt *ifstmt) {
+  int l1 = label1.incr();
+  int l2 = label1.incr();
+  int l3 = label1.incr();
+
+  vector<Inst *> *insts = new vector<Inst *>();
+  insts->push_back(genCond(ifstmt->cond, l1, l2));
+  insts->push_back(new Keiko::Label(l1));
+  insts->push_back(genStmt(ifstmt->ifStmt));
+  insts->push_back(new Keiko::Jump(l3));
+  insts->push_back(new Keiko::Label(l2));
+  insts->push_back(genStmt(ifstmt->elseStmt));
+  insts->push_back(new Keiko::Label(l3));
+  return new Keiko::Seq(insts);
+}
+
+Inst *KGen::genStmt(WhileStmt *whilestmt) {
+  int l1 = label1.incr();
+  int l2 = label1.incr();
+  int l3 = label1.incr();
+
+  vector<Inst *> *insts = new vector<Inst *>();
+  insts->push_back(new Keiko::Label(l1));
+  insts->push_back(genCond(whilestmt->cond, l2, l3));
+  insts->push_back(new Keiko::Label(l2));
+  insts->push_back(genStmt(whilestmt->st));
+  insts->push_back(new Keiko::Jump(l1));
+  insts->push_back(new Keiko::Label(l3));
+  return new Keiko::Seq(insts);
+}
+
+// For now, let's not allow printing
+Inst *KGen::genStmt(Print *print) { return new Keiko::Nop(); }
+
+
+/*************
+ ** GenProc **
+ *************/
+
+Inst *KGen::genProc(Proc *proc) {
+
+}
+
+// I need to take a different approach since i want this to be separate from the code
+// generation part. 
+//
+// In keiko, we call the Tgen.translsate as the root translator function, that int turn
+// calls the Tran.translate function. I want the parts to be decoupled, so in KGen, i
+// will only generate the intermediate tree. then simplify it, and then produce the arm
+// code. 
+//
+// For procs, i need to calculate all the necessary stuff in here
