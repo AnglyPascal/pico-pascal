@@ -19,8 +19,7 @@ OBJS = $(addprefix $(SRC)/, $(addsuffix .o, $(COMP) $(MAIN)))
 PJUNK = parser.cpp location.hh position.hh   \
 			  stack.hh parser.output parser.o      \
 				scanner.o scanner.cpp 
-CLEANLIST = $(addsuffix .o, $(OBJS)) \
-				 		$(addprefix $(SRC)/, $(PJUNK)) $(EXE)        
+CLEANLIST = $(OBJS) $(addprefix $(SRC)/, $(PJUNK)) $(EXE)        
 
 .PHONY: all
 
