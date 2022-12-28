@@ -229,7 +229,7 @@ Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_returnType, Block *_blk,
     : f(_f), decls(_decls), blk(_blk), type(nullptr), loc(_loc) {
   vector<Type *> args = vector<Type *>();
   for (Decl *d : *decls)
-    args.push_back(d->type);
+    args.insert(args.end(), d->names->size(), d->type);
   type = new Func(args, _returnType);
 }
 

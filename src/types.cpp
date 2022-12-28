@@ -27,6 +27,7 @@
  */
 
 #include "types.h"
+#include <iostream>
 
 using namespace Pascal;
 
@@ -67,9 +68,12 @@ Type *Func::clone() {
 
 string Func::str() const {
   string s = "(";
-  for (Type *t : args)
-    s += t->str() + ", ";
-  return ") -> " + returnType->str();
+  int n = args.size();
+  for (int i = 0; i < n-1; i ++)
+    s += args[i]->str() + ", ";
+  if (n > 0)
+    s += args[n-1]->str();
+  return s + ") -> " + returnType->str();
 }
 
 bool Func::isArray() { return false; }

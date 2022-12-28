@@ -32,7 +32,7 @@
 
 
 /**
- ** \file parser.h
+ ** \file src/parser.h
  ** Define the  Pascal ::parser class.
  */
 
@@ -42,10 +42,10 @@
 // especially those whose name start with YY_ or yy_.  They are
 // private implementation details that can be changed or removed.
 
-#ifndef YY_YY_PARSER_H_INCLUDED
-# define YY_YY_PARSER_H_INCLUDED
+#ifndef YY_YY_SRC_PARSER_H_INCLUDED
+# define YY_YY_SRC_PARSER_H_INCLUDED
 // "%code requires" blocks.
-#line 43 "parser.y"
+#line 43 "src/parser.y"
 
     #include <iostream>
     #include <string>
@@ -65,7 +65,7 @@
         typedef vector<Name *> *nameList;
     }
 
-#line 69 "parser.h"
+#line 69 "src/parser.h"
 
 # include <cassert>
 # include <cstdlib> // std::abort
@@ -204,9 +204,9 @@
 # define YYDEBUG 1
 #endif
 
-#line 37 "parser.y"
+#line 37 "src/parser.y"
 namespace  Pascal  {
-#line 210 "parser.h"
+#line 210 "src/parser.h"
 
 
 
@@ -2198,9 +2198,9 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 112,     ///< Last index in yytable_.
+      yylast_ = 113,     ///< Last index in yytable_.
       yynnts_ = 23,  ///< Number of nonterminal symbols.
-      yyfinal_ = 9 ///< Termination state number.
+      yyfinal_ = 4 ///< Termination state number.
     };
 
 
@@ -2521,11 +2521,11 @@ switch (yykind)
   }
 
 
-#line 37 "parser.y"
+#line 37 "src/parser.y"
 } //  Pascal 
-#line 2527 "parser.h"
+#line 2527 "src/parser.h"
 
 
 
 
-#endif // !YY_YY_PARSER_H_INCLUDED
+#endif // !YY_YY_SRC_PARSER_H_INCLUDED

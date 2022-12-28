@@ -26,8 +26,8 @@
  *
  */
 
-#include "tree.h"
 #include "print.h"
+#include "tree.h"
 
 #include <iostream>
 #include <vector>
@@ -49,7 +49,7 @@ map<op, string> opNames = {
  *************************/
 
 string Name::str() const {
-  string s = x_name + Colors.Black + "{"+ std::to_string(x_def->d_level) + ",";
+  string s = x_name + Colors.Black + "{" + std::to_string(x_def->d_level) + ",";
   if (x_def->d_addr)
     s += x_def->d_addr->str() + "}";
   else
@@ -70,9 +70,9 @@ string Binop::str() const {
 string Call::str() const {
   string a = "";
   int n = args->size();
-  for (int i = 0; i < n-1; i ++)
+  for (int i = 0; i < n - 1; i++)
     a += (*args)[i]->str() + ", ";
-  a += (*args)[n-1]->str();
+  a += (*args)[n - 1]->str();
   return f->str() + "(" + a + ")";
 }
 
@@ -93,21 +93,20 @@ string Decl::str() const {
 }
 
 string Program::str() const {
-  string str = "**Program**\n\n" + prog->str() + "\n**eof**";
+  string str = "**Program**\n\n" + prog->str("") + "\n**eof**";
   return str;
 }
 
-string Block::str() const {
-  string pad = "";
+string Block::str(string pad) const {
   for (int i = 0; i < level; i++)
     pad += pad_const;
 
   string str = "";
   for (Decl *d : *decls)
-    str += pad + d->str() + "\n";
+    str += pad + d->str() + "\n\n";
 
   for (Proc *p : *procs)
-    str += p->str();
+    str += p->str(pad);
 
   str += pad + "begin\n";
   str += st->str(pad + pad_const);
@@ -115,11 +114,11 @@ string Block::str() const {
   return str;
 }
 
-string Proc::str() const {
-  string str = "Name: " + f->str() + "\n";
+string Proc::str(string pad) const {
+  string str = pad + "proc " + f->str() + ": " + type->str() + "\n";
   for (Decl *d : *decls)
-    str += d->str() + "\n";
-  str += "\n" + blk->str() + "\n";
+    str += pad + pad_const + d->str() + "\n";
+  str += blk->str(pad) + "\n";
   return str;
 }
 

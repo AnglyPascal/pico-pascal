@@ -164,7 +164,7 @@ program :
 
 decls :
     /* empty */       { $$ = new vector<Decl *>(); }
-  | decl decls        { $2->push_back($1); $$ = $2; }
+  | decls decl        { $1->push_back($2); $$ = $1; }
   ;
 
 decl :

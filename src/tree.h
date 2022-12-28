@@ -267,7 +267,7 @@ struct Block {
   virtual ~Block();
   virtual Block *clone();
   Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st);
-  string str() const;
+  string str(string pad) const;
 };
 
 struct Proc {
@@ -280,7 +280,7 @@ struct Proc {
   virtual ~Proc();
   virtual Proc *clone();
   Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk, location _loc);
-  string str() const;
+  string str(string pad) const;
 };
 
 struct Program {

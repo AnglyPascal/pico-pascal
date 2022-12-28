@@ -158,8 +158,13 @@ Type *Check::check(Call *fe, Env *env) {
     sem_error("calling procedure without the correct number of arguments");
   for (std::size_t i = 0, max = t->args.size(); i < max; i++) {
     Type *ta = checkExpr((*fe->args)[i], env);
-    if (!equalType(t->args[i], ta))
-      sem_error("argument type mismatch");
+    if (!equalType(t->args[i], ta)) {
+      string s = "argument type mismatch for expr no " + std::to_string(i) +
+                 " " + Colors.White + (*fe->args)[i]->str() + Colors.Red +
+                 ", which has type " + ta->str() + " but expression of type " +
+                 t->args[i]->str() + " was expected";
+      sem_error(s.c_str());
+    }
     if (typeid(*ta) == typeid(Func) &&
         typeid((*fe->args)[i]) != typeid(Variable))
       sem_error("function arguments need to passed as variables");
@@ -311,10 +316,9 @@ void align(int alignment, int *offset) {
     *offset = *offset - margin + alignment;
 }
 
-inline void declareLocal(Decl *decl, int level, int base_offset, bool arg,
+inline void declareLocal(Decl *decl, int level, int *offset, bool arg,
                          Env *env) {
   Type *t = decl->type;
-  int *offset = &base_offset;
 
   for (Name *n : *decl->names) {
     Defn *d = new Defn(n->x_name, new VarDef(), level, t);
@@ -361,8 +365,11 @@ void Check::check(Proc *proc, int level, Env *_env) {
 
   Env *env = new Env(_env);
 
+  int fp = 40;
+  int sp = 0;
+
   for (Decl *decl : *proc->decls)
-    declareLocal(decl, level, 40, true, env);
+    declareLocal(decl, level, &fp, true, env);
 
   vector<Defn *> *pps = proc->type->params;
   for (Decl *decl : *proc->decls)
@@ -370,7 +377,7 @@ void Check::check(Proc *proc, int level, Env *_env) {
       pps->push_back(n->x_def);
 
   for (Decl *decl : *proc->blk->decls)
-    declareLocal(decl, level, 0, false, env);
+    declareLocal(decl, level, &sp, false, env);
 
   declareProcs(proc->blk->procs, level + 1, env);
   for (Proc *p : *proc->blk->procs)
