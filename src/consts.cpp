@@ -30,4 +30,3 @@
 
 using namespace Pascal; 
 
-int stat_link = 24;

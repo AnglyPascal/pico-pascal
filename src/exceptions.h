@@ -26,35 +26,27 @@
  *
  */
 
-#include "keiko.h"
+#ifndef EXCEPTION_H
+#define EXCEPTION_H
 
-using namespace Keiko; 
+#include <stdexcept>
+#include "location.hh"
+#include "print.h"
 
-/**************
- ** Simplify **
- **************/
+namespace Pascal {
 
-void Nop::simplify(){};
-void Seq::simplify(){};
-void Line::simplify(){};
-void Const::simplify(){};
-void Global::simplify(){};
-void Local::simplify(){};
-void Loadw::simplify(){};
-void Loadc::simplify(){};
-void Storew::simplify(){};
-void Storec::simplify(){};
-void Resultw::simplify(){};
-void Arg::simplify(){};
-void Static::simplify(){};
-void Call::simplify(){};
-void Monop::simplify(){};
-void Binop::simplify(){};
-void Offset::simplify(){};
-void Label::simplify(){};
-void Jump::simplify(){};
-void Jumpc::simplify(){};
-void Bound::simplify(){};
-void GlobalDecl::simplify(){};
-void ProcDecl::simplify(){};
-void Program::simplify(){};
+class semantic_error : public std::domain_error {
+public:
+  explicit semantic_error(char const *const message, location &err_loc) throw();
+  virtual char const *what() const throw();
+};
+
+class internal_error : public std::domain_error {
+public:
+  explicit internal_error(char const *const message, location &err_loc) throw();
+  virtual char const *what() const throw();
+};
+
+} // namespace Pascal
+
+#endif

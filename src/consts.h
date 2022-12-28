@@ -26,13 +26,13 @@
  *
  */
 
-
 #ifndef CONSTS_H
 #define CONSTS_H
 
 namespace Pascal {
 
-  int stat_link;
+inline int stat_link = 24;
+
 }
 
 #endif

@@ -125,6 +125,27 @@ Seq::~Seq() {
 
 Line::Line(int _line) : line(_line) {}
 
+GlobalDecl::GlobalDecl(string _label) : label(_label) {}
+GlobalDecl::~GlobalDecl() {}
+
+ProcDecl::ProcDecl(string _label, int _level, int _nparams, int _argSize,
+                   int _locSize, Inst *_code)
+    : label(_label), level(_level), nparams(_nparams), argSize(_argSize),
+      locSize(_locSize), code(_code) {}
+ProcDecl::~ProcDecl() { delete code; }
+
+Program::Program(vector<GlobalDecl *> *_globDecls,
+                 vector<ProcDecl *> *_procDecls)
+    : globDecls(_globDecls), procDecls(_procDecls) {}
+Program::~Program() {
+  for (GlobalDecl *g : *globDecls)
+    delete g;
+  delete globDecls;
+  for (ProcDecl *p : *procDecls)
+    delete p;
+  delete procDecls;
+};
+
 /***********************
  ** string generation **
  ***********************/
@@ -212,27 +233,6 @@ string Line::str(string tab) const {
 }
 string Nop::str(string tab) const { return ""; }
 
-/**************
- ** Simplify **
- **************/
-
-void Seq::simplify(){};
-void Line::simplify(){};
-void Const::simplify(){};
-void Global::simplify(){};
-void Local::simplify(){};
-void Loadw::simplify(){};
-void Loadc::simplify(){};
-void Storew::simplify(){};
-void Storec::simplify(){};
-void Resultw::simplify(){};
-void Arg::simplify(){};
-void Static::simplify(){};
-void Call::simplify(){};
-void Monop::simplify(){};
-void Binop::simplify(){};
-void Offset::simplify(){};
-void Label::simplify(){};
-void Jump::simplify(){};
-void Jumpc::simplify(){};
-void Bound::simplify(){};
+string GlobalDecl::str(string tab) const { return ""; }
+string ProcDecl::str(string tab) const { return ""; }
+string Program::str(string tab) const { return ""; }

@@ -68,19 +68,20 @@ private:
   void genArg(int *i, Defn *d, Expr *e, vector<Inst *> *args);
   pair<Inst *, Inst *> genClosure(Defn *d);
 
+  Inst *genStmt(Stmt *stmt);
+  Inst *genStmt(Skip *skip);
+  Inst *genStmt(Newline *nl);
+  Inst *genStmt(Seq *sequence);
+  Inst *genStmt(Assign *assign);
+  Inst *genStmt(Return *rt);
+  Inst *genStmt(IfStmt *ifstmt);
+  Inst *genStmt(WhileStmt *whilestmt);
+  Inst *genStmt(Print *print);
 
-  Inst *genStmt(Stmt *stmt); 
-  Inst *genStmt(Skip *skip); 
-  Inst *genStmt(Newline *nl); 
-  Inst *genStmt(Seq *sequence); 
-  Inst *genStmt(Assign *assign); 
-  Inst *genStmt(Return *rt); 
-  Inst *genStmt(IfStmt *ifstmt); 
-  Inst *genStmt(WhileStmt *whilestmt); 
-  Inst *genStmt(Print *print); 
-
-  Inst *genProc(Proc *proc); 
+  Inst *genBlock(Block *block);
+  Inst *genProc(Proc *proc);
 };
+
 
 } // namespace Pascal
 

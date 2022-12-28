@@ -36,17 +36,14 @@ using namespace Pascal;
 
 Type *Int::clone() { return new Int(); }
 string Int::str() const { return "int"; }
-int Int::size() { return 4; }
 bool Int::isArray() { return false; }
 
 Type *Bool::clone() { return new Bool(); }
 string Bool::str() const { return "bool"; }
-int Bool::size() { return 1; }
 bool Bool::isArray() { return false; }
 
 Type *Void::clone() { return new Void(); }
 string Void::str() const { return "void"; }
-int Void::size() { return 0; }
 bool Void::isArray() { return false; }
 
 Array::Array(int _length, Type *_elemType)
@@ -55,7 +52,6 @@ Type *Array::clone() { return new Void(); }
 string Array::str() const {
   return "[" + elemType->str() + "](" + std::to_string(length) + ")";
 }
-int Array::size() { return length * elemType->size(); }
 bool Array::isArray() { return true; }
 Array::~Array() {}
 
@@ -76,8 +72,6 @@ string Func::str() const {
   return ") -> " + returnType->str();
 }
 
-// maybe useful when passing function types as arguments
-int Func::size() { return 8; }
 bool Func::isArray() { return false; }
 Func::~Func() {}
 
@@ -113,3 +107,20 @@ bool Bool::isScalar() { return true; }
 bool Array::isScalar() { return false; }
 bool Func::isScalar() { return false; }
 bool Void::isScalar() { return false; }
+
+/** Size **/
+
+int Int::size() { return 4; }
+int Bool::size() { return 1; }
+int Void::size() { return 0; }
+int Array::size() { return length * elemType->size(); }
+// maybe useful when passing function types as arguments
+int Func::size() { return 8; }
+
+/** Align **/
+
+int Int::align() { return 4; }
+int Bool::align() { return 1; }
+int Void::align() { return 1; }
+int Array::align() { return length * elemType->size(); }
+int Func::align() { return 4; }

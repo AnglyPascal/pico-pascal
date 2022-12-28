@@ -68,14 +68,6 @@ private:
   Type *check(Sub *sub, Env *env);
   Type *check(Call *call, Env *env);
   Type *check(IfExpr *ie, Env *env);
-
-  Type *check(Decl *decl, Env *env);
-};
-
-class semantic_error : public std::domain_error {
-public:
-  explicit semantic_error(char const *const message) throw();
-  virtual char const *what() const throw();
 };
 
 } // namespace Pascal

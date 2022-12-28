@@ -163,7 +163,6 @@ void KGen::genArg(int *index, Defn *d, Expr *e, vector<Inst *> *args) {
     if (d->d_type->isScalar())
       args->push_back(new Keiko::Arg(*index, genExpr(e)));
     else
-      // TODO might be a problem
       args->push_back(genAddr(e));
   } else {
     if (typeid(e) != typeid(Variable))
@@ -193,14 +192,18 @@ pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
 Inst *KGen::address(Defn *d) {
   int lev = d->d_level;
   // global variable or procedure definition
-  if (lev == 0 || typeid(d->d_kind) == typeid(ProcDef))
-    return new Keiko::Global(d->d_label);
+  if (lev == 0 || typeid(d->d_kind) == typeid(ProcDef)) {
+    Global *loc = (Global *)d->d_addr;
+    return new Keiko::Global(loc->label);
+  }
   if (level < lev)
     throw std::domain_error("trying to access variable defined out of scope");
-  if (level == d->d_offset)
-    return new Keiko::Local(d->d_offset);
+  Local *loc = (Local *)d->d_addr;
+  int offset = loc->offset;
+  if (level == d->d_level)
+    return new Keiko::Local(offset);
   Inst *chain = staticChain(level - lev);
-  return new Keiko::Offset(chain, new Keiko::Const(d->d_offset));
+  return new Keiko::Offset(chain, new Keiko::Const(offset));
 }
 
 Inst *boundCheck(Inst *inst, Expr *e) {
@@ -400,21 +403,29 @@ Inst *KGen::genStmt(WhileStmt *whilestmt) {
 // For now, let's not allow printing
 Inst *KGen::genStmt(Print *print) { return new Keiko::Nop(); }
 
-
 /*************
  ** GenProc **
  *************/
 
-Inst *KGen::genProc(Proc *proc) {
+/* Inst *KGen::genProc(Proc *proc) { */
+/*   int nparams = 0; */
+/*   int argSize = 0; */
+/*   for (Defn *d : *proc->type->params) { */
+/*     if (typeid(d->d_kind) == typeid(VarDef)) */
+/*       nparams += 1; */
+/*     else */
+/*       nparams += 2; */
+/*     if (typeid(d->d_type) == typeid(Int)) */
 
-}
+/*   } */
+/* } */
 
-// I need to take a different approach since i want this to be separate from the code
-// generation part. 
+// I need to take a different approach since i want this to be separate from the
+// code generation part.
 //
-// In keiko, we call the Tgen.translsate as the root translator function, that int turn
-// calls the Tran.translate function. I want the parts to be decoupled, so in KGen, i
-// will only generate the intermediate tree. then simplify it, and then produce the arm
-// code. 
+// In keiko, we call the Tgen.translsate as the root translator function, that
+// int turn calls the Tran.translate function. I want the parts to be decoupled,
+// so in KGen, i will only generate the intermediate tree. then simplify it, and
+// then produce the arm code.
 //
 // For procs, i need to calculate all the necessary stuff in here

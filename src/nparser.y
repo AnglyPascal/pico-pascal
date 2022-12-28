@@ -129,8 +129,10 @@
 %type <Program *>   program
 %type <declList>    decls
 %type <Decl *>      decl
+%type <Decl *>      ndecl
 %type <Block *>     block
 %type <declList>    formals
+%type <declList>    nformals
 %type <procList>    proc_decls
 %type <Proc *>      proc_decl
 %type <Stmt *>      stmts
@@ -163,12 +165,15 @@ program :
                         driver.setProgram(pgm); } ;
 
 decls :
-    /* empty */       { $$ = new vector<Decl *>(); }
-  | decl decls        { $2->push_back($1); $$ = $2; }
+    /* empty */             { $$ = new vector<Decl *>(); }
+  | decl SEMI decls        { $3->push_back($1); $$ = $3; }
   ;
 
+ndecl:
+    decl SEMI               { $$ = $1; };
+
 decl :
-    VAR names COLON typexp SEMI { $$ = new Decl($2, $4, @1); } ;
+    VAR names COLON typexp { $$ = new Decl($2, $4, @1); } ;
 
 names :
     name                { vector<Name *> *ns = new vector<Name *>(); 
@@ -194,8 +199,17 @@ proc_decl :
   | PROC name formals ":" typexp SEMI block SEMI  { $$ = new Proc($2, $3, $5, $7, @1); }
   ;
 
+nformals :
+    /* empty */             { $$ = new vector<Decl *>(); }
+  | decl                    { vector<Decl *> *ns = new vector<Decl *>();
+                              ns->push_back($1); $$ = ns;}
+  | nformals SEMI decl      { $1->push_back($3); $$ = $1; }
+  ;
+
 formals :
-    "(" decls ")"                   { $$ = $2; } ;
+    "(" nformals ")"        { $$ = $2; }
+  | "(" nformals SEMI ")"        { $$ = $2; }
+    ;
 
 stmts : stmt_list                   { $$ = Pascal::sequence($1); } ;
 

@@ -51,6 +51,7 @@ struct Type {
   virtual string str() const = 0;
 
   virtual int size() = 0;
+  virtual int align() = 0;
   virtual bool isArray() = 0;
   virtual bool isScalar() = 0;
 };
@@ -63,6 +64,7 @@ struct Int : public Type {
   string str() const;
 
   int size();
+  int align();
   bool isArray();
   bool isScalar();
 };
@@ -75,6 +77,7 @@ struct Void : public Type {
   string str() const;
 
   int size();
+  int align();
   bool isArray();
   bool isScalar();
 };
@@ -90,6 +93,7 @@ struct Array : public Type {
   string str() const;
 
   int size();
+  int align();
   bool isArray();
   bool isScalar();
 };
@@ -102,6 +106,7 @@ struct Bool : public Type {
   string str() const;
 
   int size();
+  int align();
   bool isArray();
   bool isScalar();
 };
@@ -118,6 +123,7 @@ struct Func : public Type {
   string str() const;
 
   int size();
+  int align();
   bool isArray();
   bool isScalar();
 };

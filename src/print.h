@@ -26,35 +26,26 @@
  *
  */
 
-#include "keiko.h"
+#ifndef PRINT_H
+#define PRINT_H
 
-using namespace Keiko; 
+#include <string>
+using std::string;
 
-/**************
- ** Simplify **
- **************/
+namespace Pascal {
 
-void Nop::simplify(){};
-void Seq::simplify(){};
-void Line::simplify(){};
-void Const::simplify(){};
-void Global::simplify(){};
-void Local::simplify(){};
-void Loadw::simplify(){};
-void Loadc::simplify(){};
-void Storew::simplify(){};
-void Storec::simplify(){};
-void Resultw::simplify(){};
-void Arg::simplify(){};
-void Static::simplify(){};
-void Call::simplify(){};
-void Monop::simplify(){};
-void Binop::simplify(){};
-void Offset::simplify(){};
-void Label::simplify(){};
-void Jump::simplify(){};
-void Jumpc::simplify(){};
-void Bound::simplify(){};
-void GlobalDecl::simplify(){};
-void ProcDecl::simplify(){};
-void Program::simplify(){};
+struct {
+  string Red = "\u001b[31m";
+  string Black = "\u001b[30m";
+  string Green = "\u001b[32m";
+  string Yellow = "\u001b[33m";
+  string Blue = "\u001b[34m";
+  string Magenta = "\u001b[35m";
+  string Cyan = "\u001b[36m";
+  string White = "\u001b[37m";
+  string Reset = "\u001b[0m";
+} Colors;
+
+} // namespace Pascal
+
+#endif

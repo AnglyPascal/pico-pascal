@@ -47,8 +47,8 @@ struct Name {
   Defn *x_def = nullptr;
 
   Name(ident Name, location _loc);
-  virtual ~Name();
-  virtual Name *clone();
+  ~Name();
+  Name *clone();
 
   void setDef(Defn *d);
   Defn *getDef();

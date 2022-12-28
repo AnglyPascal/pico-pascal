@@ -31,21 +31,35 @@
 using namespace Pascal;
 
 /*****************
+ *    LOCATION
+ *****************/
+
+Local::Local(int _offset) : offset(_offset) {}
+Local::~Local() {}
+Location *Local::clone() const { return new Local(offset); }
+string Local::str() const { return std::to_string(offset); }
+
+Global::Global(string _label) : label(_label) {}
+Global::~Global() {}
+Location *Global::clone() const { return new Global(label); }
+string Global::str() const { return label; }
+
+/*****************
  *    DEFKIND
  *****************/
 
 DefKind::~DefKind() {}
 
 VarDef::~VarDef() {}
-DefKind *VarDef::clone() { return new VarDef(*this); }
+DefKind *VarDef::clone() const { return new VarDef(*this); }
 
 ProcDef::~ProcDef() {}
-DefKind *ProcDef::clone() { return new ProcDef(_nparams); }
+DefKind *ProcDef::clone() const { return new ProcDef(_nparams); }
 
 ProcDef &ProcDef::operator=(const ProcDef &other) {
-  if (&other != this) {
+  if (&other != this)
     _nparams = other._nparams;
-  }
+
   return *this;
 }
 
@@ -55,16 +69,18 @@ ProcDef &ProcDef::operator=(const ProcDef &other) {
 
 Defn::Defn() = default;
 
-Defn::Defn(ident _tag, DefKind *_kind, int _level, string _label, int _off,
-           Type *_type)
-    : d_tag(_tag), d_level(_level), d_label(_label), d_offset(_off),
-      d_type(_type) {
-  d_kind = _kind;
+Defn::Defn(ident _tag, DefKind *_kind, int _level, Type *_type)
+    : d_tag(_tag), d_kind(_kind), d_level(_level), d_type(_type) {
+  d_addr = nullptr;
 }
 
 Defn::~Defn() { delete d_kind; }
-Defn *Defn::clone() {
-  return new Defn(d_tag, d_kind->clone(), d_level, d_label, d_offset, d_type);
+
+Defn *Defn::clone() const {
+  Defn *nd = new Defn(d_tag, d_kind->clone(), d_level, d_type);
+  if (d_addr)
+    nd->d_addr = d_addr->clone();
+  return nd;
 }
 
 Defn &Defn::operator=(const Defn *other) {
@@ -73,15 +89,12 @@ Defn &Defn::operator=(const Defn *other) {
   d_tag = other->d_tag;
   d_kind = other->d_kind;
   d_level = other->d_level;
-  d_label = other->d_label;
-  d_offset = other->d_offset;
+  if (other->d_addr)
+    d_addr = other->d_addr->clone();
+  else
+    d_addr = nullptr;
 
   return *this;
-}
-
-Defn *Defn::clone() const {
-  return new Defn(d_tag, d_kind->clone(), d_level, d_label, d_offset,
-                  d_type->clone());
 }
 
 /*****************

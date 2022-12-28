@@ -241,6 +241,37 @@ struct Jumpc : public Inst {
   string str(string tab) const;
 };
 
+struct GlobalDecl : public Inst {
+  string label;
+
+  GlobalDecl(string _label);
+  ~GlobalDecl();
+  void simplify();
+  string str(string tab) const;
+};
+
+struct ProcDecl : public Inst {
+  string label;
+  int level, nparams, argSize, locSize;
+  Inst *code;
+
+  ProcDecl(string _label, int _level, int _nparams, int _argSize, int _locSize,
+           Inst *_code);
+  ~ProcDecl();
+  void simplify();
+  string str(string tab) const;
+};
+
+struct Program : public Inst {
+  vector<GlobalDecl *> *globDecls;
+  vector<ProcDecl *> *procDecls;
+
+  Program(vector<GlobalDecl *> *_globDecls, vector<ProcDecl *> *_procDecls);
+  ~Program();
+  void simplify();
+  string str(string tab) const;
+};
+
 } // namespace Keiko
 
 #endif

@@ -26,35 +26,33 @@
  *
  */
 
-#include "keiko.h"
+#include "exceptions.h"
 
-using namespace Keiko; 
+using std::domain_error;
+using namespace Pascal;
 
-/**************
- ** Simplify **
- **************/
+/*********************
+ *  semantic_error
+ *********************/
 
-void Nop::simplify(){};
-void Seq::simplify(){};
-void Line::simplify(){};
-void Const::simplify(){};
-void Global::simplify(){};
-void Local::simplify(){};
-void Loadw::simplify(){};
-void Loadc::simplify(){};
-void Storew::simplify(){};
-void Storec::simplify(){};
-void Resultw::simplify(){};
-void Arg::simplify(){};
-void Static::simplify(){};
-void Call::simplify(){};
-void Monop::simplify(){};
-void Binop::simplify(){};
-void Offset::simplify(){};
-void Label::simplify(){};
-void Jump::simplify(){};
-void Jumpc::simplify(){};
-void Bound::simplify(){};
-void GlobalDecl::simplify(){};
-void ProcDecl::simplify(){};
-void Program::simplify(){};
+semantic_error::semantic_error(char const *const message,
+                               location &err_loc) throw()
+    : domain_error("(" + std::to_string(err_loc.begin.line) + "." +
+                   std::to_string(err_loc.begin.column) + "): " + Colors.Red +
+                   message + Colors.White) {}
+
+// TODO might not work
+char const *semantic_error::what() const throw() {
+  return domain_error::what();
+}
+
+internal_error::internal_error(char const *const message,
+                               location &err_loc) throw()
+    : domain_error("(" + std::to_string(err_loc.begin.line) + "." +
+                   std::to_string(err_loc.begin.column) + "): " + Colors.Red +
+                   message + Colors.White) {}
+
+// TODO might not work
+char const *internal_error::what() const throw() {
+  return domain_error::what();
+}

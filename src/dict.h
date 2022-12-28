@@ -56,25 +56,49 @@ private:
 };
 
 /*****************
+ *    LOCATION
+ *****************/
+
+struct Location {
+  Location() = default;
+  ~Location() = default;
+  virtual Location *clone() const = 0;
+  virtual string str() const = 0;
+};
+struct Local : public Location {
+  int offset;
+  Local(int _offset);
+  ~Local();
+  Location *clone() const;
+  string str() const;
+};
+struct Global : public Location {
+  string label;
+  Global(string _label);
+  ~Global();
+  Location *clone() const;
+  string str() const;
+};
+
+/*****************
  *    DEFKIND
  *****************/
 
 struct DefKind {
   virtual ~DefKind();
-  virtual DefKind *clone() = 0;
+  virtual DefKind *clone() const = 0;
 };
 
 struct VarDef : public DefKind {
-  virtual ~VarDef();
-  virtual DefKind *clone();
+  ~VarDef();
+  DefKind *clone() const;
 };
 
 struct ProcDef : public DefKind {
   int _nparams;
   ProcDef(int n) : _nparams(n){};
-
-  virtual ~ProcDef();
-  virtual DefKind *clone();
+  ~ProcDef();
+  DefKind *clone() const;
   ProcDef &operator=(const ProcDef &other);
 };
 
@@ -86,21 +110,17 @@ struct Defn {
   ident d_tag;
   DefKind *d_kind = nullptr;
   int d_level;
-  string d_label;
-  int d_offset;
+  // change the offset to address, and create a datatype for that
+  Location *d_addr;
   Type *d_type;
 
   Defn();
-  Defn(ident _tag, DefKind *_kind, int _level, string _label, int _off,
-       Type *_type);
+  Defn(ident _tag, DefKind *_kind, int _level, Type *_type);
+  ~Defn();
 
   Defn *clone() const;
-
-  virtual ~Defn();
-  virtual Defn *clone();
   Defn &operator=(const Defn *other);
 };
-
 
 /*****************
  *  ENVIRONMENT
