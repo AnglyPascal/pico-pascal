@@ -38,4 +38,9 @@ src/parser.cpp
 src/parser.output
 src/ppc
 src/scanner.cpp
+
 ppc
+.gdb_history
+b.s
+.ccls
+.clang-format
