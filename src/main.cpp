@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
   /* cout << endl; */
 
   driver.transform();
-  cout << driver.keikoStr() << endl;
+  driver.keikoStr();
 
   return res;
 }

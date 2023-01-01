@@ -37,7 +37,6 @@ using std::pair;
 
 namespace Pascal {
 
-
 class KGen {
 public:
   Inst *transform(Program *program);

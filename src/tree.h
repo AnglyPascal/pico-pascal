@@ -258,8 +258,11 @@ struct Print : public Stmt {
 };
 
 struct Decl {
+  Type *type;
+
   Decl() = default;
   virtual ~Decl() = default;
+
   virtual Decl *clone(){ return this; };
   virtual string str() const = 0;
   virtual int length() const { return 0; };

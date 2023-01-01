@@ -119,6 +119,6 @@ void Driver::transform() {
   m_keiko = kgen.transform(m_program); 
 }
 
-string Driver::keikoStr() const { 
-  return m_keiko->str(""); 
+void Driver::keikoStr() const { 
+  m_keiko->str(""); 
 }

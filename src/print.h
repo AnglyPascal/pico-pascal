@@ -30,6 +30,7 @@
 #define PRINT_H
 
 #include <string>
+#include <iostream>
 using std::string;
 
 namespace Pascal {
@@ -45,6 +46,10 @@ struct {
   string White = "\u001b[37m";
   string Reset = "\u001b[0m";
 } Colors;
+
+inline void debug(string mssg) {
+  std::cout << mssg << std::endl;
+}
 
 } // namespace Pascal
 

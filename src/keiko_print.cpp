@@ -27,8 +27,16 @@
  */
 
 #include "keiko.h"
+#include "print.h"
 
-string k_pad_const = "  ";
+using Pascal::Colors;
+using std::cout;
+using std::endl;
+using std::to_string;
+
+string k_pad_const = "| ";
+string _err = Colors.Red + "_" + Colors.White;
+
 map<Keiko::op, string> opNames = {
     {Pascal::Plus, "Plus"},     {Pascal::Minus, "Minus"},
     {Pascal::Times, "Times"},   {Pascal::Div, "Div"},
@@ -42,7 +50,7 @@ map<Keiko::op, string> opNames = {
     {Pascal::BitAnd, "BitAnd"}, {Pascal::BitOr, "BitOr"},
     {Pascal::BitNot, "BitNot"}};
 
-using std::to_string;
+inline string tab(string pad) { return pad + k_pad_const; }
 
 /***********************
  ** string generation **
@@ -50,113 +58,275 @@ using std::to_string;
 
 namespace Keiko {
 
-string Const::str(string pad) const {
-  return pad + "<CONST " + to_string(n) + ">";
+void Const::str(string pad) const {
+  debug("Const");
+  cout << pad + "<CONST " + to_string(n) + ">";
 }
-string Global::str(string pad) const { return pad + "<GLOBAL " + x + ">"; }
-string Local::str(string pad) const {
-  return pad + "<LOCAL " + to_string(offset) + ">";
+void Global::str(string pad) const {
+  debug("Global");
+  cout << pad + "<GLOBAL " + x + ">";
 }
-string Loadc::str(string pad) const {
-  return pad + "<LOADC,\n" + inst->str(pad + k_pad_const) + ">";
+void Local::str(string pad) const {
+  debug("Local");
+  cout << pad + "<LOCAL " + to_string(offset) + ">";
 }
-string Loadw::str(string pad) const {
-  return pad + "<LOADW,\n" + inst->str(pad + k_pad_const) + ">";
+void Loadc::str(string pad) const {
+  debug("Loadc");
+  cout << pad + "<LOADC,\n";
+  if (inst) {
+    inst->str(tab(pad));
+  } else
+    cout << _err;
+  cout << ">";
 }
-string Storec::str(string pad) const {
-  return pad + "<STOREC,\n" + source->str(pad + k_pad_const) + "\n" +
-         addr->str(pad + k_pad_const) + ">";
+void Loadw::str(string pad) const {
+  debug("Loadw");
+  cout << pad + "<LOADW,\n";
+  if (inst) {
+    inst->str(tab(pad));
+  } else
+    cout << _err;
+  cout << endl << pad + ">" << endl;
 }
-string Storew::str(string pad) const {
-  return pad + "<STOREW,\n" + source->str(pad + k_pad_const) + "\n" +
-         addr->str(pad + k_pad_const) + ">";
-}
-string Resultw::str(string pad) const {
-  return pad + "<RESULTW,\n" + inst->str(pad + k_pad_const) + ">";
-}
-string Arg::str(string pad) const {
-  return pad + "<ARG " + to_string(ind) + ",\n" + arg->str(pad) + ">";
-}
-string Static::str(string pad) const {
-  return pad + "<STATIC\n" + link->str(pad) + ">";
-}
-string Call::str(string pad) const {
-  string s = pad + "<CALL " + to_string(nparams) + ",\n";
-  s += func->str(pad);
-  s += ", ";
-  s += staticLink->str(pad);
-  s += ", ";
+void Storec::str(string pad) const {
+  debug("Storec");
+  cout << pad + "<STOREC,";
+  if (source) {
+    cout << endl;
+    source->str(tab(pad));
+    cout << endl;
+  } else {
+    cout << " " + _err;
+  }
 
-  string a = "";
+  if (addr) {
+    cout << endl;
+    addr->str(tab(pad));
+    cout << ">" << endl;
+  } else {
+    cout << ", " + _err << endl;
+  }
+}
+void Storew::str(string pad) const {
+  debug("Storew");
+  cout << pad + "<STOREW, ";
+  if (source) {
+    cout << endl;
+    source->str(tab(pad));
+    cout << ", ";
+  } else
+    cout << _err + ", ";
+
+  if (addr) {
+    cout << endl;
+    addr->str(tab(pad));
+    cout << endl << pad + ">" << endl;
+  } else
+    cout << ", " + _err << endl;
+}
+
+void Resultw::str(string pad) const {
+  debug("Resultw");
+  cout << pad + "<RESULTW, ";
+  if (inst) {
+    cout << endl;
+    inst->str(tab(pad));
+    cout << endl;
+  } else {
+    cout << _err + ">";
+  }
+}
+void Arg::str(string pad) const {
+  debug("Arg");
+  cout << pad + "<ARG " + to_string(ind) + ", ";
+  if (arg) {
+    cout << endl;
+    arg->str(tab(pad));
+    cout << endl;
+  } else {
+    cout << _err + ">";
+  }
+}
+
+void Static::str(string pad) const {
+  debug("Static");
+  cout << pad + "<STATIC, ";
+  if (link) {
+    cout << endl;
+    link->str(tab(pad));
+  } else {
+    cout << _err;
+  }
+  cout << endl << pad + ">" << endl;
+}
+
+void Call::str(string pad) const {
+  debug("Call");
+  cout << pad + "<CALL " + to_string(nparams) + ", ";
+
+  if (func) {
+    func->str("");
+    cout << endl;
+  } else
+    cout << _err + ", " << endl;
+
+  if (staticLink)
+    staticLink->str(tab(pad));
+  else
+    cout << _err << endl;
+
   for (Inst *arg : *args->insts)
-    a += arg->str(pad) + "\n";
-  s += a + pad + ">";
-  return s;
-}
-string Monop::str(string pad) const {
-  return pad + "<MONOP " + opNames[o] + ",\n" + e->str(pad + k_pad_const) + ">";
-}
-string Binop::str(string pad) const {
-  return pad + "<MONOP " + opNames[o] + ",\n" + el->str(pad + k_pad_const) +
-         "\n" + er->str(pad + k_pad_const) + ">";
-}
-string Offset::str(string pad) const {
-  return pad + "<OFFSET,\n" + base->str(pad + k_pad_const) + "\n" +
-         offset->str(pad + k_pad_const) + ">";
-}
-string Bound::str(string pad) const {
-  return pad + "<BOUND,\n" + arr->str(pad + k_pad_const) + "\n" +
-         bound->str(pad + k_pad_const) + ">";
-}
-string Label::str(string pad) const {
-  return pad + "<LABEL " + to_string(lab) + ">";
-}
-string Jump::str(string pad) const {
-  return pad + "<JUMP " + to_string(lab) + ">";
-}
-string Jumpc::str(string pad) const {
-  string s = pad + "<JUMPC " + opNames[lab.first] + k_pad_const +
-             to_string(lab.second) + "\n";
-  s += ifc->str(pad + k_pad_const);
-  s += elsec->str(pad + k_pad_const);
-  s += "\n" + pad + ">";
-  return s;
-}
-string Seq::str(string pad) const {
-  string s = pad + "<SEQ,\n";
-  for (Inst *inst : *insts)
-    s += inst->str(pad + k_pad_const) + "\n";
-  return s + pad + ">\n";
-}
-string Line::str(string pad) const {
-  return pad + "<LINE " + to_string(line) + ">";
-}
-string Nop::str(string pad) const { return ""; }
+    if (arg) {
+      arg->str(tab(pad));
+      cout << endl;
+    } else
+      cout << _err << endl;
 
-string GlobalDecl::str(string pad) const {
-  return pad + "<GLOBAL_DECL " + label + ">";
+  cout << pad + ">";
 }
 
-string ProcDecl::str(string pad) const {
+void Monop::str(string pad) const {
+  debug("Monop");
+  cout << pad + "<MONOP " + opNames[o] + ",";
+  if (e) {
+    cout << endl;
+    e->str(tab(pad));
+  } else
+    cout << _err;
+  cout << ">";
+}
+
+void Binop::str(string pad) const {
+  debug("Binop");
+  cout << pad + "<BINOP " + opNames[o] + ",";
+  if (el) {
+    cout << endl;
+    el->str(tab(pad));
+  } else
+    cout << _err << endl;
+  if (er)
+    er->str(tab(pad));
+  else
+    cout << _err;
+  cout << ">";
+}
+
+void Offset::str(string pad) const {
+  debug("Offset");
+  cout << pad + "<OFFSET, ";
+  if (base) {
+    cout << endl;
+    base->str(tab(pad));
+  } else
+    cout << _err;
+  cout << ", ";
+  if (offset) {
+    cout << endl;
+    offset->str(tab(pad));
+  } else
+    cout << _err;
+  cout << ">";
+}
+
+void Bound::str(string pad) const {
+  debug("Bound");
+  cout << pad + "<BOUND, ";
+  if (arr) {
+    cout << endl;
+    arr->str(tab(pad));
+  } else
+    cout << _err;
+  cout << ", ";
+  if (bound) {
+    cout << endl;
+    bound->str(tab(pad));
+  } else
+    cout << _err;
+  cout << ">";
+}
+
+void Label::str(string pad) const {
+  debug("Label");
+  cout << pad + "<LABEL " + to_string(lab) + ">" << endl;
+}
+
+void Jump::str(string pad) const {
+  debug("Jump");
+  cout << pad + "<JUMP " + to_string(lab) + ">" << endl;
+}
+
+void Jumpc::str(string pad) const {
+  debug("Jumpc");
+  cout << pad + "<JUMPC " + opNames[lab.first] + ", " + to_string(lab.second) +
+              ", ";
+  if (ifc) {
+    cout << endl;
+    ifc->str(tab(pad));
+  } else
+    cout << _err << endl;
+
+  if (elsec) {
+    elsec->str(tab(pad));
+  } else
+    cout << _err;
+  cout << pad + ">" << endl;
+}
+
+void Seq::str(string pad) const {
+  debug("Seq");
+  cout << pad + "<SEQ," << endl;
+  for (Inst *inst : *insts) {
+    if (inst)
+      inst->str(tab(pad));
+    else
+      cout << _err;
+  }
+  cout << pad + ">" << endl;
+}
+
+void Line::str(string pad) const {
+  debug("Line");
+  cout << pad + "<LINE " + to_string(line) + ">" << endl;
+}
+
+void Nop::str(string pad) const { debug("Nop"); }
+
+void GlobalDecl::str(string pad) const {
+  debug("GlobalDecl");
+  cout << pad + "<GLOBAL_DECL " + label + ">";
+}
+
+void ProcDecl::str(string pad) const {
+  debug("ProcDecl");
   string s = pad + "<PROC_DECL " + label;
   s += ", " + to_string(nparams);
   s += ", " + to_string(argSize);
   s += ", " + to_string(locSize);
   s += ">\n";
-  s += code->str(pad + k_pad_const);
+  cout << s;
 
-  return s;
+  if (code) {
+    code->str(tab(pad));
+    cout << endl;
+  } else
+    cout << _err;
 }
 
-string Program::str(string pad) const {
-  string s = "";
-  std::cout << "haha" << std::endl;
-  for (GlobalDecl *g : *globDecls){
-    s += g->str(pad) + "\n";
-  }
+void Program::str(string pad) const {
+  debug("Program");
+  for (GlobalDecl *g : *globDecls)
+    if (g) {
+      g->str(pad);
+      cout << endl;
+    } else
+      cout << _err;
+
   for (ProcDecl *p : *procDecls)
-    s += p->str(pad) + "\n\n";
-  return s;
+    if (p) {
+      p->str(pad);
+      cout << endl << endl;
+    } else
+      cout << _err << endl;
 }
 
 } // namespace Keiko

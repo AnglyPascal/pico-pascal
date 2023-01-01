@@ -55,8 +55,8 @@ struct Type {
   virtual ~Type() = default;
   virtual Type *clone() = 0;
   virtual string str() const = 0;
-  PascalType P_type = P_void;
 
+  virtual PascalType P_type() = 0;
   virtual int size() = 0;
   virtual int align() = 0;
   virtual bool isArray() = 0;
@@ -66,7 +66,7 @@ struct Type {
 struct Int : public Type {
   Int() = default;
   ~Int() = default;
-  PascalType P_type = P_int;
+  PascalType P_type();
 
   Type *clone();
   string str() const;
@@ -80,7 +80,7 @@ struct Int : public Type {
 struct Void : public Type {
   Void() = default;
   ~Void() = default;
-  PascalType P_type = P_void;
+  PascalType P_type();
 
   Type *clone();
   string str() const;
@@ -94,7 +94,7 @@ struct Void : public Type {
 struct Array : public Type {
   int length;
   Type *elemType;
-  PascalType P_type = P_array;
+  PascalType P_type();
 
   Array(int _length, Type *_elemType);
   ~Array();
@@ -111,7 +111,7 @@ struct Array : public Type {
 struct Bool : public Type {
   Bool() = default;
   ~Bool() = default;
-  PascalType P_type = P_bool;
+  PascalType P_type();
 
   Type *clone();
   string str() const;
@@ -125,7 +125,7 @@ struct Bool : public Type {
 struct Func : public Type {
   vector<Type *> args;
   Type *returnType;
-  PascalType P_type = P_func;
+  PascalType P_type();
 
   Func(vector<Type *> _args, Type *_returnType);
   ~Func();

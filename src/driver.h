@@ -135,7 +135,7 @@ public:
   // convert to keiko tree
   void transform();
 
-  std::string keikoStr() const;
+  void keikoStr() const;
 
   /**
    * This is needed so that Scanner and Parser can call some

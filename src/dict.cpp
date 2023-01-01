@@ -56,7 +56,7 @@ VarDef::VarDef() {}
 VarDef::~VarDef() {}
 DefKind *VarDef::clone() const { return new VarDef(); }
 bool VarDef::isVariable() const { return true; }
-string VarDef::str() const { return Colors.Green + "vardef"; }
+string VarDef::str() const { return "vardef"; }
 
 ProcDef::ProcDef() : _nparams(0), _args(new vector<Defn *>()){};
 ProcDef::~ProcDef() {
@@ -71,7 +71,7 @@ DefKind *ProcDef::clone() const {
     np->_args->push_back(d->clone());
   return np;
 }
-string ProcDef::str() const { return Colors.Green + "procdef"; }
+string ProcDef::str() const { return "procdef"; }
 
 void ProcDef::addArgs(vector<Defn *> defs) {
   _nparams = 0;
@@ -141,7 +141,9 @@ void Defn::addArgs(vector<Defn *> defs) {
   }
 }
 
-string Defn::str() const { return Colors.Green + d_kind->str() + " " + d_tag; }
+string Defn::str() const {
+  return Colors.Green + d_kind->str() + " " + d_tag + Colors.White;
+}
 
 /*****************
  *     Env

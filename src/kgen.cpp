@@ -43,7 +43,7 @@ Inst *staticChain(int n) {
       new Keiko::Offset(staticChain(n - 1), new Keiko::Const(stat_link)));
 }
 
-inline void error(string mssg) { throw internal_error(mssg.c_str()); }
+inline Inst *error(string mssg) { throw internal_error(mssg.c_str()); }
 
 /*************
  ** GenExpr **
@@ -97,8 +97,7 @@ Inst *KGen::genExpr(Variable *v) {
     return new Keiko::Seq(insts);
   }
 
-  string s = "generating expression for ProcDef: " + v->str();
-  throw std::domain_error(s.c_str());
+  return error("generating expression for ProcDef: " + v->str());
   /* int lev = d->d_level; */
   /* Inst *sl; */
   /* if (lev == 0) */
@@ -145,10 +144,9 @@ Inst *KGen::genExpr(Call *call) { return genCall(call); }
 
 Inst *KGen::genCall(Call *call) {
   Defn *d = call->f->getDef();
-  if (d->d_type->P_type == P_func) {
-    string s = "calling non function " + call->f->str();
-    throw std::domain_error(s.c_str());
-  }
+  if (d->d_type->P_type() != P_func)
+    error("calling non function " + call->f->str());
+
   Func *t = (Func *)d->d_type;
 
   vector<Inst *> *args = new vector<Inst *>();
@@ -167,30 +165,39 @@ Inst *KGen::genCall(Call *call) {
 }
 
 void KGen::genArg(int *index, Type *t, Expr *e, vector<Inst *> *args) {
-  if (typeid(t) == typeid(VarDef)) {
+  if (t && t->P_type() != P_func) {
     if (t->isScalar())
       args->push_back(new Keiko::Arg(*index, genExpr(e)));
     else
-      args->push_back(genAddr(e));
-  } else {
+      args->push_back(new Keiko::Arg(*index, genAddr(e)));
+  }
+
+  else {
     if (e->exprType != variable)
       error("function must be passed as a variable " + e->str());
+
     Variable *v = (Variable *)e;
     pair<Inst *, Inst *> p = genClosure(v->x->getDef());
-    args->push_back(new Keiko::Arg(*index, p.first));
+
+    Inst *f = new Keiko::Arg(*index, p.first);
     (*index)++;
-    args->push_back(new Keiko::Arg(*index, p.second));
+    Inst *s = new Keiko::Arg(*index, p.second);
+
+
+    args->push_back(f);
+    args->push_back(s);
   }
   (*index)++;
 }
 
 pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
   Inst *st;
-  if (d->d_level == 0)
+  if (d->d_level == 0 || !d->d_kind->isVariable())
     st = new Keiko::Const(0);
   else
     st = staticChain(level + 1 - d->d_level);
-  return pair<Inst *, Inst *>(address(d), st);
+  Inst *addr = address(d);
+  return std::make_pair(addr, st);
 }
 
 /***************
@@ -216,7 +223,7 @@ Inst *KGen::address(Defn *d) {
 
 Inst *boundCheck(Inst *inst, Expr *e) {
   if (typeid(e->type) != typeid(Array))
-    throw std::domain_error("bound on non aray");
+    error("bound on non array");
   Array *t = (Array *)e->type;
   return new Keiko::Bound(inst, new Keiko::Const(t->length));
 }
@@ -247,7 +254,7 @@ Inst *KGen::genAddr(Expr *e) {
     Sub *sub = (Sub *)e;
     return genAddr(sub);
   }
-  throw std::domain_error("genAddr called on invalid value");
+  return error("genAddr called on invalid value");
 }
 
 /***************
@@ -346,7 +353,7 @@ Inst *KGen::genStmt(Stmt *e) {
     Print *sub = (Print *)e;
     return genStmt(sub);
   }
-  throw std::domain_error("failed to match any expression type");
+  return error("failed to match any expression type");
 }
 
 Inst *KGen::genStmt(Skip *skip) { return new Keiko::Nop(); }
@@ -459,6 +466,11 @@ void KGen::genProc(Proc *proc, vector<Keiko::ProcDecl *> *procs) {
   procs->push_back(pd);
 }
 
+/**
+ * This doesn't generate Print or newline instructions yet. So we do need a way
+ * to handle library calls.
+ */
+
 Inst *KGen::transform(Program *program) {
   Block *blk = program->prog;
   vector<Keiko::GlobalDecl *> *gds = new vector<Keiko::GlobalDecl *>();
@@ -472,12 +484,3 @@ Inst *KGen::transform(Program *program) {
   return new Keiko::Program(gds, pds);
 }
 
-// I need to take a different approach since i want this to be separate from the
-// code generation part.
-//
-// In keiko, we call the Tgen.translsate as the root translator function, that
-// int turn calls the Tran.translate function. I want the parts to be decoupled,
-// so in KGen, i will only generate the intermediate tree. then simplify it, and
-// then produce the arm code.
-//
-// For procs, i need to calculate all the necessary stuff in here

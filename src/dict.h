@@ -34,8 +34,8 @@
 #include <stdio.h>
 #include <string>
 
-#include "types.h"
 #include "print.h"
+#include "types.h"
 
 using std::map;
 using std::string;
@@ -115,6 +115,13 @@ struct ProcDef : public DefKind {
 
   string str() const;
 };
+
+// need to define it to differentiate between defined procedure vs procedures
+// passed as parameters
+//
+/* struct PProcDec : public DefKind { */
+
+/* } */
 
 /*****************
  *     DEFN

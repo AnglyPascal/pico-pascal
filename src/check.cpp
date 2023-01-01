@@ -171,10 +171,10 @@ Type *Check::check(Call *fe, Env *env) {
                  t->args[i]->str() + " was expected";
       sem_error(s.c_str());
     }
-    if (typeid(*ta) == typeid(Func) && (*fe->args)[i]->exprType != variable){
-      sem_error("function arguments need to passed as variables " + (*fe->args)[i]->str());
+    if (typeid(*ta) == typeid(Func) && (*fe->args)[i]->exprType != variable) {
+      sem_error("function arguments need to passed as variables " +
+                (*fe->args)[i]->str());
     }
-
   }
   return t->returnType;
 }
@@ -326,7 +326,7 @@ void align(int alignment, int *offset) {
 inline void declareProc(ProcDecl *decl, int level, int *offset, bool arg,
                         Env *env) {
   Type *t = decl->type;
-  Defn *d = new Defn(decl->f->x_name, new ProcDef(), level, decl->type);
+  Defn *d = new Defn(decl->f->x_name, new ProcDef(), level, t);
 
   if (arg) {
     d->d_addr = new Local(*offset);

@@ -128,3 +128,9 @@ int Bool::align() { return 1; }
 int Void::align() { return 1; }
 int Array::align() { return length * elemType->size(); }
 int Func::align() { return 4; }
+
+PascalType Int::P_type() { return P_int; }
+PascalType Bool::P_type() { return P_bool; }
+PascalType Void::P_type() { return P_void; }
+PascalType Array::P_type() { return P_array; }
+PascalType Func::P_type() { return P_func; }
