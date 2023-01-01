@@ -50,6 +50,8 @@ string Global::str() const { return label; }
 
 DefKind::~DefKind() {}
 bool DefKind::isVariable() const { return false; }
+bool DefKind::isProc() const { return false; }
+bool DefKind::isProcParam() const { return false; }
 string DefKind::str() const { return "_"; }
 
 VarDef::VarDef() {}
@@ -72,7 +74,7 @@ DefKind *ProcDef::clone() const {
   return np;
 }
 string ProcDef::str() const { return "procdef"; }
-
+bool ProcDef::isProc() const { return true; }
 void ProcDef::addArgs(vector<Defn *> defs) {
   _nparams = 0;
   for (Defn *d : defs) {
@@ -83,6 +85,39 @@ void ProcDef::addArgs(vector<Defn *> defs) {
 }
 
 ProcDef &ProcDef::operator=(const ProcDef &other) {
+  if (&other != this)
+    _nparams = other._nparams;
+  _args->clear();
+  for (Defn *d : *other._args)
+    _args->push_back(d->clone());
+  return *this;
+}
+
+PProcDef::PProcDef() : _nparams(0), _args(new vector<Defn *>()){};
+PProcDef::~PProcDef() {
+  for (Defn *d : *_args)
+    delete d;
+  delete _args;
+}
+DefKind *PProcDef::clone() const {
+  PProcDef *np = new PProcDef();
+  np->_nparams = _nparams;
+  for (Defn *d : *_args)
+    np->_args->push_back(d->clone());
+  return np;
+}
+string PProcDef::str() const { return "procparamdef"; }
+bool PProcDef::isProcParam() const { return true; }
+void PProcDef::addArgs(vector<Defn *> defs) {
+  _nparams = 0;
+  for (Defn *d : defs) {
+    _args->push_back(d->clone());
+    _nparams += d->nparams();
+    _argSize += d->d_type->size();
+  }
+}
+
+PProcDef &PProcDef::operator=(const PProcDef &other) {
   if (&other != this)
     _nparams = other._nparams;
   _args->clear();
@@ -133,16 +168,17 @@ Defn &Defn::operator=(const Defn *other) {
 }
 
 void Defn::addArgs(vector<Defn *> defs) {
-  if (typeid(*d_kind) == typeid(ProcDef)) {
-    ProcDef *p = (ProcDef *)d_kind;
-    p->addArgs(defs);
-  } else {
+  if (typeid(*d_kind) == typeid(ProcDef))
+    ((ProcDef *)d_kind)->addArgs(defs);
+  else if (typeid(*d_kind) == typeid(PProcDef))
+    ((PProcDef *)d_kind)->addArgs(defs);
+  else
     throw std::domain_error("adding arguments to a vardef?");
-  }
 }
 
 string Defn::str() const {
-  return Colors.Green + d_kind->str() + " " + d_tag + Colors.White;
+  return Colors.Green + d_kind->str() + " " + d_tag + Colors.White + " at " +
+         d_addr->str();
 }
 
 /*****************

@@ -32,6 +32,7 @@
 namespace Pascal {
 
 inline int stat_link = 24;
+inline int addr_size = 4;
 
 }
 

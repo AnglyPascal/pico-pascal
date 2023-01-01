@@ -154,7 +154,7 @@ struct Arg : public Inst {
   Inst *arg;
 
   Arg(int _ind, Inst *_arg);
-  ~Arg() = default;
+  ~Arg();
   void simplify();
   void str(string tab) const;
 };

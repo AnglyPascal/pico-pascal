@@ -34,7 +34,7 @@ using std::cout;
 using std::endl;
 using std::to_string;
 
-string k_pad_const = "| ";
+string k_pad_const = "  ";
 string _err = Colors.Red + "_" + Colors.White;
 
 map<Keiko::op, string> opNames = {
@@ -60,33 +60,33 @@ namespace Keiko {
 
 void Const::str(string pad) const {
   debug("Const");
-  cout << pad + "<CONST " + to_string(n) + ">";
+  cout << pad + "<CONST " + to_string(n) + ">" << endl;
 }
 void Global::str(string pad) const {
   debug("Global");
-  cout << pad + "<GLOBAL " + x + ">";
+  cout << pad + "<GLOBAL " + x + ">" << endl;
 }
 void Local::str(string pad) const {
   debug("Local");
-  cout << pad + "<LOCAL " + to_string(offset) + ">";
+  cout << pad + "<LOCAL " + to_string(offset) + ">" << endl;
 }
 void Loadc::str(string pad) const {
   debug("Loadc");
   cout << pad + "<LOADC,\n";
   if (inst) {
     inst->str(tab(pad));
+    cout << pad + ">" << endl;
   } else
-    cout << _err;
-  cout << ">";
+    cout << _err + ">" << endl;
 }
 void Loadw::str(string pad) const {
   debug("Loadw");
   cout << pad + "<LOADW,\n";
   if (inst) {
     inst->str(tab(pad));
+    cout << pad + ">" << endl;
   } else
-    cout << _err;
-  cout << endl << pad + ">" << endl;
+    cout << _err + ">" << endl;
 }
 void Storec::str(string pad) const {
   debug("Storec");
@@ -113,16 +113,14 @@ void Storew::str(string pad) const {
   if (source) {
     cout << endl;
     source->str(tab(pad));
-    cout << ", ";
   } else
-    cout << _err + ", ";
+    cout << _err + ", " << endl;
 
   if (addr) {
-    cout << endl;
     addr->str(tab(pad));
-    cout << endl << pad + ">" << endl;
+    cout << pad + ">" << endl;
   } else
-    cout << ", " + _err << endl;
+    cout << _err + ">" << endl;
 }
 
 void Resultw::str(string pad) const {
@@ -131,7 +129,7 @@ void Resultw::str(string pad) const {
   if (inst) {
     cout << endl;
     inst->str(tab(pad));
-    cout << endl;
+    cout << pad + ">" << endl;
   } else {
     cout << _err + ">";
   }
@@ -142,9 +140,9 @@ void Arg::str(string pad) const {
   if (arg) {
     cout << endl;
     arg->str(tab(pad));
-    cout << endl;
+    cout << pad + ">" << endl;
   } else {
-    cout << _err + ">";
+    cout << _err + ">" << endl;
   }
 }
 
@@ -155,9 +153,9 @@ void Static::str(string pad) const {
     cout << endl;
     link->str(tab(pad));
   } else {
-    cout << _err;
+    cout << _err << endl;
   }
-  cout << endl << pad + ">" << endl;
+  cout << pad + ">" << endl;
 }
 
 void Call::str(string pad) const {
@@ -165,8 +163,8 @@ void Call::str(string pad) const {
   cout << pad + "<CALL " + to_string(nparams) + ", ";
 
   if (func) {
-    func->str("");
     cout << endl;
+    func->str(tab(pad));
   } else
     cout << _err + ", " << endl;
 
@@ -178,11 +176,9 @@ void Call::str(string pad) const {
   for (Inst *arg : *args->insts)
     if (arg) {
       arg->str(tab(pad));
-      cout << endl;
+      cout << pad + ">" << endl;
     } else
-      cout << _err << endl;
-
-  cout << pad + ">";
+      cout << _err + ">" << endl;
 }
 
 void Monop::str(string pad) const {
@@ -198,17 +194,16 @@ void Monop::str(string pad) const {
 
 void Binop::str(string pad) const {
   debug("Binop");
-  cout << pad + "<BINOP " + opNames[o] + ",";
-  if (el) {
-    cout << endl;
+  cout << pad + "<BINOP " + opNames[o] + "," << endl;
+  if (el)
     el->str(tab(pad));
-  } else
-    cout << _err << endl;
-  if (er)
-    er->str(tab(pad));
   else
-    cout << _err;
-  cout << ">";
+    cout << _err << endl;
+  if (er) {
+    er->str(tab(pad));
+    cout << pad + ">" << endl;
+  } else
+    cout << _err + ">" << endl;
 }
 
 void Offset::str(string pad) const {
@@ -219,13 +214,11 @@ void Offset::str(string pad) const {
     base->str(tab(pad));
   } else
     cout << _err;
-  cout << ", ";
   if (offset) {
-    cout << endl;
     offset->str(tab(pad));
+    cout << pad + ">" << endl;
   } else
-    cout << _err;
-  cout << ">";
+    cout << _err + ">" << endl;
 }
 
 void Bound::str(string pad) const {
@@ -305,11 +298,10 @@ void ProcDecl::str(string pad) const {
   s += ">\n";
   cout << s;
 
-  if (code) {
+  if (code)
     code->str(tab(pad));
-    cout << endl;
-  } else
-    cout << _err;
+  else
+    cout << _err << endl;
 }
 
 void Program::str(string pad) const {
@@ -324,7 +316,7 @@ void Program::str(string pad) const {
   for (ProcDecl *p : *procDecls)
     if (p) {
       p->str(pad);
-      cout << endl << endl;
+      cout << endl;
     } else
       cout << _err << endl;
 }

@@ -91,6 +91,8 @@ struct DefKind {
   virtual ~DefKind();
   virtual DefKind *clone() const = 0;
   virtual bool isVariable() const;
+  virtual bool isProc() const;
+  virtual bool isProcParam() const;
   virtual string str() const;
 };
 
@@ -111,17 +113,26 @@ struct ProcDef : public DefKind {
   ProcDef();
   ~ProcDef();
   DefKind *clone() const;
+  bool isProc() const;
   ProcDef &operator=(const ProcDef &other);
 
   string str() const;
 };
 
-// need to define it to differentiate between defined procedure vs procedures
-// passed as parameters
-//
-/* struct PProcDec : public DefKind { */
+struct PProcDef : public DefKind {
+  int _nparams, _argSize;
+  vector<Defn *> *_args;
 
-/* } */
+  void addArgs(vector<Defn *> defs);
+
+  PProcDef();
+  ~PProcDef();
+  bool isProcParam() const;
+  DefKind *clone() const;
+  PProcDef &operator=(const PProcDef &other);
+
+  string str() const;
+};
 
 /*****************
  *     DEFN

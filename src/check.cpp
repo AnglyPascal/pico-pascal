@@ -155,7 +155,7 @@ Type *Check::check(IfExpr *ie, Env *env) {
 
 Type *Check::check(Call *fe, Env *env) {
   Defn *d = findDef(fe->f, env);
-  if (typeid(*d->d_kind) != typeid(ProcDef))
+  if (d->d_kind->isVariable())
     sem_error("calling a non procedure");
 
   Func *t = (Func *)d->d_type;
@@ -219,11 +219,11 @@ void Check::checkVar(Expr *_exp, Env *env) {
   if (typeid(*_exp) == typeid(Variable)) {
     Variable *exp = (Variable *)_exp;
     Defn *d = findDef(exp->x, env);
-    if (typeid(*d->d_kind) == typeid(ProcDef))
+    if (!d->d_kind->isVariable())
       sem_error("assigning to proecedure variable");
     return;
   }
-  if (typeid(*_exp) == typeid(Sub)) {
+  if (_exp->exprType == sub) {
     Sub *exp = (Sub *)_exp;
     checkVar(exp->arr, env);
     return;
@@ -326,7 +326,12 @@ void align(int alignment, int *offset) {
 inline void declareProc(ProcDecl *decl, int level, int *offset, bool arg,
                         Env *env) {
   Type *t = decl->type;
-  Defn *d = new Defn(decl->f->x_name, new ProcDef(), level, t);
+  DefKind *dk;
+  if (arg)
+    dk = new PProcDef();
+  else
+    dk = new ProcDef();
+  Defn *d = new Defn(decl->f->x_name, dk, level, t);
 
   if (arg) {
     d->d_addr = new Local(*offset);

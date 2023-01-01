@@ -60,7 +60,8 @@ Storew::~Storew() {
 Resultw::Resultw(Inst *_inst) : inst(_inst) {}
 Resultw::~Resultw() { delete inst; }
 
-Arg::Arg(int _ind, Inst *_arg) : ind(_ind), arg(_arg) { delete arg; }
+Arg::Arg(int _ind, Inst *_arg) : ind(_ind), arg(_arg) {}
+Arg::~Arg() { delete arg; }
 
 Call::Call(int _nparams, Inst *_func, Static *_staticLink, Seq *_args)
     : nparams(_nparams), func(_func), staticLink(_staticLink), args(_args) {}

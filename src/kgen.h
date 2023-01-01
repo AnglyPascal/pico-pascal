@@ -64,7 +64,9 @@ private:
   Inst *genCall(Call *call);
 
   void genArg(int *i, Type *t, Expr *e, vector<Inst *> *args);
-  pair<Inst *, Inst *> genClosure(Defn *d);
+  pair<Inst *, Inst*> genClosure(Defn *d);
+  /* Inst *genClosureAddr(Defn *d); */
+  /* Inst *genClosureSLink(Defn *d); */
 
   Inst *genStmt(Stmt *stmt);
   Inst *genStmt(Skip *skip);
@@ -79,7 +81,6 @@ private:
   Inst *genBlock(Block *block, vector<Keiko::ProcDecl *> *procs);
   void genProc(Proc *proc, vector<Keiko::ProcDecl *> *procs);
 };
-
 
 } // namespace Pascal
 

@@ -142,6 +142,7 @@ Inst *KGen::genExpr(IfExpr *ie) {
 
 Inst *KGen::genExpr(Call *call) { return genCall(call); }
 
+
 Inst *KGen::genCall(Call *call) {
   Defn *d = call->f->getDef();
   if (d->d_type->P_type() != P_func)
@@ -159,7 +160,7 @@ Inst *KGen::genCall(Call *call) {
   int n = args->size();
 
   // get the closure of the function definition
-  pair<Inst *, Inst *> p = genClosure(d);
+  pair<Inst *, Inst*> p = genClosure(d);
   return new Keiko::Call(n, p.first, new Keiko::Static(p.second),
                          new Keiko::Seq(args));
 }
@@ -177,12 +178,11 @@ void KGen::genArg(int *index, Type *t, Expr *e, vector<Inst *> *args) {
       error("function must be passed as a variable " + e->str());
 
     Variable *v = (Variable *)e;
-    pair<Inst *, Inst *> p = genClosure(v->x->getDef());
+    pair<Inst *, Inst*> p = genClosure(v->x->getDef());
 
     Inst *f = new Keiko::Arg(*index, p.first);
     (*index)++;
     Inst *s = new Keiko::Arg(*index, p.second);
-
 
     args->push_back(f);
     args->push_back(s);
@@ -190,14 +190,22 @@ void KGen::genArg(int *index, Type *t, Expr *e, vector<Inst *> *args) {
   (*index)++;
 }
 
-pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
-  Inst *st;
-  if (d->d_level == 0 || !d->d_kind->isVariable())
-    st = new Keiko::Const(0);
-  else
-    st = staticChain(level + 1 - d->d_level);
+pair<Inst *, Inst*> KGen::genClosure(Defn *d) {
+  if (d->d_kind->isVariable())
+    error("asking for closure of a variable");
+
   Inst *addr = address(d);
-  return std::make_pair(addr, st);
+  Inst *st;
+  if (d->d_kind->isProc()) {
+    if (d->d_level == 0)
+      st = new Keiko::Const(0);
+    else
+      st = staticChain(level + 1 - d->d_level);
+    return std::make_pair(addr, st);
+  } else {
+    Inst *offset = new Keiko::Offset(addr, new Keiko::Const(addr_size));
+    return std::make_pair(new Keiko::Loadw(addr), new Keiko::Loadw(offset));
+  }
 }
 
 /***************
@@ -207,16 +215,18 @@ pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
 Inst *KGen::address(Defn *d) {
   int lev = d->d_level;
   // global variable or procedure definition
-  if (lev == 0 || !d->d_kind->isVariable()) {
+  if (lev == 0 || d->d_kind->isProc()) {
     Global *loc = (Global *)d->d_addr;
     return new Keiko::Global(loc->label);
   }
   if (level < lev)
     error("trying to access variable defined out of scope " + d->str());
+
   Local *loc = (Local *)d->d_addr;
   int offset = loc->offset;
   if (level == d->d_level)
     return new Keiko::Local(offset);
+
   Inst *chain = staticChain(level - lev);
   return new Keiko::Offset(chain, new Keiko::Const(offset));
 }
