@@ -282,7 +282,7 @@ int ProcDecl::size() const { return 0; }
  *************************/
 
 Proc::Proc(ProcDecl *_fun, Block *_blk, location _loc)
-    : fun(_fun), blk(_blk), loc(_loc) {}
+    : fun(_fun), blk(_blk), loc(_loc), argSize(0), locSize(0) {}
 
 Proc::~Proc() {
   delete fun;

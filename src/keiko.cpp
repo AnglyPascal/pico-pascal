@@ -135,3 +135,76 @@ Program::~Program() {
   delete procDecls;
 };
 
+/** Typing */
+
+KeikoType Nop::type() { return K_Nop; }
+KeikoType Seq::type() { return K_Seq; }
+KeikoType Line::type() { return K_Line; }
+KeikoType Const::type() { return K_Const; }
+KeikoType Global::type() { return K_Global; }
+KeikoType Local::type() { return K_Local; }
+KeikoType Loadw::type() { return K_Loadw; }
+KeikoType Loadc::type() { return K_Loadc; }
+KeikoType Storew::type() { return K_Storew; }
+KeikoType Storec::type() { return K_Storec; }
+KeikoType Resultw::type() { return K_Resultw; }
+KeikoType Arg::type() { return K_Arg; }
+KeikoType Static::type() { return K_Static; }
+KeikoType Call::type() { return K_Call; }
+KeikoType Monop::type() { return K_Monop; }
+KeikoType Binop::type() { return K_Binop; }
+KeikoType Offset::type() { return K_Offset; }
+KeikoType Label::type() { return K_Label; }
+KeikoType Jump::type() { return K_Jump; }
+KeikoType Jumpc::type() { return K_Jumpc; }
+KeikoType Bound::type() { return K_Bound; }
+KeikoType GlobalDecl::type() { return K_GlobalDecl; }
+KeikoType ProcDecl::type() { return K_ProcDecl; }
+KeikoType Program::type() { return K_Program; }
+
+/** Cloning */
+
+Inst *Nop::clone() { return this; }
+Inst *Seq::clone() {
+  vector<Inst *> *ninsts = new vector<Inst *>();
+  for (Inst *i : *insts)
+    ninsts->push_back(i->clone());
+  return new Seq(ninsts);
+}
+Inst *Line::clone() { return new Line(line); }
+Inst *Const::clone() { return new Const(n); }
+Inst *Global::clone() { return new Global(x); }
+Inst *Local::clone() { return new Local(offset); }
+Inst *Loadw::clone() { return new Loadw(inst->clone()); }
+Inst *Loadc::clone() { return new Loadc(inst->clone()); }
+Inst *Storew::clone() { return new Storew(source->clone(), addr->clone()); }
+Inst *Storec::clone() { return new Storec(source->clone(), addr->clone()); }
+Inst *Resultw::clone() { return new Resultw(inst->clone()); }
+Inst *Arg::clone() { return new Arg(ind, arg->clone()); }
+Inst *Static::clone() { return new Static(link->clone()); }
+Inst *Call::clone() {
+  return new Call(nparams, func->clone(), (Static *)staticLink->clone(),
+                  (Seq *)args->clone());
+}
+Inst *Monop::clone() { return new Monop(o, e->clone()); }
+Inst *Binop::clone() { return new Binop(o, el->clone(), er->clone()); }
+Inst *Offset::clone() { return new Offset(base->clone(), offset->clone()); }
+Inst *Label::clone() { return new Label(lab); }
+Inst *Jump::clone() { return new Jump(lab); }
+Inst *Jumpc::clone() { return new Jumpc(lab, ifc->clone(), elsec->clone()); }
+Inst *Bound::clone() { return new Bound(arr->clone(), bound->clone()); }
+Inst *GlobalDecl::clone() { return new GlobalDecl(label); }
+Inst *ProcDecl::clone() {
+  return new ProcDecl(label, level, nparams, argSize, locSize, code->clone());
+}
+
+Inst *Program::clone() {
+  vector<GlobalDecl *> *_globDecls = new vector<GlobalDecl *>();
+  vector<ProcDecl *> *_procDecls = new vector<ProcDecl *>();
+  for (GlobalDecl *gdl : *globDecls)
+    _globDecls->push_back((GlobalDecl *)gdl->clone());
+  for (ProcDecl *pdl : *procDecls)
+    _procDecls->push_back((ProcDecl *)pdl->clone());
+  return new Program(_globDecls, _procDecls);
+}
+

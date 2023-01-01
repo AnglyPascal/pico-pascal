@@ -120,7 +120,7 @@ struct ProcDef : public DefKind {
 };
 
 struct PProcDef : public DefKind {
-  int _nparams, _argSize;
+  int _nparams;
   vector<Defn *> *_args;
 
   void addArgs(vector<Defn *> defs);

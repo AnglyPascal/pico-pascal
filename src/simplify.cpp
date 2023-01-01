@@ -28,33 +28,60 @@
 
 #include "keiko.h"
 
-using namespace Keiko; 
+using namespace Keiko;
 
 /**************
  ** Simplify **
  **************/
 
-void Nop::simplify(){};
-void Seq::simplify(){};
-void Line::simplify(){};
-void Const::simplify(){};
-void Global::simplify(){};
-void Local::simplify(){};
-void Loadw::simplify(){};
-void Loadc::simplify(){};
-void Storew::simplify(){};
-void Storec::simplify(){};
-void Resultw::simplify(){};
-void Arg::simplify(){};
-void Static::simplify(){};
-void Call::simplify(){};
-void Monop::simplify(){};
-void Binop::simplify(){};
-void Offset::simplify(){};
-void Label::simplify(){};
-void Jump::simplify(){};
-void Jumpc::simplify(){};
-void Bound::simplify(){};
-void GlobalDecl::simplify(){};
-void ProcDecl::simplify(){};
-void Program::simplify(){};
+Inst *Nop::simplify() { return this; }
+
+Inst *Seq::simplify() {
+  if (insts->size() == 0) {
+    delete this;
+    return new Nop();
+  } else if (insts->size() == 1) {
+    Inst *inst = (*insts)[0]->clone();
+    delete this;
+    return inst;
+  } else {
+    vector<Inst *> *ninsts = new vector<Inst *>();
+    for (Inst *inst : *insts) {
+      Inst *ninst = inst->simplify();
+      if (ninst->type() == K_Seq) {
+        for (Inst *i : *((Seq *)ninst)->insts)
+          ninsts->push_back(i);
+      } else
+        ninsts->push_back(ninst);
+    }
+    delete insts;
+    insts = ninsts;
+    return this;
+  }
+  return this;
+}
+
+Inst *Line::simplify() { return this; }
+Inst *Const::simplify() { return this; }
+Inst *Global::simplify() { return this; }
+Inst *Local::simplify() { return this; }
+
+Inst *Loadw::simplify() { return this; }
+Inst *Loadc::simplify() { return this; }
+Inst *Storew::simplify() { return this; }
+Inst *Storec::simplify() { return this; }
+Inst *Resultw::simplify() { return this; }
+Inst *Arg::simplify() { return this; }
+Inst *Static::simplify() { return this; }
+Inst *Call::simplify() { return this; }
+Inst *Monop::simplify() { return this; }
+Inst *Binop::simplify() { return this; }
+Inst *Offset::simplify() { return this; }
+Inst *Label::simplify() { return this; }
+Inst *Jump::simplify() { return this; }
+Inst *Jumpc::simplify() { return this; }
+Inst *Bound::simplify() { return this; }
+Inst *GlobalDecl::simplify() { return this; }
+Inst *ProcDecl::simplify() { return this; }
+Inst *Program::simplify() { return this; }
+

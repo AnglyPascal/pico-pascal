@@ -27,7 +27,7 @@ CLEANLIST = $(OBJS) $(addprefix $(SRC)/, $(PJUNK)) $(EXE)
 all: ppc
 
 parser: $(SRC)/parser.y 
-	bison -o $(SRC)/parser.cpp --defines=$(SRC)/parser.h -v $(SRC)/parser.y
+	bison -o $(SRC)/parser.cpp --defines=$(SRC)/parser.h -v $<
 	$(CXX) $(CXXFLAGS) -c -o $(SRC)/parser.o $(SRC)/parser.cpp
 
 scanner: $(SRC)/scanner.l

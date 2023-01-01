@@ -36,6 +36,33 @@ using std::string;
 
 namespace Keiko {
 
+enum KeikoType {
+  K_Nop,
+  K_Seq,
+  K_Line,
+  K_Const,
+  K_Global,
+  K_Local,
+  K_Loadw,
+  K_Loadc,
+  K_Storew,
+  K_Storec,
+  K_Resultw,
+  K_Arg,
+  K_Static,
+  K_Call,
+  K_Monop,
+  K_Binop,
+  K_Offset,
+  K_Label,
+  K_Jump,
+  K_Jumpc,
+  K_Bound,
+  K_GlobalDecl,
+  K_ProcDecl,
+  K_Program
+};
+
 inline void debug(string mssg) {
   if (0)
     Pascal::debug(mssg);
@@ -47,8 +74,11 @@ typedef std::pair<op, int> fork;
 
 struct Inst {
   Inst();
+
   virtual ~Inst();
-  virtual void simplify() = 0;
+  virtual Inst *simplify() = 0;
+  virtual Inst *clone() = 0;
+  virtual KeikoType type() = 0;
   virtual void str(string tab) const = 0;
 };
 
@@ -57,14 +87,18 @@ struct Seq : public Inst {
 
   Seq(vector<Inst *> *_insts);
   ~Seq();
-  void simplify();
+  KeikoType type();
+  Inst *simplify();
+  Inst *clone();
   void str(string tab) const;
 };
 
 struct Nop : public Inst {
   Nop() = default;
   ~Nop() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -73,7 +107,9 @@ struct Line : public Inst {
 
   Line(int _line);
   ~Line() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -82,7 +118,9 @@ struct Const : public Inst {
 
   Const(int _n);
   ~Const() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -91,7 +129,9 @@ struct Global : public Inst {
 
   Global(symbol _x);
   ~Global() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -100,7 +140,9 @@ struct Local : public Inst {
 
   Local(int _offset);
   ~Local() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -109,7 +151,9 @@ struct Loadc : public Inst {
 
   Loadc(Inst *_inst);
   ~Loadc();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -118,7 +162,9 @@ struct Loadw : public Inst {
 
   Loadw(Inst *_inst);
   ~Loadw();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -127,7 +173,9 @@ struct Storec : public Inst {
 
   Storec(Inst *_source, Inst *_addr);
   ~Storec();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -136,7 +184,9 @@ struct Storew : public Inst {
 
   Storew(Inst *_source, Inst *_addr);
   ~Storew();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -145,7 +195,9 @@ struct Resultw : public Inst {
 
   Resultw(Inst *_inst);
   ~Resultw();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -155,7 +207,9 @@ struct Arg : public Inst {
 
   Arg(int _ind, Inst *_arg);
   ~Arg();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -164,7 +218,9 @@ struct Static : public Inst {
 
   Static(Inst *_link);
   ~Static();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -176,7 +232,9 @@ struct Call : public Inst {
 
   Call(int _nparams, Inst *_func, Static *staticLink, Seq *args);
   ~Call();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -186,7 +244,9 @@ struct Monop : public Inst {
 
   Monop(op _o, Inst *_e);
   ~Monop();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -196,7 +256,9 @@ struct Binop : public Inst {
 
   Binop(op _o, Inst *_el, Inst *_er);
   ~Binop();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -205,7 +267,9 @@ struct Offset : public Inst {
 
   Offset(Inst *_base, Inst *_offset);
   ~Offset();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -214,7 +278,9 @@ struct Bound : public Inst {
 
   Bound(Inst *_arr, Inst *_bound);
   ~Bound();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -223,7 +289,9 @@ struct Label : public Inst {
 
   Label(int _lab);
   ~Label() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -232,7 +300,9 @@ struct Jump : public Inst {
 
   Jump(int _lab);
   ~Jump() = default;
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -242,7 +312,9 @@ struct Jumpc : public Inst {
 
   Jumpc(fork _lab, Inst *_ifc, Inst *_elsec);
   ~Jumpc();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -251,7 +323,9 @@ struct GlobalDecl : public Inst {
 
   GlobalDecl(string _label);
   ~GlobalDecl();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -263,7 +337,9 @@ struct ProcDecl : public Inst {
   ProcDecl(string _label, int _level, int _nparams, int _argSize, int _locSize,
            Inst *_code);
   ~ProcDecl();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 
@@ -273,7 +349,9 @@ struct Program : public Inst {
 
   Program(vector<GlobalDecl *> *_globDecls, vector<ProcDecl *> *_procDecls);
   ~Program();
-  void simplify();
+  Inst *simplify();
+  Inst *clone();
+  KeikoType type();
   void str(string tab) const;
 };
 

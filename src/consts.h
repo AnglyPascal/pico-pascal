@@ -33,6 +33,8 @@ namespace Pascal {
 
 inline int stat_link = 24;
 inline int addr_size = 4;
+inline int frame_pointer = 40;
+inline int stack_pointer = 0;
 
 }
 

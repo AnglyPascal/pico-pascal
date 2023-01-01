@@ -29,6 +29,7 @@
 #ifndef CHECK_H
 #define CHECK_H
 
+#include "consts.h"
 #include "tree.h"
 #include <string>
 #include <vector>

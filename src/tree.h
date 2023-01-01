@@ -314,6 +314,8 @@ struct Proc {
   ProcDecl *fun;
   Block *blk;
   location loc;
+  int argSize; 
+  int locSize; 
 
   Proc(ProcDecl *_fun, Block *_blk, location _loc);
   ~Proc();

@@ -434,13 +434,6 @@ Inst *KGen::genStmt(Print *print) { return new Keiko::Nop(); }
  ** GenProc **
  *************/
 
-inline int locSizeBlock(Block *blk) {
-  int s = 0;
-  for (Decl *d : *blk->decls)
-    s += d->size();
-  return s;
-}
-
 inline void genGlobals(Block *blk, vector<Keiko::GlobalDecl *> *gds) {
   for (Decl *d : *blk->decls)
     if (typeid(*d) == typeid(VarDecl))
@@ -464,8 +457,8 @@ void KGen::genProc(Proc *proc, vector<Keiko::ProcDecl *> *procs) {
   ProcDef *defk = (ProcDef *)defn->d_kind;
 
   int nparams = defk->_nparams;
-  int argSize = defk->_argSize;
-  int locSize = locSizeBlock(proc->blk);
+  int argSize = proc->argSize;
+  int locSize = proc->locSize;
   int _level = defn->d_level;
   string label = ((Global *)defn->d_addr)->label;
   level = _level;

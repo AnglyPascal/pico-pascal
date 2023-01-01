@@ -34,7 +34,7 @@ using std::cout;
 using std::endl;
 using std::to_string;
 
-string k_pad_const = "  ";
+string k_pad_const = "| ";
 string _err = Colors.Red + "_" + Colors.White;
 
 map<Keiko::op, string> opNames = {
@@ -176,9 +176,9 @@ void Call::str(string pad) const {
   for (Inst *arg : *args->insts)
     if (arg) {
       arg->str(tab(pad));
-      cout << pad + ">" << endl;
     } else
-      cout << _err + ">" << endl;
+      cout << _err << endl;
+  cout << pad + ">" << endl;
 }
 
 void Monop::str(string pad) const {

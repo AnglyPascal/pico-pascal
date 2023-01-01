@@ -113,7 +113,6 @@ void PProcDef::addArgs(vector<Defn *> defs) {
   for (Defn *d : defs) {
     _args->push_back(d->clone());
     _nparams += d->nparams();
-    _argSize += d->d_type->size();
   }
 }
 

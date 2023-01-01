@@ -402,8 +402,8 @@ void Check::checkProc(Proc *proc, int level, Env *_env) {
 
   Env *env = new Env(_env);
 
-  int fp = 40;
-  int sp = 0;
+  int fp = frame_pointer;
+  int sp = stack_pointer;
 
   for (Decl *decl : *proc->fun->args)
     declareLocal(decl, level, &fp, true, env);
@@ -428,6 +428,10 @@ void Check::checkProc(Proc *proc, int level, Env *_env) {
   currentReturn = proc->fun->type->returnType;
   checkStmt(proc->blk->st, true, env);
   currentReturn = new Void();
+
+  proc->argSize = fp - frame_pointer;
+  proc->locSize = stack_pointer - sp;
+
   proc->blk->level = level;
 }
 
