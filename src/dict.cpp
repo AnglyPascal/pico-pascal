@@ -49,27 +49,37 @@ string Global::str() const { return label; }
  *****************/
 
 DefKind::~DefKind() {}
+bool DefKind::isVariable() const { return false; }
+string DefKind::str() const { return "_"; }
 
 VarDef::VarDef() {}
 VarDef::~VarDef() {}
 DefKind *VarDef::clone() const { return new VarDef(); }
+bool VarDef::isVariable() const { return true; }
+string VarDef::str() const { return Colors.Green + "vardef"; }
 
-ProcDef::ProcDef(int n) : _nparams(n), _args(new vector<Defn *>()){};
+ProcDef::ProcDef() : _nparams(0), _args(new vector<Defn *>()){};
 ProcDef::~ProcDef() {
   for (Defn *d : *_args)
     delete d;
   delete _args;
 }
 DefKind *ProcDef::clone() const {
-  ProcDef *np = new ProcDef(_nparams);
+  ProcDef *np = new ProcDef();
+  np->_nparams = _nparams;
   for (Defn *d : *_args)
     np->_args->push_back(d->clone());
   return np;
 }
+string ProcDef::str() const { return Colors.Green + "procdef"; }
 
 void ProcDef::addArgs(vector<Defn *> defs) {
-  for (Defn *d : defs)
+  _nparams = 0;
+  for (Defn *d : defs) {
     _args->push_back(d->clone());
+    _nparams += d->nparams();
+    _argSize += d->d_type->size();
+  }
 }
 
 ProcDef &ProcDef::operator=(const ProcDef &other) {
@@ -101,6 +111,13 @@ Defn *Defn::clone() const {
   return nd;
 }
 
+int Defn::nparams() const {
+  if (typeid(*d_kind) == typeid(VarDef))
+    return 1;
+  else
+    return 2;
+}
+
 Defn &Defn::operator=(const Defn *other) {
   delete d_kind;
 
@@ -116,14 +133,15 @@ Defn &Defn::operator=(const Defn *other) {
 }
 
 void Defn::addArgs(vector<Defn *> defs) {
-  if (typeid(*d_kind) == typeid(ProcDef)){
-    ProcDef *p = (ProcDef *)d_kind; 
+  if (typeid(*d_kind) == typeid(ProcDef)) {
+    ProcDef *p = (ProcDef *)d_kind;
     p->addArgs(defs);
-  }
-  else {
+  } else {
     throw std::domain_error("adding arguments to a vardef?");
   }
 }
+
+string Defn::str() const { return Colors.Green + d_kind->str() + " " + d_tag; }
 
 /*****************
  *     Env

@@ -35,6 +35,8 @@
 #include "check.h"
 #include "parser.h"
 #include "scanner.h"
+#include "kgen.h"
+#include "keiko.h"
 #include "location.hh"
 
 namespace Pascal {
@@ -72,6 +74,8 @@ class Driver {
   Scanner m_scanner;
   Parser m_parser;
   Program *m_program;
+  Inst *m_keiko;
+
   unsigned int m_column; // Used by scanner
   unsigned int m_line;
 
@@ -125,7 +129,13 @@ public:
 
   unsigned int totalLines();
 
+  // run semantic analyser
   void check();
+
+  // convert to keiko tree
+  void transform();
+
+  std::string keikoStr() const;
 
   /**
    * This is needed so that Scanner and Parser can call some

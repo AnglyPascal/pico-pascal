@@ -326,11 +326,7 @@ void align(int alignment, int *offset) {
 inline void declareProc(ProcDecl *decl, int level, int *offset, bool arg,
                         Env *env) {
   Type *t = decl->type;
-
-  int n = 0;
-  for (Decl *d : *decl->args)
-    n += d->length();
-  Defn *d = new Defn(decl->f->x_name, new ProcDef(n), level, decl->type);
+  Defn *d = new Defn(decl->f->x_name, new ProcDef(), level, decl->type);
 
   if (arg) {
     d->d_addr = new Local(*offset);

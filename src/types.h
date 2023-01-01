@@ -42,11 +42,20 @@ namespace Pascal {
  *    TYPES
  *****************/
 
+enum PascalType {
+  P_int,
+  P_void,
+  P_bool,
+  P_func,
+  P_array
+};
+
 struct Type {
   Type() = default;
   virtual ~Type() = default;
   virtual Type *clone() = 0;
   virtual string str() const = 0;
+  PascalType P_type = P_void;
 
   virtual int size() = 0;
   virtual int align() = 0;
@@ -57,6 +66,7 @@ struct Type {
 struct Int : public Type {
   Int() = default;
   ~Int() = default;
+  PascalType P_type = P_int;
 
   Type *clone();
   string str() const;
@@ -70,6 +80,7 @@ struct Int : public Type {
 struct Void : public Type {
   Void() = default;
   ~Void() = default;
+  PascalType P_type = P_void;
 
   Type *clone();
   string str() const;
@@ -83,6 +94,7 @@ struct Void : public Type {
 struct Array : public Type {
   int length;
   Type *elemType;
+  PascalType P_type = P_array;
 
   Array(int _length, Type *_elemType);
   ~Array();
@@ -99,6 +111,7 @@ struct Array : public Type {
 struct Bool : public Type {
   Bool() = default;
   ~Bool() = default;
+  PascalType P_type = P_bool;
 
   Type *clone();
   string str() const;
@@ -112,6 +125,7 @@ struct Bool : public Type {
 struct Func : public Type {
   vector<Type *> args;
   Type *returnType;
+  PascalType P_type = P_func;
 
   Func(vector<Type *> _args, Type *_returnType);
   ~Func();

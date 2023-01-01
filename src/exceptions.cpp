@@ -46,11 +46,8 @@ char const *semantic_error::what() const throw() {
   return domain_error::what();
 }
 
-internal_error::internal_error(char const *const message,
-                               location &err_loc) throw()
-    : domain_error("(" + std::to_string(err_loc.begin.line) + "." +
-                   std::to_string(err_loc.begin.column) + "): " + Colors.Red +
-                   message + Colors.White) {}
+internal_error::internal_error(char const *const message) throw()
+    : domain_error(Colors.Red + message + Colors.White) {}
 
 // TODO might not work
 char const *internal_error::what() const throw() {

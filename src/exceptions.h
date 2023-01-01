@@ -43,7 +43,7 @@ public:
 
 class internal_error : public std::domain_error {
 public:
-  explicit internal_error(char const *const message, location &err_loc) throw();
+  explicit internal_error(char const *const message) throw();
   virtual char const *what() const throw();
 };
 

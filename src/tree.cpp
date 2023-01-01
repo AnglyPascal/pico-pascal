@@ -241,6 +241,7 @@ Decl *VarDecl::clone() {
 }
 
 int VarDecl::length() const { return names->size(); }
+int VarDecl::size() const { return length() * type->size(); }
 
 ProcDecl::~ProcDecl() {
   for (Decl *d : *args)
@@ -273,6 +274,8 @@ ProcDecl::ProcDecl(Name *_f, vector<Decl *> *_args, Type *_returnType,
 }
 
 int ProcDecl::length() const { return 1; }
+
+int ProcDecl::size() const { return 0; }
 
 /************************
  **        Proc        **

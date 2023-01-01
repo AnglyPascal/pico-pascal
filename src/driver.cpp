@@ -43,7 +43,7 @@ Driver::Driver()
 
 Driver::Driver(const string &filename)
     : m_scanner(*this), m_parser(m_scanner, *this), m_program(nullptr),
-      m_column(0), m_line(1) {
+      m_keiko(nullptr), m_column(0), m_line(1) {
   ifstream *in = new ifstream(filename.c_str());
   if (!in->good())
     return;
@@ -112,4 +112,13 @@ void Driver::check() {
   Check ck = Check(m_program);
   Env *env = new Env();
   ck.check(env);
+}
+
+void Driver::transform() { 
+  KGen kgen = KGen();
+  m_keiko = kgen.transform(m_program); 
+}
+
+string Driver::keikoStr() const { 
+  return m_keiko->str(""); 
 }

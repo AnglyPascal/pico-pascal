@@ -263,6 +263,7 @@ struct Decl {
   virtual Decl *clone(){ return this; };
   virtual string str() const = 0;
   virtual int length() const { return 0; };
+  virtual int size() const { return 0; };
 };
 
 struct VarDecl : public Decl {
@@ -275,6 +276,7 @@ struct VarDecl : public Decl {
   Decl *clone();
   string str() const;
   int length() const;
+  int size() const;
 };
 
 struct ProcDecl : public Decl {
@@ -288,6 +290,7 @@ struct ProcDecl : public Decl {
   Decl *clone();
   string str() const;
   int length() const;
+  int size() const;
 };
 
 struct Proc;

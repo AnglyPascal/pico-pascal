@@ -60,7 +60,11 @@ int main(int argc, char **argv) {
     res = driver.parse_file(argv[1]);
 
   driver.check();
-  cout << driver.str() << endl;
+  /* cout << driver.str() << endl; */
+  /* cout << endl; */
+
+  driver.transform();
+  cout << driver.keikoStr() << endl;
 
   return res;
 }

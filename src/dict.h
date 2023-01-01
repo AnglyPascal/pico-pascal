@@ -35,6 +35,7 @@
 #include <string>
 
 #include "types.h"
+#include "print.h"
 
 using std::map;
 using std::string;
@@ -89,24 +90,30 @@ struct Defn;
 struct DefKind {
   virtual ~DefKind();
   virtual DefKind *clone() const = 0;
+  virtual bool isVariable() const;
+  virtual string str() const;
 };
 
 struct VarDef : public DefKind {
   VarDef();
   ~VarDef();
   DefKind *clone() const;
+  bool isVariable() const;
+  string str() const;
 };
 
 struct ProcDef : public DefKind {
-  int _nparams;
+  int _nparams, _argSize;
   vector<Defn *> *_args;
 
   void addArgs(vector<Defn *> defs);
 
-  ProcDef(int n);
+  ProcDef();
   ~ProcDef();
   DefKind *clone() const;
   ProcDef &operator=(const ProcDef &other);
+
+  string str() const;
 };
 
 /*****************
@@ -126,9 +133,12 @@ struct Defn {
   ~Defn();
 
   void addArgs(vector<Defn *> defs);
+  int nparams() const;
 
   Defn *clone() const;
   Defn &operator=(const Defn *other);
+
+  string str() const;
 };
 
 /*****************

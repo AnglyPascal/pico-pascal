@@ -9,8 +9,9 @@ SRC := src
 TESTSRC := $(shell ls test/*.p)
 
 MAIN = main 
-COMP = consts check types dict tree keiko kgen driver \
-			 simplify exceptions tree_print
+COMP = consts types dict tree tree_print   \
+			 check keiko keiko_print kgen driver \
+			 simplify exceptions 
 SOBJ = parser scanner
 
 CPPS = $(addprefix $(SRC)/, $(addsuffix .cpp, $(COMP) $(MAIN)))

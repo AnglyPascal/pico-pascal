@@ -28,6 +28,7 @@
 
 #include "kgen.h"
 #include "consts.h"
+#include "exceptions.h"
 
 using namespace Pascal;
 
@@ -41,6 +42,8 @@ Inst *staticChain(int n) {
   return new Keiko::Loadw(
       new Keiko::Offset(staticChain(n - 1), new Keiko::Const(stat_link)));
 }
+
+inline void error(string mssg) { throw internal_error(mssg.c_str()); }
 
 /*************
  ** GenExpr **
@@ -86,7 +89,7 @@ Inst *KGen::genExpr(Variable *v) {
   vector<Inst *> *insts = new vector<Inst *>();
   insts->push_back(new Keiko::Line(v->x->x_loc.begin.line));
 
-  if (typeid(d->d_kind) == typeid(VarDef)) {
+  if (d->d_kind->isVariable()) {
     if (v->type->size() == 1)
       insts->push_back(new Keiko::Loadc(genAddr(v)));
     else
@@ -94,7 +97,8 @@ Inst *KGen::genExpr(Variable *v) {
     return new Keiko::Seq(insts);
   }
 
-  throw std::domain_error("generating expression for ProcDef");
+  string s = "generating expression for ProcDef: " + v->str();
+  throw std::domain_error(s.c_str());
   /* int lev = d->d_level; */
   /* Inst *sl; */
   /* if (lev == 0) */
@@ -141,16 +145,20 @@ Inst *KGen::genExpr(Call *call) { return genCall(call); }
 
 Inst *KGen::genCall(Call *call) {
   Defn *d = call->f->getDef();
-  if (typeid(d->d_type) != typeid(Func))
-    throw std::domain_error("calling non function");
+  if (d->d_type->P_type == P_func) {
+    string s = "calling non function " + call->f->str();
+    throw std::domain_error(s.c_str());
+  }
   Func *t = (Func *)d->d_type;
 
   vector<Inst *> *args = new vector<Inst *>();
-  int *index = 0;
-  for (int i = 0, max = call->args->size(); i < max; i++)
-    genArg(index, (*t->params)[i], (*call->args)[i], args);
+  int index = 0;
+
+  /* std::cout << d->str() << std::endl; */
+  for (int i = 0, max = call->args->size(); i < max; i++) {
+    genArg(&index, t->args[i], (*call->args)[i], args);
+  }
   int n = args->size();
-  delete index;
 
   // get the closure of the function definition
   pair<Inst *, Inst *> p = genClosure(d);
@@ -158,15 +166,15 @@ Inst *KGen::genCall(Call *call) {
                          new Keiko::Seq(args));
 }
 
-void KGen::genArg(int *index, Defn *d, Expr *e, vector<Inst *> *args) {
-  if (typeid(d->d_kind) == typeid(VarDef)) {
-    if (d->d_type->isScalar())
+void KGen::genArg(int *index, Type *t, Expr *e, vector<Inst *> *args) {
+  if (typeid(t) == typeid(VarDef)) {
+    if (t->isScalar())
       args->push_back(new Keiko::Arg(*index, genExpr(e)));
     else
       args->push_back(genAddr(e));
   } else {
-    if (typeid(e) != typeid(Variable))
-      throw std::domain_error("function must be passed as a variable");
+    if (e->exprType != variable)
+      error("function must be passed as a variable " + e->str());
     Variable *v = (Variable *)e;
     pair<Inst *, Inst *> p = genClosure(v->x->getDef());
     args->push_back(new Keiko::Arg(*index, p.first));
@@ -192,12 +200,12 @@ pair<Inst *, Inst *> KGen::genClosure(Defn *d) {
 Inst *KGen::address(Defn *d) {
   int lev = d->d_level;
   // global variable or procedure definition
-  if (lev == 0 || typeid(d->d_kind) == typeid(ProcDef)) {
+  if (lev == 0 || !d->d_kind->isVariable()) {
     Global *loc = (Global *)d->d_addr;
     return new Keiko::Global(loc->label);
   }
   if (level < lev)
-    throw std::domain_error("trying to access variable defined out of scope");
+    error("trying to access variable defined out of scope " + d->str());
   Local *loc = (Local *)d->d_addr;
   int offset = loc->offset;
   if (level == d->d_level)
@@ -216,6 +224,8 @@ Inst *boundCheck(Inst *inst, Expr *e) {
 Inst *KGen::genAddr(Variable *v) { return address(v->x->getDef()); }
 
 Inst *KGen::genAddr(Sub *sub) {
+  bool boundcheck = true;
+
   Inst *arr = genAddr(sub->arr);
   Inst *ind = genExpr(sub->ind);
   Inst *word = new Keiko::Const(sub->type->size());
@@ -407,18 +417,60 @@ Inst *KGen::genStmt(Print *print) { return new Keiko::Nop(); }
  ** GenProc **
  *************/
 
-/* Inst *KGen::genProc(Proc *proc) { */
-/*   int nparams = 0; */
-/*   int argSize = 0; */
-/*   for (Defn *d : *proc->type->params) { */
-/*     if (typeid(d->d_kind) == typeid(VarDef)) */
-/*       nparams += 1; */
-/*     else */
-/*       nparams += 2; */
-/*     if (typeid(d->d_type) == typeid(Int)) */
+inline int locSizeBlock(Block *blk) {
+  int s = 0;
+  for (Decl *d : *blk->decls)
+    s += d->size();
+  return s;
+}
 
-/*   } */
-/* } */
+inline void genGlobals(Block *blk, vector<Keiko::GlobalDecl *> *gds) {
+  for (Decl *d : *blk->decls)
+    if (typeid(*d) == typeid(VarDecl))
+      for (Name *n : *((VarDecl *)d)->names) {
+        Location *addr = n->x_def->d_addr;
+        if (typeid(*addr) == typeid(Global))
+          gds->push_back(new Keiko::GlobalDecl(((Global *)addr)->label));
+      }
+}
+
+Inst *KGen::genBlock(Block *block, vector<Keiko::ProcDecl *> *procs) {
+  int _l = level;
+  for (Proc *p : *block->procs)
+    KGen::genProc(p, procs);
+  level = _l;
+  return genStmt(block->st);
+}
+
+void KGen::genProc(Proc *proc, vector<Keiko::ProcDecl *> *procs) {
+  Defn *defn = proc->fun->f->x_def;
+  ProcDef *defk = (ProcDef *)defn->d_kind;
+
+  int nparams = defk->_nparams;
+  int argSize = defk->_argSize;
+  int locSize = locSizeBlock(proc->blk);
+  int _level = defn->d_level;
+  string label = ((Global *)defn->d_addr)->label;
+  level = _level;
+  Inst *code = genBlock(proc->blk, procs);
+
+  Keiko::ProcDecl *pd =
+      new Keiko::ProcDecl(label, _level, nparams, argSize, locSize, code);
+  procs->push_back(pd);
+}
+
+Inst *KGen::transform(Program *program) {
+  Block *blk = program->prog;
+  vector<Keiko::GlobalDecl *> *gds = new vector<Keiko::GlobalDecl *>();
+  genGlobals(blk, gds);
+
+  vector<Keiko::ProcDecl *> *pds = new vector<Keiko::ProcDecl *>();
+  Inst *code = genBlock(blk, pds);
+  Keiko::ProcDecl *pmain = new Keiko::ProcDecl("pmain", 0, 0, 0, 0, code);
+  pds->push_back(pmain);
+
+  return new Keiko::Program(gds, pds);
+}
 
 // I need to take a different approach since i want this to be separate from the
 // code generation part.

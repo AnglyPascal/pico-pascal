@@ -37,7 +37,6 @@ using std::pair;
 
 namespace Pascal {
 
-bool boundcheck = true;
 
 class KGen {
 public:
@@ -65,7 +64,7 @@ private:
 
   Inst *genCall(Call *call);
 
-  void genArg(int *i, Defn *d, Expr *e, vector<Inst *> *args);
+  void genArg(int *i, Type *t, Expr *e, vector<Inst *> *args);
   pair<Inst *, Inst *> genClosure(Defn *d);
 
   Inst *genStmt(Stmt *stmt);
@@ -78,8 +77,8 @@ private:
   Inst *genStmt(WhileStmt *whilestmt);
   Inst *genStmt(Print *print);
 
-  Inst *genBlock(Block *block);
-  Inst *genProc(Proc *proc);
+  Inst *genBlock(Block *block, vector<Keiko::ProcDecl *> *procs);
+  void genProc(Proc *proc, vector<Keiko::ProcDecl *> *procs);
 };
 
 
