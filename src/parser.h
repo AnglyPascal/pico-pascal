@@ -446,45 +446,52 @@ namespace  Pascal  {
       // proc_decl
       char dummy5[sizeof (Proc *)];
 
+      // proc_heading
+      char dummy6[sizeof (ProcDecl *)];
+
       // program
-      char dummy6[sizeof (Program *)];
+      char dummy7[sizeof (Program *)];
 
       // stmts
       // stmt
-      char dummy7[sizeof (Stmt *)];
+      char dummy8[sizeof (Stmt *)];
 
       // typexp
-      char dummy8[sizeof (Type *)];
+      char dummy9[sizeof (Type *)];
 
+      // var_decl
+      char dummy10[sizeof (VarDecl *)];
+
+      // var_decls
       // decls
       // formals
-      char dummy9[sizeof (declList)];
+      char dummy11[sizeof (declList)];
 
       // actuals
       // expr_list
-      char dummy10[sizeof (exprList)];
+      char dummy12[sizeof (exprList)];
 
       // names
-      char dummy11[sizeof (nameList)];
+      char dummy13[sizeof (nameList)];
 
       // MONOP
       // MULOP
       // ADDOP
       // RELOP
-      char dummy12[sizeof (op)];
+      char dummy14[sizeof (op)];
 
       // proc_decls
-      char dummy13[sizeof (procList)];
+      char dummy15[sizeof (procList)];
 
       // stmt_list
-      char dummy14[sizeof (stmtList)];
+      char dummy16[sizeof (stmtList)];
 
       // "ident"
-      char dummy15[sizeof (string)];
+      char dummy17[sizeof (string)];
 
       // NUMBER
       // BOOLCONST
-      char dummy16[sizeof (uint64_t)];
+      char dummy18[sizeof (uint64_t)];
     };
 
     /// The size of the largest semantic type.
@@ -630,27 +637,30 @@ namespace  Pascal  {
         S_EOL = 37,                              // "end of line"
         S_YYACCEPT = 38,                         // $accept
         S_program = 39,                          // program
-        S_decls = 40,                            // decls
-        S_decl = 41,                             // decl
-        S_names = 42,                            // names
-        S_typexp = 43,                           // typexp
+        S_names = 40,                            // names
+        S_typexp = 41,                           // typexp
+        S_var_decl = 42,                         // var_decl
+        S_var_decls = 43,                        // var_decls
         S_block = 44,                            // block
-        S_proc_decls = 45,                       // proc_decls
-        S_proc_decl = 46,                        // proc_decl
-        S_formals = 47,                          // formals
-        S_stmts = 48,                            // stmts
-        S_stmt_list = 49,                        // stmt_list
-        S_stmt = 50,                             // stmt
-        S_actuals = 51,                          // actuals
-        S_expr_list = 52,                        // expr_list
-        S_expr = 53,                             // expr
-        S_ifexpr = 54,                           // ifexpr
-        S_simple = 55,                           // simple
-        S_term = 56,                             // term
-        S_factor = 57,                           // factor
-        S_variable = 58,                         // variable
-        S_constant = 59,                         // constant
-        S_name = 60                              // name
+        S_proc_heading = 45,                     // proc_heading
+        S_proc_decls = 46,                       // proc_decls
+        S_proc_decl = 47,                        // proc_decl
+        S_decl = 48,                             // decl
+        S_decls = 49,                            // decls
+        S_formals = 50,                          // formals
+        S_stmts = 51,                            // stmts
+        S_stmt_list = 52,                        // stmt_list
+        S_stmt = 53,                             // stmt
+        S_actuals = 54,                          // actuals
+        S_expr_list = 55,                        // expr_list
+        S_expr = 56,                             // expr
+        S_ifexpr = 57,                           // ifexpr
+        S_simple = 58,                           // simple
+        S_term = 59,                             // term
+        S_factor = 60,                           // factor
+        S_variable = 61,                         // variable
+        S_constant = 62,                         // constant
+        S_name = 63                              // name
       };
     };
 
@@ -713,6 +723,10 @@ namespace  Pascal  {
         value.move< Proc * > (std::move (that.value));
         break;
 
+      case symbol_kind::S_proc_heading: // proc_heading
+        value.move< ProcDecl * > (std::move (that.value));
+        break;
+
       case symbol_kind::S_program: // program
         value.move< Program * > (std::move (that.value));
         break;
@@ -726,6 +740,11 @@ namespace  Pascal  {
         value.move< Type * > (std::move (that.value));
         break;
 
+      case symbol_kind::S_var_decl: // var_decl
+        value.move< VarDecl * > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_var_decls: // var_decls
       case symbol_kind::S_decls: // decls
       case symbol_kind::S_formals: // formals
         value.move< declList > (std::move (that.value));
@@ -858,6 +877,20 @@ namespace  Pascal  {
 #endif
 
 #if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, ProcDecl *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const ProcDecl *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
       basic_symbol (typename Base::kind_type t, Program *&& v, location_type&& l)
         : Base (t)
         , value (std::move (v))
@@ -893,6 +926,20 @@ namespace  Pascal  {
       {}
 #else
       basic_symbol (typename Base::kind_type t, const Type *& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, VarDecl *&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const VarDecl *& v, const location_type& l)
         : Base (t)
         , value (v)
         , location (l)
@@ -1061,6 +1108,10 @@ switch (yykind)
         value.template destroy< Proc * > ();
         break;
 
+      case symbol_kind::S_proc_heading: // proc_heading
+        value.template destroy< ProcDecl * > ();
+        break;
+
       case symbol_kind::S_program: // program
         value.template destroy< Program * > ();
         break;
@@ -1074,6 +1125,11 @@ switch (yykind)
         value.template destroy< Type * > ();
         break;
 
+      case symbol_kind::S_var_decl: // var_decl
+        value.template destroy< VarDecl * > ();
+        break;
+
+      case symbol_kind::S_var_decls: // var_decls
       case symbol_kind::S_decls: // decls
       case symbol_kind::S_formals: // formals
         value.template destroy< declList > ();
@@ -2198,8 +2254,8 @@ switch (yykind)
     /// Constants.
     enum
     {
-      yylast_ = 113,     ///< Last index in yytable_.
-      yynnts_ = 23,  ///< Number of nonterminal symbols.
+      yylast_ = 111,     ///< Last index in yytable_.
+      yynnts_ = 26,  ///< Number of nonterminal symbols.
       yyfinal_ = 4 ///< Termination state number.
     };
 
@@ -2297,6 +2353,10 @@ switch (yykind)
         value.copy< Proc * > (YY_MOVE (that.value));
         break;
 
+      case symbol_kind::S_proc_heading: // proc_heading
+        value.copy< ProcDecl * > (YY_MOVE (that.value));
+        break;
+
       case symbol_kind::S_program: // program
         value.copy< Program * > (YY_MOVE (that.value));
         break;
@@ -2310,6 +2370,11 @@ switch (yykind)
         value.copy< Type * > (YY_MOVE (that.value));
         break;
 
+      case symbol_kind::S_var_decl: // var_decl
+        value.copy< VarDecl * > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_var_decls: // var_decls
       case symbol_kind::S_decls: // decls
       case symbol_kind::S_formals: // formals
         value.copy< declList > (YY_MOVE (that.value));
@@ -2405,6 +2470,10 @@ switch (yykind)
         value.move< Proc * > (YY_MOVE (s.value));
         break;
 
+      case symbol_kind::S_proc_heading: // proc_heading
+        value.move< ProcDecl * > (YY_MOVE (s.value));
+        break;
+
       case symbol_kind::S_program: // program
         value.move< Program * > (YY_MOVE (s.value));
         break;
@@ -2418,6 +2487,11 @@ switch (yykind)
         value.move< Type * > (YY_MOVE (s.value));
         break;
 
+      case symbol_kind::S_var_decl: // var_decl
+        value.move< VarDecl * > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_var_decls: // var_decls
       case symbol_kind::S_decls: // decls
       case symbol_kind::S_formals: // formals
         value.move< declList > (YY_MOVE (s.value));
@@ -2523,7 +2597,7 @@ switch (yykind)
 
 #line 37 "src/parser.y"
 } //  Pascal 
-#line 2527 "src/parser.h"
+#line 2601 "src/parser.h"
 
 
 

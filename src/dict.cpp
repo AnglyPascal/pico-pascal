@@ -50,16 +50,34 @@ string Global::str() const { return label; }
 
 DefKind::~DefKind() {}
 
+VarDef::VarDef() {}
 VarDef::~VarDef() {}
-DefKind *VarDef::clone() const { return new VarDef(*this); }
+DefKind *VarDef::clone() const { return new VarDef(); }
 
-ProcDef::~ProcDef() {}
-DefKind *ProcDef::clone() const { return new ProcDef(_nparams); }
+ProcDef::ProcDef(int n) : _nparams(n), _args(new vector<Defn *>()){};
+ProcDef::~ProcDef() {
+  for (Defn *d : *_args)
+    delete d;
+  delete _args;
+}
+DefKind *ProcDef::clone() const {
+  ProcDef *np = new ProcDef(_nparams);
+  for (Defn *d : *_args)
+    np->_args->push_back(d->clone());
+  return np;
+}
+
+void ProcDef::addArgs(vector<Defn *> defs) {
+  for (Defn *d : defs)
+    _args->push_back(d->clone());
+}
 
 ProcDef &ProcDef::operator=(const ProcDef &other) {
   if (&other != this)
     _nparams = other._nparams;
-
+  _args->clear();
+  for (Defn *d : *other._args)
+    _args->push_back(d->clone());
   return *this;
 }
 
@@ -95,6 +113,16 @@ Defn &Defn::operator=(const Defn *other) {
     d_addr = nullptr;
 
   return *this;
+}
+
+void Defn::addArgs(vector<Defn *> defs) {
+  if (typeid(*d_kind) == typeid(ProcDef)){
+    ProcDef *p = (ProcDef *)d_kind; 
+    p->addArgs(defs);
+  }
+  else {
+    throw std::domain_error("adding arguments to a vardef?");
+  }
 }
 
 /*****************

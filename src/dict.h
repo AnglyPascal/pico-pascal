@@ -84,19 +84,26 @@ struct Global : public Location {
  *    DEFKIND
  *****************/
 
+struct Defn;
+
 struct DefKind {
   virtual ~DefKind();
   virtual DefKind *clone() const = 0;
 };
 
 struct VarDef : public DefKind {
+  VarDef();
   ~VarDef();
   DefKind *clone() const;
 };
 
 struct ProcDef : public DefKind {
   int _nparams;
-  ProcDef(int n) : _nparams(n){};
+  vector<Defn *> *_args;
+
+  void addArgs(vector<Defn *> defs);
+
+  ProcDef(int n);
   ~ProcDef();
   DefKind *clone() const;
   ProcDef &operator=(const ProcDef &other);
@@ -117,6 +124,8 @@ struct Defn {
   Defn();
   Defn(ident _tag, DefKind *_kind, int _level, Type *_type);
   ~Defn();
+
+  void addArgs(vector<Defn *> defs);
 
   Defn *clone() const;
   Defn &operator=(const Defn *other);

@@ -51,13 +51,13 @@ Array::Array(int _length, Type *_elemType)
     : length(_length), elemType(_elemType) {}
 Type *Array::clone() { return new Void(); }
 string Array::str() const {
-  return "[" + elemType->str() + "](" + std::to_string(length) + ")";
+  return elemType->str() + "[" + std::to_string(length) + "]";
 }
 bool Array::isArray() { return true; }
 Array::~Array() {}
 
 Func::Func(vector<Type *> _args, Type *_returnType)
-    : args(_args), returnType(_returnType), params(new vector<Defn *>()) {}
+    : args(_args), returnType(_returnType) {}
 
 Type *Func::clone() {
   vector<Type *> nargs = vector<Type *>();
@@ -69,10 +69,10 @@ Type *Func::clone() {
 string Func::str() const {
   string s = "(";
   int n = args.size();
-  for (int i = 0; i < n-1; i ++)
+  for (int i = 0; i < n - 1; i++)
     s += args[i]->str() + ", ";
   if (n > 0)
-    s += args[n-1]->str();
+    s += args[n - 1]->str();
   return s + ") -> " + returnType->str();
 }
 

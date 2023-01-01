@@ -63,18 +63,27 @@ Defn *Name::getDef() {
 Expr::~Expr() {}
 
 // ------- Constant ----------
-Constant::Constant(int _n, location _loc) : n(_n) { loc = _loc; }
+Constant::Constant(int _n, location _loc) : n(_n) {
+  loc = _loc;
+  exprType = constant;
+}
 Constant::~Constant() {}
 Expr *Constant::clone() { return new Constant(n, loc); }
 Expr &Expr::operator=(Expr &other) { return other; }
 
 // ------- Variable ----------
-Variable::Variable(Name *_x, location _loc) : x(_x) { loc = _loc; }
+Variable::Variable(Name *_x, location _loc) : x(_x) {
+  loc = _loc;
+  exprType = variable;
+}
 Variable::~Variable() { delete x; }
 Expr *Variable::clone() { return new Variable(x->clone(), loc); }
 
 // ------- Monop ----------
-Monop::Monop(op _o, Expr *_e, location _loc) : o(_o), e(_e) { loc = _loc; };
+Monop::Monop(op _o, Expr *_e, location _loc) : o(_o), e(_e) {
+  loc = _loc;
+  exprType = monop;
+};
 Monop::~Monop() { delete e; }
 Expr *Monop::clone() { return new Monop(o, e->clone(), loc); }
 
@@ -82,6 +91,7 @@ Expr *Monop::clone() { return new Monop(o, e->clone(), loc); }
 Binop::Binop(op _o, Expr *_el, Expr *_er, location _loc)
     : o(_o), el(_el), er(_er) {
   loc = _loc;
+  exprType = binop;
 };
 Binop::~Binop() {
   delete el;
@@ -93,6 +103,7 @@ Expr *Binop::clone() { return new Binop(o, el->clone(), er->clone(), loc); }
 Call::Call(Name *_f, vector<Expr *> *_args, location _loc)
     : f(_f), args(_args) {
   loc = _loc;
+  exprType = call;
 }
 // should it share Expressions with other nodes?
 Call::~Call() {
@@ -107,6 +118,7 @@ Expr *Call::clone() { return new Call(f->clone(), args, loc); }
 IfExpr::IfExpr(Expr *_cond, Expr *_ifc, Expr *_elsec, location _loc)
     : cond(_cond), ifc(_ifc), elsec(_elsec) {
   loc = _loc;
+  exprType = ifexpr;
 }
 IfExpr::~IfExpr() {
   delete cond;
@@ -120,6 +132,7 @@ Expr *IfExpr::clone() {
 // ------- Sub ----------
 Sub::Sub(Expr *_arr, Expr *_ind, location _loc) : arr(_arr), ind(_ind) {
   loc = _loc;
+  exprType = sub;
 }
 Sub::~Sub() {
   delete arr;
@@ -210,43 +223,72 @@ Stmt *Print::clone() { return new Print(e->clone(), loc); }
  **  Decl              **
  *************************/
 
-Decl::~Decl() {
+VarDecl::~VarDecl() {
   for (Name *n : *names)
     delete n;
   delete names;
   delete type;
 }
 
-Decl::Decl(vector<Name *> *_names, Type *_type, location _loc)
+VarDecl::VarDecl(vector<Name *> *_names, Type *_type, location _loc)
     : names(_names), type(_type), loc(_loc) {}
+
+Decl *VarDecl::clone() {
+  vector<Name *> *_names = new vector<Name *>();
+  for (Name *n : *names)
+    _names->push_back(n->clone());
+  return new VarDecl(_names, type->clone(), loc);
+}
+
+int VarDecl::length() const { return names->size(); }
+
+ProcDecl::~ProcDecl() {
+  for (Decl *d : *args)
+    delete d;
+  delete args;
+  delete f;
+  delete type;
+}
+
+Decl *ProcDecl::clone() {
+  vector<Decl *> *_args = new vector<Decl *>();
+  for (Decl *d : *args)
+    _args->push_back(d->clone());
+  return new ProcDecl(f->clone(), _args, type->returnType->clone(), loc);
+}
+
+ProcDecl::ProcDecl(Name *_f, vector<Decl *> *_args, Type *_returnType,
+                   location _loc)
+    : f(_f), args(_args), type(nullptr), loc(_loc) {
+  vector<Type *> argtypes = vector<Type *>();
+  for (Decl *d : *args)
+    if (typeid(*d) == typeid(VarDecl)) {
+      VarDecl *v = (VarDecl *)d;
+      argtypes.insert(argtypes.end(), v->names->size(), v->type);
+    } else {
+      ProcDecl *p = (ProcDecl *)d;
+      argtypes.push_back(p->type);
+    }
+  type = new Func(argtypes, _returnType);
+}
+
+int ProcDecl::length() const { return 1; }
 
 /************************
  **        Proc        **
  *************************/
 
-Proc::Proc(Name *_f, vector<Decl *> *_decls, Type *_returnType, Block *_blk,
-           location _loc)
-    : f(_f), decls(_decls), blk(_blk), type(nullptr), loc(_loc) {
-  vector<Type *> args = vector<Type *>();
-  for (Decl *d : *decls)
-    args.insert(args.end(), d->names->size(), d->type);
-  type = new Func(args, _returnType);
-}
+Proc::Proc(ProcDecl *_fun, Block *_blk, location _loc)
+    : fun(_fun), blk(_blk), loc(_loc) {}
 
 Proc::~Proc() {
-  for (Decl *d : *decls)
-    delete d;
-  delete decls;
-  delete type;
+  delete fun;
   delete blk;
 }
 
 Proc *Proc::clone() {
-  vector<Decl *> *_decls = new vector<Decl *>();
-  for (Decl *d : *decls)
-    _decls->push_back(d);
-  return new Proc(f->clone(), _decls, type->returnType->clone(), blk->clone(),
-                  loc);
+  ProcDecl *f = (ProcDecl *)fun->clone();
+  return new Proc(f, blk->clone(), loc);
 }
 
 /************************

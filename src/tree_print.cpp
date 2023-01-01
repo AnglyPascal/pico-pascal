@@ -35,6 +35,7 @@
 namespace Pascal {
 
 string pad_const = "  ";
+bool print_infos = true;
 
 // ------- opName ----------
 map<op, string> opNames = {
@@ -49,22 +50,56 @@ map<op, string> opNames = {
  *************************/
 
 string Name::str() const {
-  string s = x_name + Colors.Black + "{" + std::to_string(x_def->d_level) + ",";
-  if (x_def->d_addr)
-    s += x_def->d_addr->str() + "}";
-  else
-    s += Colors.Red + "_" + Colors.Black + "}";
-  return s + Colors.White;
+  if (x_def) {
+    string s = x_name;
+    string info = Colors.Black + "{" + std::to_string(x_def->d_level) + ",";
+    if (x_def->d_addr)
+      info += x_def->d_addr->str() + "}" + Colors.White;
+    else
+      info += Colors.Red + "_" + Colors.Black + "}" + Colors.White;
+    if (print_infos)
+      return s + info;
+    else 
+      return s;
+  }
+  else return Colors.Black + "_" + Colors.White;
 }
 
 string Expr::str() const { return "Expr"; }
 string Constant::str() const { return std::to_string(n); }
 string Variable::str() const { return x->str(); }
 
-string Monop::str() const { return "(" + opNames[o] + e->str() + ")"; }
+bool simple(Expr *e) {
+  switch (e->exprType){
+    case constant:
+    case sub:
+    case call:
+    case variable:
+      return true;
+    default:
+      return false;
+  }
+}
+
+string Monop::str() const { 
+  if (simple(e))
+    return opNames[o] + e->str(); 
+  else 
+    return opNames[o] + "(" + e->str() + ")"; 
+}
 
 string Binop::str() const {
-  return "(" + el->str() + " " + opNames[o] + " " + er->str() + ")";
+  string s1, s2;
+  if (simple(el))
+    s1 = el->str(); 
+  else 
+    s1 = "(" + el->str() + ")";
+  if (simple(el))
+    s2 = er->str(); 
+  else 
+    s2 = "(" + er->str() + ")";
+
+  return s1 + " " + opNames[o] + " " + s2;
 }
 
 string Call::str() const {
@@ -82,13 +117,23 @@ string IfExpr::str() const {
 
 string Sub::str() const { return arr->str() + "[" + ind->str() + "]"; }
 
-string Decl::str() const {
+string VarDecl::str() const {
   string s = "var ";
   int n = names->size();
   for (int i = 0; i < n - 1; i++)
     s += (*names)[i]->str() + ", ";
   s += (*names)[n - 1]->str();
   s += ": " + type->str();
+  return s;
+}
+
+string ProcDecl::str() const {
+  string s = "proc " + f->str() + "(";
+  int n = args->size();
+  for (int i = 0; i < n - 1; i++)
+    s += (*args)[i]->str() + ", ";
+  s += (*args)[n - 1]->str();
+  s += "): " + type->returnType->str();
   return s;
 }
 
@@ -103,7 +148,8 @@ string Block::str(string pad) const {
 
   string str = "";
   for (Decl *d : *decls)
-    str += pad + d->str() + "\n\n";
+    str += pad + d->str() + "\n";
+  str += "\n";
 
   for (Proc *p : *procs)
     str += p->str(pad);
@@ -115,9 +161,7 @@ string Block::str(string pad) const {
 }
 
 string Proc::str(string pad) const {
-  string str = pad + "proc " + f->str() + ": " + type->str() + "\n";
-  for (Decl *d : *decls)
-    str += pad + pad_const + d->str() + "\n";
+  string str = pad + fun->str() + "\n";
   str += blk->str(pad) + "\n";
   return str;
 }

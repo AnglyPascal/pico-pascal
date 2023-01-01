@@ -60,7 +60,7 @@ private:
 
   void checkVar(Expr *expr, Env *env);
 
-  void check(Proc *proc, int level, Env *env);
+  void checkProc(Proc *proc, int level, Env *env);
 
   Type *checkExpr(Expr *expr, Env *env);
   Type *check(Monop *monop, Env *env);

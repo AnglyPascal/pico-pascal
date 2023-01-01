@@ -83,9 +83,20 @@ enum op {
  *    EXPR
  *****************/
 
+enum expr {
+  constant, 
+  variable, 
+  monop,
+  binop,
+  call, 
+  ifexpr,
+  sub
+};
+
 struct Expr {
   Type *type = nullptr;
   location loc;
+  expr exprType;
 
   virtual string str() const;
   virtual ~Expr() = 0;
@@ -247,13 +258,36 @@ struct Print : public Stmt {
 };
 
 struct Decl {
+  Decl() = default;
+  virtual ~Decl() = default;
+  virtual Decl *clone(){ return this; };
+  virtual string str() const = 0;
+  virtual int length() const { return 0; };
+};
+
+struct VarDecl : public Decl {
   vector<Name *> *names;
   Type *type;
   location loc;
 
-  ~Decl();
-  Decl(vector<Name *> *_names, Type *_type, location _loc);
+  VarDecl(vector<Name *> *_names, Type *_type, location _loc);
+  ~VarDecl();
+  Decl *clone();
   string str() const;
+  int length() const;
+};
+
+struct ProcDecl : public Decl {
+  Name *f;
+  vector<Decl *> *args;
+  Func *type;
+  location loc;
+
+  ProcDecl(Name *_f, vector<Decl *> *_args, Type *_returnType, location _loc);
+  ~ProcDecl();
+  Decl *clone();
+  string str() const;
+  int length() const;
 };
 
 struct Proc;
@@ -264,22 +298,20 @@ struct Block {
   Stmt *st;
   int level;
 
-  virtual ~Block();
-  virtual Block *clone();
+  ~Block();
+  Block *clone();
   Block(vector<Decl *> *_decls, vector<Proc *> *_procs, Stmt *_st);
   string str(string pad) const;
 };
 
 struct Proc {
-  Name *f;
-  vector<Decl *> *decls;
+  ProcDecl *fun;
   Block *blk;
-  Func *type;
   location loc;
 
-  virtual ~Proc();
-  virtual Proc *clone();
-  Proc(Name *_f, vector<Decl *> *_decls, Type *_type, Block *_blk, location _loc);
+  Proc(ProcDecl *_fun, Block *_blk, location _loc);
+  ~Proc();
+  Proc *clone();
   string str(string pad) const;
 };
 

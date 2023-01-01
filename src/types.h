@@ -38,8 +38,6 @@ using std::vector;
 
 namespace Pascal {
 
-struct Defn;
-
 /*****************
  *    TYPES
  *****************/
@@ -114,7 +112,6 @@ struct Bool : public Type {
 struct Func : public Type {
   vector<Type *> args;
   Type *returnType;
-  vector<Defn *> *params;
 
   Func(vector<Type *> _args, Type *_returnType);
   ~Func();

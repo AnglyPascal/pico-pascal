@@ -127,8 +127,12 @@
 %token  EOL    "end of line"
 
 %type <Program *>   program
-%type <declList>    decls
 %type <Decl *>      decl
+%type <VarDecl *>   var_decl
+%type <ProcDecl *>  proc_heading
+%type <declList>    decls
+%type <declList>    var_decls
+
 %type <Block *>     block
 %type <declList>    formals
 %type <procList>    proc_decls
@@ -159,16 +163,8 @@
 %%
 
 program : 
-    block "."         { Program *pgm = new Program($1); 
-                        driver.setProgram(pgm); } ;
-
-decls :
-    /* empty */       { $$ = new vector<Decl *>(); }
-  | decls decl        { $1->push_back($2); $$ = $1; }
+    block "."         { Program *pgm = new Program($1); driver.setProgram(pgm); } 
   ;
-
-decl :
-    VAR names COLON typexp SEMI { $$ = new Decl($2, $4, @1); } ;
 
 names :
     name                { vector<Name *> *ns = new vector<Name *>(); 
@@ -181,8 +177,23 @@ typexp :
   | BOOLEAN                     { $$ = new Bool(); }
   | ARRAY NUMBER OF typexp      { $$ = new Array($2, $4); }
 
+var_decl: 
+    VAR names COLON typexp SEMI { $$ = new VarDecl($2, $4, @1); } 
+  ;
+
+var_decls :
+    /* empty */         { $$ = new vector<Decl *>(); }
+  | var_decls var_decl  { $1->push_back($2); $$ = $1; }
+  ;
+
 block : 
-    decls proc_decls "begin" stmts "end"  { $$ = new Block($1, $2, $4); } ;
+    var_decls proc_decls "begin" stmts "end"  { $$ = new Block($1, $2, $4); } 
+  ;
+
+proc_heading : 
+    PROC name formals SEMI            { $$ = new ProcDecl($2, $3, new Void(), @1); }
+  | PROC name formals ":" typexp SEMI { $$ = new ProcDecl($2, $3, $5, @1); }
+  ;
 
 proc_decls :
     /* empty */                     { $$ = new vector<Proc *>(); }
@@ -190,14 +201,26 @@ proc_decls :
 	;
 
 proc_decl :
-    PROC name formals SEMI block SEMI             { $$ = new Proc($2, $3, new Void(), $5, @1); }
-  | PROC name formals ":" typexp SEMI block SEMI  { $$ = new Proc($2, $3, $5, $7, @1); }
+    proc_heading block SEMI         { $$ = new Proc($1, $2, @1); }
+  ;
+
+decl :
+    var_decl                    { $$ = $1; }
+  | proc_heading                { $$ = $1; }
+  ;
+
+decls :
+    /* empty */       { $$ = new vector<Decl *>(); }
+  | decls decl        { $1->push_back($2); $$ = $1; }
   ;
 
 formals :
-    "(" decls ")"                   { $$ = $2; } ;
+    "(" decls ")"                   { $$ = $2; } 
+  ;
 
-stmts : stmt_list                   { $$ = Pascal::sequence($1); } ;
+stmts : 
+    stmt_list                   { $$ = Pascal::sequence($1); } 
+  ;
 
 stmt_list :
     stmt                            { vector<Stmt *> *sts = new vector<Stmt *>(); 

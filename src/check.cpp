@@ -46,8 +46,12 @@ Type *currentReturn = new Void();
 
 Label label = Label();
 
-inline void sem_error(char const *const mssg) {
-  throw semantic_error(mssg, err_loc);
+/* inline void sem_error(char const *const mssg) { */
+/*   throw semantic_error(mssg, err_loc); */
+/* } */
+
+inline void sem_error(string mssg) {
+  throw semantic_error(mssg.c_str(), err_loc);
 }
 
 /*********************
@@ -78,7 +82,7 @@ Type *Check::check(Monop *monop, Env *env) {
       return x;
     }
     default:
-      sem_error("bad monop");
+      throw semantic_error("bad monop", err_loc);
   }
 }
 
@@ -153,9 +157,11 @@ Type *Check::check(Call *fe, Env *env) {
   Defn *d = findDef(fe->f, env);
   if (typeid(*d->d_kind) != typeid(ProcDef))
     sem_error("calling a non procedure");
+
   Func *t = (Func *)d->d_type;
   if (t->args.size() != fe->args->size())
     sem_error("calling procedure without the correct number of arguments");
+
   for (std::size_t i = 0, max = t->args.size(); i < max; i++) {
     Type *ta = checkExpr((*fe->args)[i], env);
     if (!equalType(t->args[i], ta)) {
@@ -165,9 +171,10 @@ Type *Check::check(Call *fe, Env *env) {
                  t->args[i]->str() + " was expected";
       sem_error(s.c_str());
     }
-    if (typeid(*ta) == typeid(Func) &&
-        typeid((*fe->args)[i]) != typeid(Variable))
-      sem_error("function arguments need to passed as variables");
+    if (typeid(*ta) == typeid(Func) && (*fe->args)[i]->exprType != variable){
+      sem_error("function arguments need to passed as variables " + (*fe->args)[i]->str());
+    }
+
   }
   return t->returnType;
 }
@@ -316,51 +323,80 @@ void align(int alignment, int *offset) {
     *offset = *offset - margin + alignment;
 }
 
-inline void declareLocal(Decl *decl, int level, int *offset, bool arg,
-                         Env *env) {
+inline void declareProc(ProcDecl *decl, int level, int *offset, bool arg,
+                        Env *env) {
   Type *t = decl->type;
 
-  for (Name *n : *decl->names) {
-    Defn *d = new Defn(n->x_name, new VarDef(), level, t);
+  int n = 0;
+  for (Decl *d : *decl->args)
+    n += d->length();
+  Defn *d = new Defn(decl->f->x_name, new ProcDef(n), level, decl->type);
 
-    align(d->d_type->align(), offset);
-    if (arg) {
-      d->d_addr = new Local(*offset);
-      *offset += t->size();
-    } else {
-      *offset -= t->size();
-      d->d_addr = new Local(*offset);
+  if (arg) {
+    d->d_addr = new Local(*offset);
+    *offset += t->size();
+  } else {
+    string lab = decl->f->x_name + "_" + std::to_string(label.incr());
+    d->d_addr = new Global(lab);
+  }
+
+  decl->f->x_def = d;
+  define(d, env);
+}
+
+inline void declareLocal(Decl *_decl, int level, int *offset, bool arg,
+                         Env *env) {
+  if (typeid(*_decl) == typeid(VarDecl)) {
+    VarDecl *decl = (VarDecl *)_decl;
+    Type *t = decl->type;
+
+    for (Name *n : *decl->names) {
+      Defn *d = new Defn(n->x_name, new VarDef(), level, t);
+
+      align(d->d_type->align(), offset);
+      if (arg) {
+        d->d_addr = new Local(*offset);
+        *offset += t->size();
+      } else {
+        *offset -= t->size();
+        d->d_addr = new Local(*offset);
+      }
+
+      n->x_def = d;
+      define(d, env);
     }
-
-    n->x_def = d;
-    define(d, env);
+  } else {
+    ProcDecl *decl = (ProcDecl *)_decl;
+    if (!arg)
+      throw std::domain_error("Procedure declaration not as an argument");
+    declareProc(decl, level, offset, arg, env);
   }
 }
 
-inline void declareGlobal(Decl *decl, Env *env) {
-  Type *t = decl->type;
-  for (Name *n : *decl->names) {
-    Defn *d = new Defn(n->x_name, new VarDef(), 0, t);
-    d->d_addr = new Global("_" + n->x_name);
-    n->x_def = d;
-    define(d, env);
+inline void declareGlobal(Decl *_decl, Env *env) {
+  if (typeid(*_decl) == typeid(VarDecl)) {
+    VarDecl *decl = (VarDecl *)_decl;
+    Type *t = decl->type;
+
+    for (Name *n : *decl->names) {
+      Defn *d = new Defn(n->x_name, new VarDef(), 0, t);
+      d->d_addr = new Global("_" + n->x_name);
+      n->x_def = d;
+      define(d, env);
+    }
+  } else {
+    throw std::domain_error("Why is there a dangling proc decl");
   }
 }
 
 inline void declareProcs(vector<Proc *> *procs, int level, Env *env) {
-  for (Proc *proc : *procs) {
-    string lab = proc->f->x_name + "_" + std::to_string(label.incr());
-    int n = proc->decls->size();
-
-    Defn *d = new Defn(proc->f->x_name, new ProcDef(n), level, proc->type);
-    d->d_addr = new Global(lab);
-
-    proc->f->x_def = d;
-    define(d, env);
-  }
+  for (Proc *proc : *procs)
+    declareProc(proc->fun, level, new int(0), false, env);
 }
 
-void Check::check(Proc *proc, int level, Env *_env) {
+// We are assuming that proc->fun has been declared, and fun->f->x_def has been
+// assigned
+void Check::checkProc(Proc *proc, int level, Env *_env) {
   err_loc = proc->loc;
 
   Env *env = new Env(_env);
@@ -368,22 +404,27 @@ void Check::check(Proc *proc, int level, Env *_env) {
   int fp = 40;
   int sp = 0;
 
-  for (Decl *decl : *proc->decls)
+  for (Decl *decl : *proc->fun->args)
     declareLocal(decl, level, &fp, true, env);
 
-  vector<Defn *> *pps = proc->type->params;
-  for (Decl *decl : *proc->decls)
-    for (Name *n : *decl->names)
-      pps->push_back(n->x_def);
+  vector<Defn *> pps = vector<Defn *>();
+  for (Decl *decl : *proc->fun->args)
+    if (typeid(*decl) == typeid(VarDecl))
+      for (Name *n : *((VarDecl *)decl)->names)
+        pps.push_back(n->x_def);
+    else
+      pps.push_back(((ProcDecl *)decl)->f->x_def);
+
+  proc->fun->f->x_def->addArgs(pps);
 
   for (Decl *decl : *proc->blk->decls)
     declareLocal(decl, level, &sp, false, env);
 
   declareProcs(proc->blk->procs, level + 1, env);
   for (Proc *p : *proc->blk->procs)
-    check(p, level + 1, env);
+    checkProc(p, level + 1, env);
 
-  currentReturn = proc->type->returnType;
+  currentReturn = proc->fun->type->returnType;
   checkStmt(proc->blk->st, true, env);
   currentReturn = new Void();
   proc->blk->level = level;
@@ -399,7 +440,7 @@ void Check::check(Env *env) {
     declareGlobal(decl, env);
   declareProcs(blk->procs, 1, env);
   for (Proc *p : *blk->procs)
-    check(p, 1, env);
+    checkProc(p, 1, env);
   checkStmt(blk->st, false, env);
   blk->level = 0;
 }
